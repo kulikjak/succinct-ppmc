@@ -10,11 +10,11 @@
 #define INSERT_BIT(leaf, pos, value)                         \
   {                                                          \
     uint32_t mask = ((pos) == 0) ? 0 : ~(0) << (8 - (pos));  \
-    uint32_t new = 0;                                        \
+    uint32_t vector = 0;                                     \
                                                              \
-    new |= (leaf)->vector_& mask;                            \
-    new |= (((leaf)->vector_ & ~(mask))) >> 1;               \
-    (leaf)->vector_ = new;                                   \
+    vector |= (leaf)->vector_& mask;                         \
+    vector |= (((leaf)->vector_ & ~(mask))) >> 1;            \
+    (leaf)->vector_ = vector;                                \
     (leaf)->p_ += 1;                                         \
                                                              \
     if (value) {                                             \

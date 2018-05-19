@@ -10,7 +10,7 @@
 #define true 1
 #define false 0
 
-#define VERBOSE_ true
+#define VERBOSE_ false
 
 #define UNREACHABLE assert(0);
 #define UNUSED(var) (void)(var)
