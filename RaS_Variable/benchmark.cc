@@ -48,7 +48,7 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   auto t4 = high_resolution_clock::now();
 
-  uint64_t nr_1 = RaS_Rank(RaS_root, size + 1);
+  uint64_t nr_1 = RaS_Rank(RaS_root, size + 1) + 1;
 
   // measure select 1 duration
   auto t5 = high_resolution_clock::now();
