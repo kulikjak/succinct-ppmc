@@ -81,6 +81,28 @@ int32_t rank_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
   return rank;
 }
 
+int32_t rank0_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
+  int32_t i, limit, rest;
+  int32_t rank = 0;
+
+  // check that x__ is not higheer then len of sequence
+  x__ = (x__ > len__) ? len__ : x__;
+
+  // get rank from whole integers
+  limit = x__ / 64;
+  for (i = 0; i < limit; i++) {
+    rank += 64 - __builtin_popcountl(seq__[i]);
+  }
+
+  // get rank from smaller integer
+  rest = 63 - (x__ % 64);
+  for (i = 63; i > rest; i--) {
+    rank += ((seq__[limit] >> i) & 0x1) ? 0 : 1;
+  }
+
+  return rank;
+}
+
 int32_t get_bit_sequence(uint64_t* seq__, int32_t len__, int32_t pos__) {
   if (pos__ < 0 || pos__ >= len__)
     return -1;
@@ -101,6 +123,28 @@ int32_t select_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
       // find correct position in last integer
       for (pos = 0; x__; pos++) {
         x__ -= (seq__[i] >> (63 - pos)) & 0x1;
+      }
+      return i*64 + pos;
+    }
+    x__ -= rank;
+  }
+  // if there is not enough 1s, return -1
+  return -1;
+}
+
+int32_t select0_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
+  int32_t i, limit, pos;
+  int32_t rank = 0;
+
+  limit = (int)((len__ - 1) / 64);
+  // run through whole integers
+  for (i = 0; i <= limit; i++) {
+    rank = 64 - __builtin_popcountl(seq__[i]);
+    if (rank >= x__) {
+
+      // find correct position in last integer
+      for (pos = 0; x__; pos++) {
+        x__ -= ((seq__[i] >> (63 - pos)) & 0x1) ? 0 : 1;
       }
       return i*64 + pos;
     }
