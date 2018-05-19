@@ -69,6 +69,13 @@ typedef struct Node_32b {
   int32_t right_;
 } Node_32b;
 
+typedef struct Node_64b {
+  uint64_t p_;
+  uint64_t r_;
+  int64_t left_;
+  int64_t right_;
+} Node_64b;
+
 
 typedef struct Leaf_8b {
   uint8_t p_;
@@ -87,6 +94,13 @@ typedef struct Leaf_32b {
   uint32_t r_;
   uint32_t vector_;
 } Leaf_32b;
+
+typedef struct Leaf_64b {
+  uint64_t p_;
+  uint64_t r_;
+  uint64_t vector_;
+} Leaf_64b;
+
 
 
 struct memory_8b {
@@ -110,9 +124,6 @@ struct memory_8b {
 // initialize memory space for 8b nodes
 void init_memory() {
   G_alloc_state = 8;
-
-//  memset(memory_8b.nodes_, 0, sizeof(memory_8b.nodes_));
-//  memset(memory_8b.leafs_, 0, sizeof(memory_8b.leafs_));
 
   memory_8b.node_current_ = -1;
   memory_8b.leaf_current_ = -1;

@@ -31,28 +31,6 @@
 
 
 
-/*void RaSx(int32_t node__) {
-  uint8_t i;
-
-  Leaf_8b* leaf_ref;
-  Node_8b* node_ref;
-
-  if (IS_LEAF(node__)) {
-
-    printf("%d : leaf\n", node__);
-    return;
-  }
-
-  // handle child nodes
-  node_ref = MEMORY_GET_NODE(node__);
-
-  printf("%d : left: %d - right: %d\n", node__, node_ref->left_, node_ref->right_);
-
-  RaSx(node_ref->left_);
-  RaSx(node_ref->right_);
-}*/
-
-
 void RaS_Insert_8_(int32_t *root__, uint32_t pos__, bool val__) {
   if (pos__ > MEMORY_GET_ANY(*root__)->p_)
     FATAL("Index out of range");
