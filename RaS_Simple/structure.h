@@ -30,6 +30,8 @@ Tree leafs also have fixed size which means, that they are wasting space.
 
 #define REAL_PTR(ptr) ((RaSnode*)((uintptr_t)ptr & ~(0x1)))
 
+#define UNUSED(var) (void)(var)
+
 
 void fatal(const char* m__, const char* e__) {
   fprintf(stderr, "[Fatal]: %s%s\n", m__, e__);
@@ -56,7 +58,7 @@ void verbose(const char* m__, const char* e__) {
     (leaf)->p += 1;                                          \
                                                              \
     if (value) {                                             \
-      (leaf)->vector |= 0x1 << 31 - (pos);                   \
+      (leaf)->vector |= 0x1 << (31 - (pos));                 \
       (leaf)->r += 1;                                        \
     }                                                        \
   }
@@ -152,8 +154,7 @@ void deleteRaS(RaSstruct** s__) {
 
 
 void insert(RaSstruct* s__, uint32_t pos__, bool val__) {
-  printf("%d %d\n", pos__, s__->root->p);
-  if (pos__ > s__->root->p)
+  if (pos__ > REAL_PTR(s__->root)->p)
   	FATAL("Index out of range");
 
   VERBOSE( fprintf(stderr, "Inserting value %d on position %u\n", val__, pos__); )
@@ -164,7 +165,6 @@ void insert(RaSstruct* s__, uint32_t pos__, bool val__) {
 
   // traverse the tree and enter correct leaf
   while (!IS_LEAF(current)) {
-    printf("asdf\n");
     parent = REAL_PTR(current);
 
     // update p and r counters as we are traversing the structure
@@ -172,7 +172,7 @@ void insert(RaSstruct* s__, uint32_t pos__, bool val__) {
     REAL_PTR(current)->r += (val__) ? 1 : 0;
 
     int32_t temp = REAL_PTR(REAL_PTR(current)->left)->p;
-    if (temp >= pos__) {
+    if (temp >= (int32_t)pos__) {
       current = REAL_PTR(current)->left;
     } else {
       pos__ -= temp;
@@ -282,11 +282,10 @@ int32_t selectRaS(RaSstruct* s__, int32_t num__) {
 
   RaSleaf* leaf = (RaSleaf*)REAL_PTR(current);
 
-  if (num__ > leaf->r)
+  if (num__ > (int32_t)leaf->r)
   	return -1;
 
   // traverse current leaf up to position pos__ and get select
-  int32_t limit = (num__ <= 32) ? num__ : 32;
   for (i = 0; num__; i++) {
   	num__ -= (leaf->vector >> (31 - i)) & 0x1;
   }

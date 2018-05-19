@@ -12,7 +12,6 @@
 bool test_rear_insert() {
 	int32_t i;
 
-
 	// init simple bit sequence with random values
 	uint64_t* sequence = init_random_bin_sequence(SEQENCE_LEN);
 
@@ -91,6 +90,8 @@ bool test_front_insert() {
 
 
 int main (int argc, char* argv[]) {
+	UNUSED(argc);
+	UNUSED(argv);
 
 	test_rear_insert();
 	test_front_insert();
