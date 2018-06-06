@@ -5,6 +5,7 @@
 
 #include "utils.h"
 #include "memory.h"
+#include "stack.h"
 
 #define INSERT_BIT(leaf, pos, value)                         \
   {                                                          \

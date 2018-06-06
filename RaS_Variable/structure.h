@@ -22,6 +22,9 @@ int32_t RaS_Init() {
   leaf_ref->p_ = 0;
   leaf_ref->r_ = 0;
 
+  // initialize other structures
+  
+
   return leaf;
 }
 

@@ -12,7 +12,7 @@ Stack is simulated as simple array of adjustable size. All operations return -1 
 #include "utils.h"
 
 
-// used for tree recursion - maximum 256 because of 8 bit counters.
+// used for tree traversal - maximum 256 because of 8 bit counters.
 #define MAX_STACK_SIZE 64
 
 // global stack

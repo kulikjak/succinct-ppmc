@@ -1,5 +1,5 @@
 /*
-Implementation very simple and inefficient Rank and Select structure.
+Implementation of very simple and inefficient Rank and Select structure.
 
 It is used only for testing purposes (correct implementation of each other structure).
 With time complexity of O(n) for both rank and select, it should not be used on bigger bit sequences.
@@ -141,10 +141,14 @@ int32_t select0_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
   for (i = 0; i <= limit; i++) {
     rank = 64 - __builtin_popcountl(seq__[i]);
     if (rank >= x__) {
-
       // find correct position in last integer
+      if (i < limit)
+        limit = INT_MAX;
+      else
+        limit = len__ % 64;
       for (pos = 0; x__; pos++) {
         x__ -= ((seq__[i] >> (63 - pos)) & 0x1) ? 0 : 1;
+        if (pos >= limit) return -1;
       }
       return i*64 + pos;
     }

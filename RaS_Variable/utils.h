@@ -1,10 +1,9 @@
 #ifndef _RAS_UTILS__
 #define _RAS_UTILS__
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 
 #define bool uint8_t
 #define true 1
@@ -28,7 +27,6 @@ void verbose(const char* m__, const char* e__) {
 #define FATAL_EXT(msg, msg2) (fatal(msg, msg2))
 
 #define VERBOSE(func) if (VERBOSE_){ func }
-
 
 
 #endif  // _RAS_UTILS__

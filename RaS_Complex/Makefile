@@ -3,10 +3,10 @@ CPLUS = g++ --std=c++0x -Wall -Wextra -pedantic -Wno-long-long -g
 
 all: test benchmark
 
-test: test.c *.h
+test: test.c *.h ../bit_sequence.h
 	$(CXX) test.c -lm -o $@
 
-benchmark: benchmark.cc *.h
+benchmark: benchmark.cc *.h ../bit_sequence.h
 	$(CPLUS) benchmark.cc -o $@
 
 clean:
