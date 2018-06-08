@@ -10,11 +10,10 @@ void benchmark(uint64_t size, double p = 0.5) {
   using std::chrono::duration_cast;
   using std::chrono::duration;
 
-  // initialize memory structure
-  STACK_CLEAN();
-  memory_32b* mem = init_memory();
+  RAS_Struct RaS;
 
-  int32_t RaS_root = RaS_Init(mem);
+  // initialize memory structure
+  RAS_Init(&RaS);
 
   srand(time(NULL));
 
@@ -24,7 +23,7 @@ void benchmark(uint64_t size, double p = 0.5) {
   std::cout << "insert ... " << std::flush;
   for (uint64_t i = 0; i < size; i++) {
     int8_t bit = double(rand()) / RAND_MAX < p ? 1 : 0;
-    RaS_Insert(mem, &RaS_root, rand() % (i + 1), bit);
+    RAS_Insert(&RaS, rand() % (i + 1), bit);
   }
   std::cout << "done." << std::endl;
 
@@ -33,48 +32,71 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   std::cout << "access ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RaS_Get(mem, RaS_root, rand() % size);
+    RAS_Get(RaS, rand() % size);
   }
   std::cout << "done." << std::endl;
 
   // measure rank 1 duration
   auto t3 = high_resolution_clock::now();
 
-  std::cout << "rank 1 ... " << std::flush;
+  std::cout << "rank 0 ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RaS_Rank(mem, RaS_root, rand() % (size + 1));
+    RAS_Rank0(RaS, rand() % (size + 1));
   }
   std::cout << "done." << std::endl;
 
   auto t4 = high_resolution_clock::now();
 
-  uint64_t nr_1 = RaS_Rank(mem, RaS_root, size + 1) + 1;
+  std::cout << "rank 1 ... " << std::flush;
+  for (uint64_t i = 0; i < size; ++i) {
+    RAS_Rank(RaS, rand() % (size + 1));
+  }
+  std::cout << "done." << std::endl;
+
+  auto t5 = high_resolution_clock::now();
+
+  uint64_t nr_1 = RAS_Rank(RaS, size + 1) + 1;
 
   // measure select 1 duration
-  auto t5 = high_resolution_clock::now();
+  auto t6 = high_resolution_clock::now();
+
+  std::cout << "select 0 ... " << std::flush;
+  for (uint64_t i = 0; i < size; ++i) {
+    RAS_Select0(RaS, rand() % nr_1);
+  }
+  std::cout << "done." << std::endl;
+
+  auto t7 = high_resolution_clock::now();
 
   std::cout << "select 1 ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RaS_Select(mem, RaS_root, rand() % nr_1);
+    RAS_Select(RaS, rand() % nr_1);
   }
   std::cout << "done." << std::endl;
-  auto t6 = high_resolution_clock::now();
+
+  auto t8 = high_resolution_clock::now();
 
   uint64_t sec_insert =
       std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
   uint64_t sec_access =
       std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
-  uint64_t sec_rank1 =
+  uint64_t sec_rank0 =
       std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+  uint64_t sec_rank1 =
+      std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count();
+  uint64_t sec_sel0 =
+      std::chrono::duration_cast<std::chrono::microseconds>(t7 - t6).count();
   uint64_t sec_sel1 =
-      std::chrono::duration_cast<std::chrono::microseconds>(t6 - t5).count();
+      std::chrono::duration_cast<std::chrono::microseconds>(t8 - t7).count();
 
   std::cout << (double)sec_insert / size << " microseconds/insert" << std::endl;
   std::cout << (double)sec_access / size << " microseconds/access" << std::endl;
+  std::cout << (double)sec_rank0 / size << " microseconds/rank0" << std::endl;
   std::cout << (double)sec_rank1 / size << " microseconds/rank1" << std::endl;
+  std::cout << (double)sec_sel0 / size << " microseconds/select0" << std::endl;
   std::cout << (double)sec_sel1 / size << " microseconds/select1" << std::endl;
 
-  clean_memory(&mem);
+  RAS_Free(&RaS);
 }
 
 int main(int argc, char* argv[]) {
