@@ -29,4 +29,7 @@ void verbose(const char* m__, const char* e__) {
 #define VERBOSE(func) if (VERBOSE_){ func }
 
 
+//#define RB_TREE_
+
+
 #endif  // _RAS_UTILS__

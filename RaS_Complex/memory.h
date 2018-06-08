@@ -36,6 +36,15 @@
 
 #define IS_LEAF(arg) (arg & 0x1)
 
+
+#define IS_RED(arg) (!IS_LEAF(arg) & (arg->left_ & 0x80000000))
+#define IS_BLACK(arg) (!(IS_RED(arg)))
+#define UNCOLOR_PTR(arg) (arg & 0x7FFFFFFF)
+
+#define MAKE_RED(arg) ((arg) | 0x80000000)
+#define MAKE_BLACK(arg) UNCOLOR_PTR(arg)
+
+
 #pragma pack(1)
 typedef struct Node_32b {
   uint32_t p_;

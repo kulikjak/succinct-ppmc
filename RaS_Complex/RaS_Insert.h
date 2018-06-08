@@ -7,6 +7,8 @@
 #include "memory.h"
 #include "stack.h"
 
+// TODO RB Tree
+
 #define INSERT_BIT(leaf, pos, value)                         \
   {                                                          \
     uint32_t mask = ((pos) == 0) ? 0 : ~(0) << (32 - (pos)); \
@@ -42,8 +44,15 @@
   (leaf)->r_ += ((leaf)->vector_ >> 16) & 0x1;
 
 void RaS_Insert_32_(memory_32b* mem__, int32_t *root__, uint32_t pos__, bool val__) {
+
+#ifdef RB_TREE_
+  if (pos__ > MEMORY_GET_ANY(mem__, UNCOLOR_PTR(*root__))->p_)
+    FATAL("Index out of range");
+#else
   if (pos__ > MEMORY_GET_ANY(mem__, *root__)->p_)
     FATAL("Index out of range");
+#endif
+
 
   VERBOSE( fprintf(stderr, "Inserting value %d on position %u\n", val__, pos__); )
 
