@@ -1,8 +1,8 @@
 /*
-Simple in memory simulated stack manager for dynamic rank and select structure.
-
-All operations return -1 on error.
-*/
+ * Simple in memory simulated stack manager for dynamic rank and select structure.
+ *
+ * All operations return -1 on error.
+ */
 
 #ifndef _RAS_STACK__
 #define _RAS_STACK__

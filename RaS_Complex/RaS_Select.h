@@ -3,7 +3,17 @@
 
 #include "memory.h"
 
-
+/*
+ * Auxiliary function for 32 bit Select operation.
+ *
+ * This function should not be called directly,
+ * RAS_Select() should be used instead.
+ *
+ * @param  mem__  Reference to memory object.
+ * @param  root__  Number referencing the tree root in the memory.
+ * @param  pos__  Select position number.
+ * @param  zero__  Whether this should select ones or zeroes.
+ */
 int32_t RaS_Select_32_(memory_32b* mem__, int32_t root__, uint32_t num__, bool zero__) {
   int32_t i, temp, tmp_node;
 

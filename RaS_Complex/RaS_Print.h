@@ -4,7 +4,15 @@
 #include <stdio.h>
 #include "memory.h"
 
-
+/*
+ * Auxiliary function for 32 bit Print operation.
+ *
+ * This function should not be called directly,
+ * RAS_Print() should be used instead.
+ *
+ * @param  mem__  Reference to memory object.
+ * @param  node__  Number referencing the tree node in the memory.
+ */
 void RaS_Print_32_(memory_32b* mem__, int32_t node__) {
   uint32_t i;
 

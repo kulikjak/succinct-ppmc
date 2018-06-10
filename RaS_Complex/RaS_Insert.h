@@ -9,6 +9,7 @@
 
 // TODO RB Tree
 
+/* Insert bit into the given leaf on given position with given value. */
 #define INSERT_BIT(leaf, pos, value)                         \
   {                                                          \
     uint32_t mask = ((pos) == 0) ? 0 : ~(0) << (32 - (pos)); \
@@ -25,6 +26,7 @@
     }                                                        \
   }
 
+/* Perform standard rank on more significant half of a 32 bit vector in given leaf. */
 #define RANK16(leaf)                           \
   (leaf)->r_ += ((leaf)->vector_ >> 31) & 0x1; \
   (leaf)->r_ += ((leaf)->vector_ >> 30) & 0x1; \
@@ -43,6 +45,18 @@
   (leaf)->r_ += ((leaf)->vector_ >> 17) & 0x1; \
   (leaf)->r_ += ((leaf)->vector_ >> 16) & 0x1;
 
+
+/*
+ * Auxiliary function for 32 bit Insert operation.
+ *
+ * This function should not be called directly,
+ * RAS_Insert() should be used instead.
+ *
+ * @param  mem__  Reference to memory object.
+ * @param  root__  Reference to a number referencing the tree root in the memory.
+ * @param  pos__  Insert position number.
+ * @param  val__  Value of inserted bit.
+ */
 void RaS_Insert_32_(memory_32b* mem__, int32_t *root__, uint32_t pos__, bool val__) {
 
 #ifdef RB_TREE_

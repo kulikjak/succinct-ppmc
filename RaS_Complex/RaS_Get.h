@@ -3,7 +3,16 @@
 
 #include "memory.h"
 
-
+/*
+ * Auxiliary function for 32 bit Get operation.
+ *
+ * This function should not be called directly,
+ * RAS_Get() should be used instead.
+ *
+ * @param  mem__  Reference to memory object.
+ * @param  root__  Number referencing the tree root in the memory.
+ * @param  pos__  Position number.
+ */
 int32_t RaS_Get_32_(memory_32b* mem__, int32_t root__, uint32_t pos__) {
   int32_t temp;
 

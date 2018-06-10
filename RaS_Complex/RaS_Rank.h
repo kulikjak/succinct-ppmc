@@ -3,7 +3,16 @@
 
 #include "memory.h"
 
-
+/*
+ * Auxiliary function for 32 bit Rank operation.
+ *
+ * This function should not be called directly,
+ * RAS_Rank() should be used instead.
+ *
+ * @param  mem__  Reference to memory object.
+ * @param  root__  Number referencing the tree root in the memory.
+ * @param  pos__  Rank position number.
+ */
 int32_t RaS_Rank_32_(memory_32b* mem__, int32_t root__, uint32_t pos__) {
   int32_t i, temp, limit, tmp_node;
 
