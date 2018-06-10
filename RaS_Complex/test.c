@@ -47,7 +47,7 @@ bool _test_itself(uint64_t* sequence, RAS_Struct RaS) {
   return true;
 }
 
-bool test_rear_insert() {
+bool test_rear_insert(void) {
   int32_t i;
   RAS_Struct RaS;
 
@@ -62,22 +62,6 @@ bool test_rear_insert() {
     RAS_Insert(&RaS, i, bit);
   }
 
-/*
-  print_bit_sequence64(sequence, SEQENCE_LEN);
-  RAS_Print(RaS);
-
-  for (i = 1; i < 40; i++) {
-    printf("%d ", rank0_bit_sequence(sequence, SEQENCE_LEN, i));
-    fflush(stdout);
-  }
-  printf("\n");
-
-  for (i = 1; i < 40; i++) {
-    printf("%d ", RAS_Rank0(RAS, i));
-    fflush(stdout);
-  }
-*/
-
   _test_itself(sequence, RaS);
 
   RAS_Free(&RaS);
@@ -86,7 +70,7 @@ bool test_rear_insert() {
   return true;
 }
 
-bool test_front_insert() {
+bool test_front_insert(void) {
   int32_t i;
   RAS_Struct RaS;
 

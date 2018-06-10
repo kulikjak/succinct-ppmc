@@ -27,24 +27,8 @@
   }
 
 /* Perform standard rank on more significant half of a 32 bit vector in given leaf. */
-#define RANK16(leaf)                           \
-  (leaf)->r_ += ((leaf)->vector_ >> 31) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 30) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 29) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 28) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 27) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 26) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 25) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 24) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 23) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 22) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 21) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 20) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 19) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 18) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 17) & 0x1; \
-  (leaf)->r_ += ((leaf)->vector_ >> 16) & 0x1;
-
+#define RANK16(leaf) \
+  (leaf)->r_ = __builtin_popcount((leaf)->vector_ & 0xFFFF0000);
 
 /*
  * Auxiliary function for 32 bit Insert operation.
@@ -112,7 +96,6 @@ void RaS_Insert_32_(memory_32b* mem__, int32_t *root__, uint32_t pos__, bool val
     Leaf_32b* right_ref = MEMORY_GET_LEAF(mem__, node_ref->right_);
     right_ref->vector_ = (current_ref->vector_ & (0xFFFF)) << 16;
     right_ref->p_ = 16;
-    right_ref->r_ = 0;
 
     // calculate rank on newly created node
     RANK16(right_ref)
