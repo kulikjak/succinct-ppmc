@@ -76,7 +76,10 @@ typedef struct memory_32b {
   int32_t l_last_index;           // last global index (without bitshift)
 } memory_32b;
 
-memory_32b* init_memory() {
+/*
+ * Initialize and return memory object.
+ */
+memory_32b* init_memory(void) {
   memory_32b* mem = (memory_32b*)malloc(sizeof(memory_32b));
 
   // initialize node and leaf blocks and first block
@@ -100,6 +103,14 @@ memory_32b* init_memory() {
   return mem;
 }
 
+/*
+ * Free all memory associated with given memory object.
+ *
+ * After this function call all allocated nodes will be freed
+ * and given pointer will be NULL.
+ *
+ * @param  mem__  Reference to pointer to memory object.
+ */
 void clean_memory(memory_32b** mem__) {
   int32_t i;
   memory_32b* mem = *mem__;
@@ -114,7 +125,11 @@ void clean_memory(memory_32b** mem__) {
   mem__ = NULL;
 }
 
-// create new leaf (get int reference to new leaf)
+/*
+ * Create new leaf and return its number reference to memory.
+ *
+ * @param  mem__  Reference to memory object.
+ */
 int32_t new_leaf(memory_32b* mem__) {
   if (mem__->l_last_index >= 0x3FFFFFFF)
     FATAL("Reached maximum possible number of leafs");
@@ -147,7 +162,11 @@ int32_t new_leaf(memory_32b* mem__) {
   return ((++mem__->l_last_index) << 1) | 0x1;
 }
 
-// create new node (get int reference to new node)
+/*
+ * Create new node and return its number reference to memory.
+ *
+ * @param  mem__  Reference to memory object.
+ */
 int32_t new_node(memory_32b* mem__) {
   if (mem__->n_last_index >= 0x3FFFFFFF)
     FATAL("Reached maximum possible number of nodes");
@@ -179,5 +198,6 @@ int32_t new_node(memory_32b* mem__) {
   mem__->n_current_block_index++;
   return (++mem__->n_last_index) << 1;
 }
+
 
 #endif  // _RAS_MEMORY__
