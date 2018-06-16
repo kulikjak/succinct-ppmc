@@ -30,7 +30,7 @@ int32_t RaS_Select_32_(memory_32b* mem__, int32_t root__, uint32_t num__, bool z
   // check correct boundaries
   if (num__ <= 0) return 0;
 
-  node_ref = MEMORY_GET_ANY(mem__, select);
+  node_ref = MEMORY_GET_ANY(mem__, root__);
   if (zero__) {
     if (num__ > node_ref->p_ - node_ref->r_) return -1;
   } else {

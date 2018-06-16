@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "structure.h"
 
-#include "../bit_sequence.h"
+#include "../misc/bit_sequence.h"
 
 #define SEQENCE_LEN 240
 #define PRINT_SEQUENCES false
