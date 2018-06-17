@@ -10,7 +10,6 @@
 #define uchar unsigned char
 #define EXTENDED_TESTS_
 
-
 /*
  * Finds first higher power of two of given number.
  * If number is some power of two, returned value is that number.
@@ -18,7 +17,6 @@
  * Other tested can be found in higher_power.c file.
  */
 int32_t higher_pow(int32_t num__) {
-
   __asm__ __volatile__(
       "sub $0x1, %%eax;"
       "bsr %%eax, %%ecx;"
@@ -39,7 +37,6 @@ int32_t higher_pow(int32_t num__) {
  * If number is some power of two, returned value is that number.
  */
 int32_t lower_pow(int32_t num__) {
-
   __asm__ __volatile__(
       "bsr %%eax, %%ecx;"
       "jz ZERO2;"
@@ -55,14 +52,10 @@ int32_t lower_pow(int32_t num__) {
 }
 
 /* Default symbol map with simple ASCII mapping. */
-int32_t default_map_(uchar symb__) {
-	return (int32_t)symb__;
-}
+int32_t default_map_(uchar symb__) { return (int32_t)symb__; }
 
 /* Default reverse map with simple ASCII mapping. */
-uchar default_rmap_(int32_t num__) {
-	return (uchar)num__;
-}
+uchar default_rmap_(int32_t num__) { return (uchar)num__; }
 
 #define WT_DEFAULT_MAP default_map_
 #define WT_DEFAULT_RMAP default_rmap_
