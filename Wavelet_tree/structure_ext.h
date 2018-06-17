@@ -1,5 +1,5 @@
-#ifndef _WT_STRUCTURE__
-#define _WT_STRUCTURE__
+#ifndef _WT_EXT_STRUCTURE__
+#define _WT_EXT_STRUCTURE__
 
 #include <stdio.h>
 
@@ -11,6 +11,7 @@
 #define WT_MEM_WHOLE 0
 #define WT_MEM_LOWER 1
 #define WT_MEM_HIGHER 2
+#define WT_MEM_EXTRA 3
 
 // #define SYMBOL_UPPER_TRANSLATION_
 
@@ -20,14 +21,15 @@
   }
 
 typedef struct {
-  RAS_Struct RaS[3];
+  RAS_Struct RaS[4];
 } WT_Struct;
 
 /*
  * Initialize WT_Struct object given as an argument.
  *
- * Since this is for DNA, this structure is for 4 symbols only and mapping is
- * done automatically. More variable structure can be foud in variable.h
+ * Since this is for DNA, this structure is for 5 symbols only and mapping is
+ * done automatically (last symbol being special $ symbol used in deBurijn
+ * graphs). More variable structure can be foud in variable.h
  *
  * @param  WT__  Reference to WT_Struct object.
  */
@@ -35,6 +37,7 @@ void WT_Init(WT_Struct* WT__) {
   RAS_Init(&(WT__->RaS[WT_MEM_WHOLE]));
   RAS_Init(&(WT__->RaS[WT_MEM_LOWER]));
   RAS_Init(&(WT__->RaS[WT_MEM_HIGHER]));
+  RAS_Init(&(WT__->RaS[WT_MEM_EXTRA]));
 }
 
 /*
@@ -46,6 +49,7 @@ void WT_Free(WT_Struct *WT__) {
   RAS_Free(&(WT__->RaS[WT_MEM_WHOLE]));
   RAS_Free(&(WT__->RaS[WT_MEM_LOWER]));
   RAS_Free(&(WT__->RaS[WT_MEM_HIGHER]));
+  RAS_Free(&(WT__->RaS[WT_MEM_EXTRA]));
 }
 
 /*
@@ -94,6 +98,15 @@ void WT_Insert(WT_Struct* WT__, uint32_t pos__, char symb__) {
       RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
       pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 1);
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_EXTRA]), pos__, 0);
+      break;
+    case '$':
+      RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 1);
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_EXTRA]), pos__, 1);
       break;
     default:
       FATAL("Unknown symbol");
@@ -127,7 +140,16 @@ char WT_Get(WT_Struct* WT__, uint32_t pos__) {
         case 0:
           return 'G';
         case 1:
-          return 'T';
+          {
+            pos__ = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], pos__);
+            bit = RAS_Get(WT__->RaS[WT_MEM_EXTRA], pos__);
+            switch (bit) {
+              case 0:
+                return 'T';
+              case 1:
+                return '$';
+            }
+          }
       }
       break;
   }
@@ -146,6 +168,8 @@ void WT_Print_BitVectors(WT_Struct* WT__) {
   RAS_Print(WT__->RaS[WT_MEM_LOWER]);
   printf("Right sequence:\n");
   RAS_Print(WT__->RaS[WT_MEM_HIGHER]);
+  printf("Extra sequence:\n");
+  RAS_Print(WT__->RaS[WT_MEM_EXTRA]);
 }
 
 /*
@@ -190,8 +214,13 @@ int32_t WT_Rank(WT_Struct* WT__, uint32_t pos__, char symb__) {
       return RAS_Rank0(WT__->RaS[WT_MEM_HIGHER],
                        RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__));
     case 'T':
-      return RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
-                      RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__));
+      return RAS_Rank0(WT__->RaS[WT_MEM_EXTRA],
+                       RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
+                                RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__)));
+    case '$':
+      return RAS_Rank(WT__->RaS[WT_MEM_EXTRA],
+                      RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
+                               RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__)));
   }
   FATAL("Unknown symbol");
   return 0;
@@ -221,12 +250,18 @@ int32_t WT_Select(WT_Struct* WT__, uint32_t num__, char symb__) {
       return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
                         RAS_Select0(WT__->RaS[WT_MEM_HIGHER], num__));
     case 'T':
+      return RAS_Select(
+          WT__->RaS[WT_MEM_WHOLE],
+          RAS_Select(WT__->RaS[WT_MEM_HIGHER],
+                     RAS_Select0(WT__->RaS[WT_MEM_EXTRA], num__)));
+    case '$':
       return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
-                        RAS_Select(WT__->RaS[WT_MEM_HIGHER], num__));
+                        RAS_Select(WT__->RaS[WT_MEM_HIGHER],
+                                   RAS_Select(WT__->RaS[WT_MEM_EXTRA], num__)));
   }
   FATAL("Unknown symbol");
   return 0;
 }
 
 
-#endif  // _WT_STRUCTURE__
+#endif  // _WT_EXT_STRUCTURE__

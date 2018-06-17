@@ -1,4 +1,3 @@
-
 #ifndef _VARIABLE_WT_STRUCTURE__
 #define _VARIABLE_WT_STRUCTURE__
 

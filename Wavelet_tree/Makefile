@@ -8,8 +8,8 @@ all: dna dnaext variable
 dna: test.c structure.h $(SHARED)
 	$(CXX) test.c -o $@
 
-dnaext: test.c structure.h $(SHARED)
-	$(CXX) test.c -o $@
+dnaext: test_ext.c structure_ext.h $(SHARED)
+	$(CXX) test_ext.c -o $@
 
 variable: test_variable.c variable.h variable_utils.h $(SHARED)
 	$(CXX) test_variable.c -o $@

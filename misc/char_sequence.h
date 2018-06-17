@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-// whether generated sequences should be random or seeded with static value
+/* whether generated sequences should be random or seeded with static value */
 #define SEQUENCE_RANDOM_
 
 /*
