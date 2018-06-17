@@ -11,7 +11,8 @@
 #include "RaS_Select.h"
 #include "memory.h"
 #include "stack.h"
-#include "utils.h"
+
+#include "../shared/utils.h"
 
 
 typedef struct {

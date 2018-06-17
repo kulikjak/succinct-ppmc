@@ -6,6 +6,7 @@
 
 #include "../RaS_Complex/memory.h"
 #include "../RaS_Complex/structure.h"
+#include "../shared/utils.h"
 
 
 #define WT_MEM_WHOLE 0

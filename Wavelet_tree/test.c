@@ -4,6 +4,7 @@
 #include "structure.h"
 
 #include "../misc/char_sequence.h"
+#include "../shared/utils.h"
 
 #define SEQENCE_LEN 100
 #define PRINT_SEQUENCES true

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../shared/utils.h"
+
 #define uchar unsigned char
 #define EXTENDED_TESTS_
 

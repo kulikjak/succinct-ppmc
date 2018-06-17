@@ -5,7 +5,8 @@
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
-#include "utils.h"
+
+#include "../shared/utils.h"
 
 // this number must be power of two!
 #define MEMORY_BLOCK_SIZE 1024

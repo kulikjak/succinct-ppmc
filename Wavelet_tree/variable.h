@@ -4,9 +4,11 @@
 
 #include <stdio.h>
 
+#include "variable_utils.h"
+
 #include "../RaS_Complex/memory.h"
 #include "../RaS_Complex/structure.h"
-#include "variable_utils.h"
+#include "../shared/utils.h"
 
 
 typedef struct {

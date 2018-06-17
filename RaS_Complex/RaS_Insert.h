@@ -3,9 +3,10 @@
 
 #include <stdio.h>
 
-#include "utils.h"
 #include "memory.h"
 #include "stack.h"
+
+#include "../shared/utils.h"
 
 // TODO RB Tree
 

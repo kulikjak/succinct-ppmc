@@ -12,6 +12,7 @@ With time complexity of O(n) for both rank and select, it should not be used on 
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 #include <time.h>
 
 

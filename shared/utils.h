@@ -1,7 +1,8 @@
-#ifndef _RAS_UTILS__
-#define _RAS_UTILS__
+#ifndef _SHARED_UTILS__
+#define _SHARED_UTILS__
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,7 +30,4 @@ void verbose(const char* m__, const char* e__) {
 #define VERBOSE(func) if (VERBOSE_){ func }
 
 
-//#define RB_TREE_
-
-
-#endif  // _RAS_UTILS__
+#endif  // _SHARED_UTILS__

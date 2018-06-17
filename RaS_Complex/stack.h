@@ -7,7 +7,7 @@
 #ifndef _RAS_STACK__
 #define _RAS_STACK__
 
-#include "utils.h"
+#include "../shared/utils.h"
 
 // used for tree traversal - maximum 256 because of 8 bit counters.
 #define MAX_STACK_SIZE 64
