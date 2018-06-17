@@ -19,7 +19,7 @@ typedef struct {
 } WT_Struct;
 
 /*
- * Initialize WT_Struct object given as argument.
+ * Initialize WT_Struct object given as an argument.
  *
  * To use normal ASCII mapping you can pass WT_DEFAULT_SIZE, WT_DEFAULT_MAP
  * and WT_DEFAULT_RMAP as arguments, however, this is not recommended
@@ -37,7 +37,7 @@ typedef struct {
 void WT_Init(WT_Struct* WT__, int32_t scount__, int32_t (*map__)(uchar), uchar (*rmap__)(int32_t)) {
   int32_t i, ncount;
 
-  // claculate number of WT nodes
+  // calculate number of WT nodes
   ncount = scount__ / 2;
   ncount *= 2;
   if (scount__ % 2 == 0)
