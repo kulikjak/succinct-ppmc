@@ -1,11 +1,9 @@
 /*
-Implementation of very simple and inefficient Wavelet tree structure.
-
-It is used only for testing purposes (correct implementation of each other
-structure).
-With time complexity of O(n) for both rank and select, it should not be used on
-bigger bit sequences.
-*/
+ * Implementation of very simple and inefficient symbol sequence structure.
+ *
+ * Only for testing purposes (Wavelet tree structures).
+ * Time complexity of both rank and select is O(n).
+ */
 
 #ifndef _CHAR_SEQUENCE__
 #define _CHAR_SEQUENCE__
@@ -16,8 +14,79 @@ bigger bit sequences.
 #include <stdlib.h>
 #include <time.h>
 
+// whether generated sequences should be random or seeded with static value
+#define SEQUENCE_RANDOM_
 
-void print_char_dna_sequence(char* seq__, int32_t len__) {
+/*
+ * Generate symbol sequence.
+ *
+ * @param  ssize__  Length of the sequence.
+ * @param  dict__  Dictionary with possible sequence symbols.
+ * @param  dsize__  Size of the dictionary.
+ *
+ * @return  Newly created symbol sequence.
+ */
+char* init_random_char_sequence_aux_(int32_t ssize__, char* dict__, int32_t dsize__) {
+  int32_t i, ri;
+
+  char* sequence = (char*)malloc(ssize__ * sizeof(char));
+
+#ifdef SEQUENCE_RANDOM_
+  srand(time(NULL));
+#else
+  srand(0);
+#endif
+
+  for (i = 0; i < ssize__; i++) {
+    ri = rand() % dsize__;
+    sequence[i] = dict__[ri];
+  }
+  return sequence;
+}
+
+/*
+ * Generate sequence with dna symbols (A, C, G, T).
+ *
+ * @param  ssize__  Length of the sequence.
+ *
+ * @return  Newly created symbol sequence.
+ */
+char* init_random_char_dna_sequence(int32_t ssize__) {
+  char dict[4] = {'A', 'C', 'G', 'T'};
+  return init_random_char_sequence_aux_(ssize__, dict, 4);
+}
+
+/*
+ * Generate sequence with dna symbols (A, C, G, T) and dolar symbol.
+ *
+ * These symbols are used for deBuijn graphs.
+ *
+ * @param  ssize__  Length of the sequence.
+ *
+ * @return  Newly created symbol sequence.
+ */
+char* init_random_char_extdna_sequence(int32_t ssize__) {
+  char dict[5] = {'A', 'C', 'G', 'T', '$'};
+  return init_random_char_sequence_aux_(ssize__, dict, 5);
+}
+
+/*
+ * Generate sequence with full ASCII (256 values).
+ *
+ * @param  ssize__  Length of the sequence.
+ *
+ * @return  Newly created symbol sequence.
+ */
+char* init_random_char_sequence(int32_t ssize__) {
+  int32_t i;
+  char dict[256];
+
+  for (i = 0; i < 256; i++) dict[i] = (char)i;
+
+  return init_random_char_sequence_aux_(ssize__, dict, 256);
+}
+
+void print_char_sequence(char* seq__, int32_t len__) {
   int32_t i;
 
   for (i = 0; i < len__; i++)
@@ -25,38 +94,22 @@ void print_char_dna_sequence(char* seq__, int32_t len__) {
   printf("\n");
 }
 
-char* init_random_char_dna_sequence(int32_t a__) {
-  int32_t i, temp;
-
-  char* sequence = (char*)malloc(a__ * sizeof(char));
-  srand(0);
-
-  for (i = 0; i < a__; i++) {
-    temp = rand() % 4;
-    switch (temp) {
-      case 0:
-        sequence[i] = 'A';
-        break;
-      case 1:
-        sequence[i] = 'C';
-        break;
-      case 2:
-        sequence[i] = 'G';
-        break;
-      case 3:
-        sequence[i] = 'T';
-        break;
-    }
-  }
-  return sequence;
-}
-
-void free_char_dna_sequence(char** seq__) {
+void free_char_sequence(char** seq__) {
   free(*seq__);
   seq__ = NULL;
 }
 
-int32_t rank_char_dna_sequence(char* seq__, int32_t len__, int32_t x__, char ch__) {
+/*
+ * Rank query symbol sequence.
+ *
+ * @param  seq__  Symbol sequence.
+ * @param  len__  Length of the sequence.
+ * @param  x__  Query position.
+ * @param  ch__  Query symbol.
+ *
+ * @return  Result of rank query.
+ */
+int32_t rank_char_sequence(char* seq__, int32_t len__, int32_t x__, char ch__) {
   int32_t i, rank = 0;
 
   // check that x__ is not higheer then len of sequence
@@ -68,13 +121,30 @@ int32_t rank_char_dna_sequence(char* seq__, int32_t len__, int32_t x__, char ch_
   return rank;
 }
 
-char get_char_dna_sequence(char* seq__, int32_t len__, int32_t pos__) {
+/*
+ * Get symbol from given position.
+ * 
+ * @param  seq__  Symbol sequence.
+ * @param  len__  Length of the sequence.
+ * @param  pos__  Query position.
+ */
+char get_char_sequence(char* seq__, int32_t len__, int32_t pos__) {
   if (pos__ < 0 || pos__ >= len__) return ' ';
 
   return seq__[pos__];
 }
 
-int32_t select_char_dna_sequence(char* seq__, int32_t len__, int32_t x__, char ch__) {
+/*
+ * Select query symbol sequence.
+ *
+ * @param  seq__  Symbol sequence.
+ * @param  len__  Length of the sequence.
+ * @param  x__  Query position.
+ * @param  ch__  Query symbol.
+ *
+ * @return  Result of select query.
+ */
+int32_t select_char_sequence(char* seq__, int32_t len__, int32_t x__, char ch__) {
   int32_t i;
 
   if (!x__) return 0;
@@ -85,7 +155,6 @@ int32_t select_char_dna_sequence(char* seq__, int32_t len__, int32_t x__, char c
     }
   }
 
-  // if there is not enough 1s, return -1
   return -1;
 }
 
