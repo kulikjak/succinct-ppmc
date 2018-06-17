@@ -8,169 +8,224 @@
 #include "../RaS_Complex/structure.h"
 
 
-typedef struct WT_DNA {
-  memory_32b* mem_whole;
-  memory_32b* mem_lower;
-  memory_32b* mem_higher;
+#define WT_MEM_WHOLE 0
+#define WT_MEM_LOWER 1
+#define WT_MEM_HIGHER 2
 
-  int32_t RaS_Root_whole;
-  int32_t RaS_Root_lower;
-  int32_t RaS_Root_higher;
-} WT_DNA;
+// #define SYMBOL_UPPER_TRANSLATION_
 
+#define TO_UPPER(symb__) {           \
+    if (symb__ >= 'a' && symb__ <= 'z')     \
+      symb__ = symb__ - ('a' - 'A'); \
+  }
 
-void WT_Init(WT_DNA* tree__) {
-  tree__->mem_whole = init_memory();
-  tree__->mem_lower = init_memory();
-  tree__->mem_higher = init_memory();
+typedef struct {
+  RAS_Struct RaS[3];
+} WT_Struct;
 
-  STACK_CLEAN();
-  tree__->RaS_Root_whole = RaS_Init(tree__->mem_whole);
-  tree__->RaS_Root_lower = RaS_Init(tree__->mem_lower);
-  tree__->RaS_Root_higher = RaS_Init(tree__->mem_higher);
+/*
+ * Initialize WT_Struct object given as an argument.
+ *
+ * Since this is for DNA, this structure is for 4 symbols only and mapping is
+ * done automatically. More variable structure can be foud in variable.h
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ */
+void WT_Init(WT_Struct* WT__) {
+  RAS_Init(&(WT__->RaS[WT_MEM_WHOLE]));
+  RAS_Init(&(WT__->RaS[WT_MEM_LOWER]));
+  RAS_Init(&(WT__->RaS[WT_MEM_HIGHER]));
 }
 
-void WT_Free(WT_DNA** tree__) {
-  clean_memory(&((*tree__)->mem_whole));
-  clean_memory(&((*tree__)->mem_lower));
-  clean_memory(&((*tree__)->mem_higher));
-
-  tree__ = NULL;
+/*
+ * Free all memory associated with WT object.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ */
+void WT_Free(WT_Struct *WT__) {
+  RAS_Free(&(WT__->RaS[WT_MEM_WHOLE]));
+  RAS_Free(&(WT__->RaS[WT_MEM_LOWER]));
+  RAS_Free(&(WT__->RaS[WT_MEM_HIGHER]));
 }
 
-void WT_Delete(WT_DNA* tree__, uint32_t pos__) {
-  UNUSED(tree__);
+/*
+ * Delete - this functionality is not implemented.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Position of to be deleted symbol.
+ */
+void WT_Delete(WT_Struct* WT__, uint32_t pos__) {
+  UNUSED(WT__);
   UNUSED(pos__);
 
-  FATAL("Not Implemented (and never will...)");
+  FATAL("Not Implemented (and likely never will...)");
 }
 
-void WT_Insert(WT_DNA* tree__, uint32_t pos__, char symb__) {
-  int newa;
-  switch (symb__) {
+/*
+ * Insert new symbol into the WT_Struct.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Position of newly inserted symbol.
+ * @param  symb__  To be inserted symbol.
+ */
+void WT_Insert(WT_Struct* WT__, uint32_t pos__, char symb__) {
+
+#ifdef SYMBOL_UPPER_TRANSLATION_
+  TO_UPPER(symb__);
+#endif
+
+  switch(symb__) {
     case 'A':
-      RaS_Insert(tree__->mem_whole, &tree__->RaS_Root_whole, pos__, 0);
-      newa = RaS_Rank0(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
-      RaS_Insert(tree__->mem_lower, &tree__->RaS_Root_lower, newa, 0);
+      RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 0);
+      pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_LOWER]), pos__, 0);
       break;
     case 'C':
-      RaS_Insert(tree__->mem_whole, &tree__->RaS_Root_whole, pos__, 0);
-      newa = RaS_Rank0(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
-      RaS_Insert(tree__->mem_lower, &tree__->RaS_Root_lower, newa, 1);
+      RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 0);
+      pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_LOWER]), pos__, 1);
       break;
     case 'G':
-      RaS_Insert(tree__->mem_whole, &tree__->RaS_Root_whole, pos__, 1);
-      newa = RaS_Rank(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
-      RaS_Insert(tree__->mem_higher, &tree__->RaS_Root_higher, newa, 0);
+      RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 0);
       break;
     case 'T':
-      RaS_Insert(tree__->mem_whole, &tree__->RaS_Root_whole, pos__, 1);
-      newa = RaS_Rank(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
-      RaS_Insert(tree__->mem_higher, &tree__->RaS_Root_higher, newa, 1);
+      RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 1);
       break;
     default:
       FATAL("Unknown symbol");
   }
 }
 
-int32_t WT_Rank(WT_DNA* tree__, uint32_t pos__, char symb__) {
-  switch (symb__) {
-    case 'A':
-      return RaS_Rank0(
-          tree__->mem_lower, tree__->RaS_Root_lower,
-          RaS_Rank0(tree__->mem_whole, tree__->RaS_Root_whole, pos__));
-    case 'C':
-      return RaS_Rank(
-          tree__->mem_lower, tree__->RaS_Root_lower,
-          RaS_Rank0(tree__->mem_whole, tree__->RaS_Root_whole, pos__));
-    case 'G':
-      return RaS_Rank0(
-          tree__->mem_higher, tree__->RaS_Root_higher,
-          RaS_Rank(tree__->mem_whole, tree__->RaS_Root_whole, pos__));
-    case 'T':
-      return RaS_Rank(
-          tree__->mem_higher, tree__->RaS_Root_higher,
-          RaS_Rank(tree__->mem_whole, tree__->RaS_Root_whole, pos__));
-  }
-  FATAL("Unknown symbol");
-  return 0;
-}
-
-int32_t WT_Select(WT_DNA* tree__, uint32_t num__, char symb__) {
-  switch (symb__) {
-    case 'A':
-      return RaS_Select0(
-          tree__->mem_whole, tree__->RaS_Root_whole,
-          RaS_Select0(tree__->mem_lower, tree__->RaS_Root_lower, num__));
-    case 'C':
-      return RaS_Select0(
-          tree__->mem_whole, tree__->RaS_Root_whole,
-          RaS_Select(tree__->mem_lower, tree__->RaS_Root_lower, num__));
-    case 'G':
-      return RaS_Select(
-          tree__->mem_whole, tree__->RaS_Root_whole,
-          RaS_Select0(tree__->mem_higher, tree__->RaS_Root_higher, num__));
-    case 'T':
-      return RaS_Select(
-          tree__->mem_whole, tree__->RaS_Root_whole,
-          RaS_Select(tree__->mem_higher, tree__->RaS_Root_higher, num__));
-  }
-  FATAL("Unknown symbol");
-  return 0;
-}
-
-char WT_Get(WT_DNA* tree__, uint32_t pos__) {
-  int32_t pos2;
-  int32_t bit = RaS_Get(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
+/*
+ * Get symbol from given position.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Query position.
+ */
+char WT_Get(WT_Struct* WT__, uint32_t pos__) {
+  int32_t bit = RAS_Get(WT__->RaS[WT_MEM_WHOLE], pos__);
 
   switch (bit) {
-    case -1:
-      return -1;
     case 0:
-      pos2 = RaS_Rank0(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
-      bit = RaS_Get(tree__->mem_lower, tree__->RaS_Root_lower, pos2);
+      pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
+      bit = RAS_Get(WT__->RaS[WT_MEM_LOWER], pos__);
       switch (bit) {
-        case -1:
-          return -1;
         case 0:
           return 'A';
         case 1:
           return 'C';
       }
+      break;
     case 1:
-      pos2 = RaS_Rank(tree__->mem_whole, tree__->RaS_Root_whole, pos__);
-      bit = RaS_Get(tree__->mem_higher, tree__->RaS_Root_higher, pos2);
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
+      bit = RAS_Get(WT__->RaS[WT_MEM_HIGHER], pos__);
       switch (bit) {
-        case -1:
-          return -1;
         case 0:
           return 'G';
         case 1:
           return 'T';
       }
+      break;
   }
+  return -1;
+}
 
+/*
+ * Print underlying bit vectors.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ */
+void WT_Print_BitVectors(WT_Struct* WT__) {
+  printf("Main sequence:\n");
+  RAS_Print(WT__->RaS[WT_MEM_WHOLE]);
+  printf("Left sequence:\n");
+  RAS_Print(WT__->RaS[WT_MEM_LOWER]);
+  printf("Right sequence:\n");
+  RAS_Print(WT__->RaS[WT_MEM_HIGHER]);
+}
+
+/*
+ * Print symbols saved in the structure.
+ *
+ * This function is not very effective and should be only used for testing
+ * purposes. Here it is used only for testing purposes.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ */
+void WT_Print_Symbols(WT_Struct* WT__) {
+  int32_t i;
+  int32_t size = RAS_Size(WT__->RaS[WT_MEM_WHOLE]);
+
+  for (i = 0; i < size; i++) {
+    printf("%c ", WT_Get(WT__, i));
+  }
+  printf("\n");
+}
+
+/*
+ * Rank given symbol in WT_Struct.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Query position.
+ * @param  symb__  Query symbol.
+ */
+int32_t WT_Rank(WT_Struct* WT__, uint32_t pos__, char symb__) {
+
+#ifdef SYMBOL_UPPER_TRANSLATION_
+  TO_UPPER(symb__);
+#endif
+
+  switch (symb__) {
+    case 'A':
+      return RAS_Rank0(WT__->RaS[WT_MEM_LOWER],
+                       RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__));
+    case 'C':
+      return RAS_Rank(WT__->RaS[WT_MEM_LOWER],
+                      RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__));
+    case 'G':
+      return RAS_Rank0(WT__->RaS[WT_MEM_HIGHER],
+                       RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__));
+    case 'T':
+      return RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
+                      RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__));
+  }
+  FATAL("Unknown symbol");
   return 0;
 }
 
-void WT_Print_BitVectors(WT_DNA* tree__) {
-  printf("Main sequence:\n");
-  RaS_Print(tree__->mem_whole, tree__->RaS_Root_whole);
-  printf("Left sequence:\n");
-  RaS_Print(tree__->mem_lower, tree__->RaS_Root_lower);
-  printf("Right sequence:\n");
-  RaS_Print(tree__->mem_higher, tree__->RaS_Root_higher);
-}
+/*
+ * Select given symbol in WT_Struct.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  num__  Query count.
+ * @param  symb__  Query symbol.
+ */
+int32_t WT_Select(WT_Struct* WT__, uint32_t num__, char symb__) {
 
-// not very effective but not that important
-void WT_Print_Letters(WT_DNA* tree__) {
-  int32_t i;
-  int32_t size = RaS_Size(tree__->mem_whole, tree__->RaS_Root_whole);
+#ifdef SYMBOL_UPPER_TRANSLATION_
+  TO_UPPER(symb__);
+#endif
 
-  for (i = 0; i < size; i++) {
-    printf("%c ", WT_Get(tree__, i));
+  switch (symb__) {
+    case 'A':
+      return RAS_Select0(WT__->RaS[WT_MEM_WHOLE],
+                         RAS_Select0(WT__->RaS[WT_MEM_LOWER], num__));
+    case 'C':
+      return RAS_Select0(WT__->RaS[WT_MEM_WHOLE],
+                         RAS_Select(WT__->RaS[WT_MEM_LOWER], num__));
+    case 'G':
+      return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
+                        RAS_Select0(WT__->RaS[WT_MEM_HIGHER], num__));
+    case 'T':
+      return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
+                        RAS_Select(WT__->RaS[WT_MEM_HIGHER], num__));
   }
-  printf("\n");
+  FATAL("Unknown symbol");
+  return 0;
 }
 
 
