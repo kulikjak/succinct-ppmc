@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
+#define uchar unsigned char
 #define EXTENDED_TESTS_
 
 
@@ -53,13 +53,13 @@ int32_t lower_pow(int32_t num__) {
 }
 
 /* Default symbol map with simple ASCII mapping. */
-int32_t default_map_(char symb__) {
+int32_t default_map_(uchar symb__) {
 	return (int32_t)symb__;
 }
 
 /* Default reverse map with simple ASCII mapping. */
-char default_rmap_(int32_t num__) {
-	return (char)num__;
+uchar default_rmap_(int32_t num__) {
+	return (uchar)num__;
 }
 
 #define WT_DEFAULT_MAP default_map_
@@ -104,7 +104,7 @@ char default_rmap_(int32_t num__) {
  *
  * @return  Maps are working correctly or not (in that case assert will fail).
  */
-bool test_maps(int32_t scount__, int32_t (*map__)(char), char (*rmap__)(int32_t)) {
+bool test_maps(int32_t scount__, int32_t (*map__)(uchar), uchar (*rmap__)(int32_t)) {
 	int32_t i;
 	char letters[256] = {0};
 
@@ -131,11 +131,11 @@ bool test_maps(int32_t scount__, int32_t (*map__)(char), char (*rmap__)(int32_t)
 
   // check injectivity and surjectivity
 	for (i = 0; i < scount__; i++) {
-		char letter = rmap__(order[i]);
-		letters[(int)letter]++;
+		uint8_t letter = (uint8_t)rmap__(order[i]);
+		letters[letter]++;
 
-		assert(letters[(int)letter] == 1);
-		assert(order[i] == map__(letter));
+		assert(letters[letter] == 1);
+		assert(order[i] == map__((uchar)letter));
 	}
 
   return true;

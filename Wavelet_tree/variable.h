@@ -14,8 +14,8 @@ typedef struct {
   int32_t scount_;
   RAS_Struct *RaS_;
 
-  int32_t (*map_)(char);
-  char (*rmap_)(int32_t);
+  int32_t (*map_)(uchar);
+  uchar (*rmap_)(int32_t);
 } WT_Struct;
 
 /*
@@ -34,7 +34,7 @@ typedef struct {
  * @param  map__  Function mapping symbols to numbers.
  * @param  rmap__  Reverse mapping function (numbers to symbols).
  */
-void WT_Init(WT_Struct *WT__, int32_t scount__, int32_t (*map__)(char), char (*rmap__)(int32_t)) {
+void WT_Init(WT_Struct* WT__, int32_t scount__, int32_t (*map__)(uchar), uchar (*rmap__)(int32_t)) {
   int32_t i, ncount;
 
   // claculate number of WT nodes

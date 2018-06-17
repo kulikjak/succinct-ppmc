@@ -8,7 +8,7 @@
 #define SEQENCE_LEN 100
 #define PRINT_SEQUENCES false
 
-int32_t dna_map(char symb__) {
+int32_t dna_map(uchar symb__) {
   switch (symb__) {
     case 'A':
       return 0;
@@ -23,7 +23,7 @@ int32_t dna_map(char symb__) {
   return -1;
 }
 
-char dna_rmap(int32_t num__) {
+uchar dna_rmap(int32_t num__) {
   switch (num__) {
     case 0:
       return 'A';
@@ -104,7 +104,7 @@ bool test_rear_insert(void) {
   int32_t i;
 
   WT_Struct wt;
-  WT_Init(&wt, 4, dna_map, dna_rmap);
+  WT_Init(&wt, WT_DEFAULT_SIZE, WT_DEFAULT_MAP, WT_DEFAULT_RMAP);
 
   char* sequence = init_random_char_dna_sequence(SEQENCE_LEN);
 
