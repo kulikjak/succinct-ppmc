@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 #include "memory.h"
-#include "stack.h"
 
+#include "../shared/stack.h"
 #include "../shared/utils.h"
 
 // TODO RB Tree
@@ -52,6 +52,7 @@ void RaS_Insert_32_(memory_32b* mem__, int32_t *root__, uint32_t pos__, bool val
     FATAL("Index out of range");
 #endif
 
+  STACK_CLEAN();
 
   VERBOSE( fprintf(stderr, "Inserting value %d on position %u\n", val__, pos__); )
 
@@ -124,7 +125,6 @@ void RaS_Insert_32_(memory_32b* mem__, int32_t *root__, uint32_t pos__, bool val
         parent->right_ = node;
     }
   }
-  STACK_CLEAN();
 }
 
 

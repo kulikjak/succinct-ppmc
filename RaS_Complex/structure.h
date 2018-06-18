@@ -10,8 +10,8 @@
 #include "RaS_Rank.h"
 #include "RaS_Select.h"
 #include "memory.h"
-#include "stack.h"
 
+#include "../shared/stack.h"
 #include "../shared/utils.h"
 
 
