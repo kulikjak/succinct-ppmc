@@ -198,7 +198,7 @@ void WT_Print_BitVectors(WT_Struct* WT__) {
 /*
  * Print symbols saved in the structure.
  *
- * This function is not very effective and should be only used for testing
+ * This function is not very effecient and should be only used for testing
  * purposes. Here it is used only for testing purposes.
  *
  * @param  WT__  Reference to WT_Struct object.
