@@ -15,10 +15,22 @@
 
 // #define SYMBOL_UPPER_TRANSLATION_
 
-#define TO_UPPER(symb__) {           \
-    if (symb__ >= 'a' && symb__ <= 'z')     \
-      symb__ = symb__ - ('a' - 'A'); \
+#define TO_UPPER(symb__) {              \
+    if (symb__ >= 'a' && symb__ <= 'z') \
+      symb__ = symb__ - ('a' - 'A');    \
   }
+
+#define GET_VALUE(val__, symb__) {  \
+  switch (symb__) {                 \
+    case 'A': val__ = 0; break;     \
+    case 'C': val__ = 1; break;     \
+    case 'G': val__ = 2; break;     \
+    case 'T': val__ = 3; break;     \
+    case '$': val__ = 4; break;     \
+    default:                        \
+      FATAL("Unknown symbol");      \
+  }                                 \
+}
 
 typedef struct {
   RAS_Struct RaS[4];
@@ -70,38 +82,33 @@ void WT_Delete(WT_Struct* WT__, uint32_t pos__) {
  *
  * @param  WT__  Reference to WT_Struct object.
  * @param  pos__  Position of newly inserted symbol.
- * @param  symb__  To be inserted symbol.
+ * @param  symb__  To be inserted symbol value.
  */
-void WT_Insert(WT_Struct* WT__, uint32_t pos__, char symb__) {
-
-#ifdef SYMBOL_UPPER_TRANSLATION_
-  TO_UPPER(symb__);
-#endif
-
+void WT_VInsert(WT_Struct* WT__, uint32_t pos__, int8_t symb__) {
   switch(symb__) {
-    case 'A':
+    case 0:
       RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 0);
       pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_LOWER]), pos__, 0);
       break;
-    case 'C':
+    case 1:
       RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 0);
       pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_LOWER]), pos__, 1);
       break;
-    case 'G':
+    case 2:
       RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
       pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 0);
       break;
-    case 'T':
+    case 3:
       RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
       pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 1);
       pos__ = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_EXTRA]), pos__, 0);
       break;
-    case '$':
+    case 4:
       RAS_Insert(&(WT__->RaS[WT_MEM_WHOLE]), pos__, 1);
       pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
       RAS_Insert(&(WT__->RaS[WT_MEM_HIGHER]), pos__, 1);
@@ -114,46 +121,62 @@ void WT_Insert(WT_Struct* WT__, uint32_t pos__, char symb__) {
 }
 
 /*
+ * Insert new symbol into the WT_Struct.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Position of newly inserted symbol.
+ * @param  symb__  To be inserted symbol.
+ */
+void WT_Insert(WT_Struct* WT__, uint32_t pos__, char symb__) {
+  int8_t val;
+
+#ifdef SYMBOL_UPPER_TRANSLATION_
+  TO_UPPER(symb__);
+#endif
+
+  GET_VALUE(val, symb__)
+  WT_VInsert(WT__, pos__, val);
+}
+
+/*
+ * Get symbol value from given position.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Query position.
+ */
+int8_t WT_VGet(WT_Struct* WT__, uint32_t pos__) {
+  int32_t bit = RAS_Get(WT__->RaS[WT_MEM_WHOLE], pos__);
+
+  switch (bit) {
+    case 0:
+      pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
+      return RAS_Get(WT__->RaS[WT_MEM_LOWER], pos__);
+    case 1:
+      pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
+      bit = RAS_Get(WT__->RaS[WT_MEM_HIGHER], pos__);
+      switch (bit) {
+        case 0:
+          return 2;
+        case 1:
+          pos__ = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], pos__);
+          return RAS_Get(WT__->RaS[WT_MEM_EXTRA], pos__) + 3;
+      }
+      break;
+  }
+  return -1;
+}
+
+/*
  * Get symbol from given position.
  *
  * @param  WT__  Reference to WT_Struct object.
  * @param  pos__  Query position.
  */
 char WT_Get(WT_Struct* WT__, uint32_t pos__) {
-  int32_t bit = RAS_Get(WT__->RaS[WT_MEM_WHOLE], pos__);
+  int8_t val = WT_VGet(WT__, pos__);
+  char map[] = {'A', 'C', 'G', 'T', '$'};
 
-  switch (bit) {
-    case 0:
-      pos__ = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
-      bit = RAS_Get(WT__->RaS[WT_MEM_LOWER], pos__);
-      switch (bit) {
-        case 0:
-          return 'A';
-        case 1:
-          return 'C';
-      }
-      break;
-    case 1:
-      pos__ = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
-      bit = RAS_Get(WT__->RaS[WT_MEM_HIGHER], pos__);
-      switch (bit) {
-        case 0:
-          return 'G';
-        case 1:
-          {
-            pos__ = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], pos__);
-            bit = RAS_Get(WT__->RaS[WT_MEM_EXTRA], pos__);
-            switch (bit) {
-              case 0:
-                return 'T';
-              case 1:
-                return '$';
-            }
-          }
-      }
-      break;
-  }
-  return -1;
+  return (val == -1) ? -1 : map[val];
 }
 
 /*
@@ -191,6 +214,37 @@ void WT_Print_Symbols(WT_Struct* WT__) {
 }
 
 /*
+ * Rank given symbol value in WT_Struct.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  pos__  Query position.
+ * @param  symb__  Query symbol value.
+ */
+int32_t WT_VRank(WT_Struct* WT__, uint32_t pos__, int8_t symb__) {
+  switch (symb__) {
+    case 0:
+      return RAS_Rank0(WT__->RaS[WT_MEM_LOWER],
+                       RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__));
+    case 1:
+      return RAS_Rank(WT__->RaS[WT_MEM_LOWER],
+                      RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__));
+    case 2:
+      return RAS_Rank0(WT__->RaS[WT_MEM_HIGHER],
+                       RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__));
+    case 3:
+      return RAS_Rank0(WT__->RaS[WT_MEM_EXTRA],
+                       RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
+                                RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__)));
+    case 4:
+      return RAS_Rank(WT__->RaS[WT_MEM_EXTRA],
+                      RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
+                               RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__)));
+  }
+  FATAL("Unknown symbol");
+  return 0;  // Unreachable
+}
+
+/*
  * Rank given symbol in WT_Struct.
  *
  * @param  WT__  Reference to WT_Struct object.
@@ -198,32 +252,46 @@ void WT_Print_Symbols(WT_Struct* WT__) {
  * @param  symb__  Query symbol.
  */
 int32_t WT_Rank(WT_Struct* WT__, uint32_t pos__, char symb__) {
+  int8_t val;
 
 #ifdef SYMBOL_UPPER_TRANSLATION_
   TO_UPPER(symb__);
 #endif
 
+  GET_VALUE(val, symb__)
+  return WT_VRank(WT__, pos__, val);
+}
+
+/*
+ * Select given symbol value in WT_Struct.
+ *
+ * @param  WT__  Reference to WT_Struct object.
+ * @param  num__  Query count.
+ * @param  symb__  Query symbol value.
+ */
+int32_t WT_VSelect(WT_Struct* WT__, uint32_t num__, int8_t symb__) {
   switch (symb__) {
-    case 'A':
-      return RAS_Rank0(WT__->RaS[WT_MEM_LOWER],
-                       RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__));
-    case 'C':
-      return RAS_Rank(WT__->RaS[WT_MEM_LOWER],
-                      RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__));
-    case 'G':
-      return RAS_Rank0(WT__->RaS[WT_MEM_HIGHER],
-                       RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__));
-    case 'T':
-      return RAS_Rank0(WT__->RaS[WT_MEM_EXTRA],
-                       RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
-                                RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__)));
-    case '$':
-      return RAS_Rank(WT__->RaS[WT_MEM_EXTRA],
-                      RAS_Rank(WT__->RaS[WT_MEM_HIGHER],
-                               RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__)));
+    case 0:
+      return RAS_Select0(WT__->RaS[WT_MEM_WHOLE],
+                         RAS_Select0(WT__->RaS[WT_MEM_LOWER], num__));
+    case 1:
+      return RAS_Select0(WT__->RaS[WT_MEM_WHOLE],
+                         RAS_Select(WT__->RaS[WT_MEM_LOWER], num__));
+    case 2:
+      return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
+                        RAS_Select0(WT__->RaS[WT_MEM_HIGHER], num__));
+    case 3:
+      return RAS_Select(
+          WT__->RaS[WT_MEM_WHOLE],
+          RAS_Select(WT__->RaS[WT_MEM_HIGHER],
+                     RAS_Select0(WT__->RaS[WT_MEM_EXTRA], num__)));
+    case 4:
+      return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
+                        RAS_Select(WT__->RaS[WT_MEM_HIGHER],
+                                   RAS_Select(WT__->RaS[WT_MEM_EXTRA], num__)));
   }
   FATAL("Unknown symbol");
-  return 0;
+  return 0;  // Unreachable
 }
 
 /*
@@ -234,34 +302,14 @@ int32_t WT_Rank(WT_Struct* WT__, uint32_t pos__, char symb__) {
  * @param  symb__  Query symbol.
  */
 int32_t WT_Select(WT_Struct* WT__, uint32_t num__, char symb__) {
+  int8_t val;
 
 #ifdef SYMBOL_UPPER_TRANSLATION_
   TO_UPPER(symb__);
 #endif
 
-  switch (symb__) {
-    case 'A':
-      return RAS_Select0(WT__->RaS[WT_MEM_WHOLE],
-                         RAS_Select0(WT__->RaS[WT_MEM_LOWER], num__));
-    case 'C':
-      return RAS_Select0(WT__->RaS[WT_MEM_WHOLE],
-                         RAS_Select(WT__->RaS[WT_MEM_LOWER], num__));
-    case 'G':
-      return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
-                        RAS_Select0(WT__->RaS[WT_MEM_HIGHER], num__));
-    case 'T':
-      return RAS_Select(
-          WT__->RaS[WT_MEM_WHOLE],
-          RAS_Select(WT__->RaS[WT_MEM_HIGHER],
-                     RAS_Select0(WT__->RaS[WT_MEM_EXTRA], num__)));
-    case '$':
-      return RAS_Select(WT__->RaS[WT_MEM_WHOLE],
-                        RAS_Select(WT__->RaS[WT_MEM_HIGHER],
-                                   RAS_Select(WT__->RaS[WT_MEM_EXTRA], num__)));
-  }
-  FATAL("Unknown symbol");
-  return 0;
+  GET_VALUE(val, symb__)
+  return WT_VSelect(WT__, num__, val);
 }
-
 
 #endif  // _WT_EXT_STRUCTURE__
