@@ -26,8 +26,6 @@ typedef struct {
  * @param  RAS__  Reference to RAS_Struct object.
  */
 void RAS_Init(RAS_Struct *RAS__) {
-  STACK_CLEAN();
-
   RAS__->mem_ = init_memory();
   RAS__->root_ = new_leaf(RAS__->mem_);
 
