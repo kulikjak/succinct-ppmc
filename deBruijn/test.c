@@ -18,6 +18,9 @@ bool static_basic_test(void) {
 
   int32_t resIndegree[] = {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
+  int32_t resShorten1[] = {-1, -1, -1, -1, 3, 3, 3, -1, 7, 7, -1, 10, 10, 10, 10};
+  int32_t resShorten2[] = {-1, -1, -1, -1, -1, -1, 5, -1, -1, 8, -1, -1, -1, -1, 13};
+
   deBruijn_graph dB;
   deBruijn_Init(&dB);
 
@@ -37,6 +40,9 @@ bool static_basic_test(void) {
     assert(-1 == deBruijn_Outgoing(&dB, i, '$'));
 
     assert(resIndegree[i] == deBruijn_Indegree(&dB, i));
+
+    assert(resShorten1[i] == deBruijn_Shorten_context(&dB, i, 1));
+    assert(resShorten2[i] == deBruijn_Shorten_context(&dB, i, 2));
   }
 
   deBruijn_Free(&dB);

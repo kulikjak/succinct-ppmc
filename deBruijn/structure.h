@@ -24,6 +24,13 @@
     : ((symb__) == 2) ? 'G'           \
     : ((symb__) == 3) ? 'T' : '$')
 
+#define GET_VALUE_FROM_IDX(idx__, dB__) \
+      ((idx__ < dB__->F_[0]) ? 4        \
+    : (idx__ < dB__->F_[1]) ? 0         \
+    : (idx__ < dB__->F_[2]) ? 1         \
+    : (idx__ < dB__->F_[3]) ? 2 : 3)
+
+
 typedef struct {
   int32_t F_[SYMBOL_COUNT];
   RAS_Struct L_;
@@ -98,10 +105,7 @@ int32_t deBruijn_Backward_(deBruijn_graph *dB__, int32_t idx__) {
   assert(idx__ < RAS_Size(dB__->L_) && idx__ >= 0);
 
   // find last symbol of this node
-  symbol = (idx__ < dB__->F_[0]) ? 4
-         : (idx__ < dB__->F_[1]) ? 0
-         : (idx__ < dB__->F_[2]) ? 1
-         : (idx__ < dB__->F_[3]) ? 2 : 3;
+  symbol = GET_VALUE_FROM_IDX(idx__, dB__);
 
   // if last symbol is dollar, there is nowhere to go
   if (symbol == 4) return -1;
@@ -140,15 +144,15 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__) {
 }
 
 /*
- * From given node follow edge labeled by given symbol.
+ * Get position of given edge symbol in given node.
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  symb__  Symbol to follow.
+ * @param  symb__  Symbol to find.
  *
- * @return  Index of new node.
+ * @return  Index of edge in given node.
  */
-int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, char symb__) {
   int32_t node_id, last_pos, range, select;
 
   // get last edge index for this node
@@ -163,8 +167,31 @@ int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, char symb__) {
 
   // check if this position is in the range (transition exist)
   if (last_pos - range <= select)
-    return deBruijn_Forward_(dB__, select);
+    return select;
   return -1;
+}
+
+/*
+ * From given node follow edge labeled by given symbol.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  symb__  Symbol to follow.
+ *
+ * @return  Index of new node.
+ */
+int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+  int32_t edge_idx;
+
+  // get index of edge we should follow
+  edge_idx = deBruijn_Edge_Check(dB__, idx__, symb__);
+
+  // check if such edge exist
+  if (edge_idx == -1)
+    return -1;
+
+  // return index of new node
+  return deBruijn_Forward_(dB__, edge_idx);
 }
 
 /*
@@ -191,10 +218,7 @@ void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char* buffer__) {
 
   pos = CONTEXT_LENGTH - 1;
   do {
-    symbol = (idx__ < dB__->F_[0]) ? 4
-           : (idx__ < dB__->F_[1]) ? 0
-           : (idx__ < dB__->F_[2]) ? 1
-           : (idx__ < dB__->F_[3]) ? 2 : 3;
+    symbol = GET_VALUE_FROM_IDX(idx__, dB__);
 
     buffer__[pos--] = GET_SYMBOL_FROM_VALUE(symbol);
     idx__ = deBruijn_Backward_(dB__, idx__);
@@ -327,6 +351,149 @@ void deBruijn_Insert_test_data_(deBruijn_graph *dB__, int8_t *L__, char *W__, in
 
   memcpy(dB__->F_, F__, sizeof(dB__->F_));
 }
+
+/*
+ * Get length of common suffix of given line and line above.
+ *
+ * This is the simpliest (and slowest) way of determining length of common
+ * suffix. It is however the most memory efficient one as it does not store
+ * any aditional information.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  limit__ Limit of checking.
+ *
+ * @return  Length of longest common suffix
+ */
+int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int32_t limit__) {
+  int32_t common, idx1, idx2;
+  int32_t symbol1, symbol2;
+
+  // there is no common suffix for top most line
+  if (!idx__) return 0;
+
+  common = 0;
+
+  idx1 = idx__;
+  idx2 = idx__ - 1;
+
+  // limit size of suffix for better performance
+  while (common < limit__) {
+
+    // get symbols itself
+    symbol1 = GET_VALUE_FROM_IDX(idx1, dB__);
+    symbol2 = GET_VALUE_FROM_IDX(idx2, dB__);
+
+    // dollars are not context
+    // (we can check only one - next condition will handle the other)
+    if (symbol1 == 4)
+      break;
+
+    // symbols are not the same
+    if (symbol1 != symbol2)
+      break;
+
+    // continue backwards
+    idx1 = deBruijn_Backward_(dB__, idx1);
+    idx2 = deBruijn_Backward_(dB__, idx2);
+
+    common++;
+
+    if (idx1 == -1 || idx2 == -1)
+      break;
+  }
+  return common;
+}
+
+/*
+ * Shorten current context.
+ *
+ * This function effectively follows suffix links of PPM tree.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  ctx_len__ Desired new context length.
+ *
+ * @return  Node with shorter context or -1 if one doesn't exist
+ */
+int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__) {
+  // if this is root node it is not possible to shorten context
+  if (idx__ < dB__->F_[0])
+    return -1;
+
+  // we cannot shorten context at all
+  if (deBruijn_Get_common_suffix_len_(dB__, idx__--, ctx_len__) < ctx_len__)
+    return -1;
+
+  // context can be surely shortened beyond this point
+
+  while (idx__) { 
+    // check for length of common suffix
+    if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
+      return idx__;
+
+    // move one line higher
+    idx__ --;
+  }
+
+  UNREACHABLE
+  return 0;
+}
+
+/*
+ * Add symbol to given context. 
+ *
+ * TODO desc
+ * TODO function
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Node index (line) in deBruijn graph.
+ * @param  symb__ Additional symbol.
+ */
+void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+
+
+  // check if shorter context already added this symbol
+  // if not, symbol will be recursively added from top to this node
+  prev = deBruijn_Backward_(symb__);
+
+  deBruijn_Add_context_symbol(dB__, idx__, prev); // TODO
+
+  // check what symbol is in W
+  if (WT_Get(&(dB__->W_), idx__) == '$') {
+    // current W symbol is $ - we can simply change it to new one
+
+    // TODO chagne symbol
+
+  } else {
+
+
+
+  }
+
+}
+
+// pridavani symbolu:
+
+// jsem v uzlu, za ktery chci retezit
+// check jestli kratsi context ma tento symbol pridany - pokud ne, jdu nejprve do nej
+
+// v momentalnim miste zjistim, jake je W
+// pokud je $, mohu ho proste zmenit na novy symbol
+
+// pokud neni $, musim najit v tom samem uzlu, jestli neni uz odchozi chrana na symbol
+// pokud je, neni co pridavat
+// pokud neni, musim najit kam to vlozit ??
+// vlozim do range na misto lexikograficky ?? a upravim F a L!
+
+// pokud mam v danem uzlu spravnou hranu, hledam nad ni nejblizsi stejny symbol jako vkladam
+// pokud existuje, pokracuji z teto hrany vpred (x)
+
+// pokud neexistuje, x = F[symbol] (existuje vzdy pokud nejsem uplne nahore mimo kontext)
+
+// na dane misto vlozim novy symbol $ a L nastavime na 1 (urcite je posledni)
+// upravime F!
+
 
 
 #endif  // _DEBRUIJN_GRAPH__
