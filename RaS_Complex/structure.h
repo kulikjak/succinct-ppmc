@@ -6,6 +6,7 @@
 
 #include "RaS_Get.h"
 #include "RaS_Insert.h"
+#include "RaS_Delete.h"
 #include "RaS_Print.h"
 #include "RaS_Rank.h"
 #include "RaS_Select.h"
@@ -67,16 +68,13 @@ void RAS_Insert(RAS_Struct *RAS__, uint32_t pos__, bool val__) {
 }
 
 /*
- * Delete - this functionality is not implemented.
+ * Delete bit at given position from the structure.
  *
  * @param  RAS__  Reference to RAS_Struct object.
  * @param  pos__  Position of to be deleted bit.
  */
 void RAS_Delete(RAS_Struct *RAS__, uint32_t pos__) {
-  UNUSED(RAS__);
-  UNUSED(pos__);
-
-  FATAL("Not Implemented");
+  RaS_Delete_32_(RAS__->mem_, &(RAS__->root_), pos__);
 }
 
 /*

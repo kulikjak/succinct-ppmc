@@ -6,7 +6,7 @@
 
 #include "../misc/bit_sequence.h"
 
-#define SEQENCE_LEN 240
+#define SEQENCE_LEN 250
 #define PRINT_SEQUENCES false
 
 
@@ -93,12 +93,52 @@ bool test_front_insert(void) {
   return true;
 }
 
+bool test_deletion_(void) {
+  int32_t i;
+  RAS_Struct RaS;
+
+  RAS_Init(&RaS);
+
+  // init simple bit sequence with random values
+  uint64_t* sequence = init_random_bin_sequence(SEQENCE_LEN);
+
+  int32_t idx = 0;
+  int32_t added = 0;
+  int32_t pos[SEQENCE_LEN];
+
+  // insert bits into dynamic RaS
+  for (i = 0; i < SEQENCE_LEN; i++) {
+    int8_t bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    // insert additional bits for deletion testing purposes
+    if (bit) {
+      RAS_Insert(&RaS, i+added, bit);
+      pos[idx++] = i + added++;
+    }
+    RAS_Insert(&RaS, i+added, bit);
+  }
+
+  // delete all additional bits and check the structure
+  for (i = added - 1; i >= 0; i--) {
+    RAS_Delete(&RaS, pos[i]);
+  }
+
+  _test_itself(sequence, RaS);
+
+  RAS_Free(&RaS);
+  free(sequence);
+
+  return true;
+}
+
 int main(int argc, char* argv[]) {
   UNUSED(argc);
   UNUSED(argv);
 
   test_rear_insert();
   test_front_insert();
+
+  test_deletion_();
 
   printf("All tests successfull\n");
 
