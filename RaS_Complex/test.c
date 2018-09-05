@@ -112,10 +112,10 @@ bool test_deletion_(void) {
 
     // insert additional bits for deletion testing purposes
     if (bit) {
-      RAS_Insert(&RaS, i+added, bit);
+      RAS_Insert(&RaS, i + added, bit);
       pos[idx++] = i + added++;
     }
-    RAS_Insert(&RaS, i+added, bit);
+    RAS_Insert(&RaS, i + added, bit);
   }
 
   // delete all additional bits and check the structure

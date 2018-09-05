@@ -99,7 +99,6 @@ bool test_rear_insert(void) {
 }
 
 bool test_deletion(void) {
-
   int32_t i;
 
   WT_Struct wt;
@@ -116,10 +115,10 @@ bool test_deletion(void) {
     char letter = get_char_sequence(sequence, SEQENCE_LEN, i);
 
     if (letter == 'A' || letter == 'T') {
-      WT_Insert(&wt, i+added, letter);
+      WT_Insert(&wt, i + added, letter);
       pos[idx++] = i + added++;
     }
-    WT_Insert(&wt, i+added, letter);
+    WT_Insert(&wt, i + added, letter);
   }
 
   // delete all additional symbols and check the structure
@@ -133,7 +132,6 @@ bool test_deletion(void) {
 
   return true;
 }
-
 
 int main(int argc, char* argv[]) {
   UNUSED(argc);
