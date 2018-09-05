@@ -98,6 +98,42 @@ bool test_rear_insert(void) {
   return true;
 }
 
+bool test_deletion(void) {
+
+  int32_t i;
+
+  WT_Struct wt;
+  WT_Init(&wt);
+
+  char* sequence = init_random_char_extdna_sequence(SEQENCE_LEN);
+
+  int32_t idx = 0;
+  int32_t added = 0;
+  int32_t pos[SEQENCE_LEN];
+
+  // insert chars into dynamic WT
+  for (i = 0; i < SEQENCE_LEN; i++) {
+    char letter = get_char_sequence(sequence, SEQENCE_LEN, i);
+
+    if (letter == 'A' || letter == 'T') {
+      WT_Insert(&wt, i+added, letter);
+      pos[idx++] = i + added++;
+    }
+    WT_Insert(&wt, i+added, letter);
+  }
+
+  // delete all additional symbols and check the structure
+  for (i = added - 1; i >= 0; i--)
+    WT_Delete(&wt, pos[i]);
+
+  _test_wavelet_tree(&wt, sequence);
+
+  free_char_sequence(&sequence);
+  WT_Free(&wt);
+
+  return true;
+}
+
 
 int main(int argc, char* argv[]) {
   UNUSED(argc);
@@ -105,6 +141,8 @@ int main(int argc, char* argv[]) {
 
   test_front_insert();
   test_rear_insert();
+
+  test_deletion();
 
   printf("All tests successfull\n");
 

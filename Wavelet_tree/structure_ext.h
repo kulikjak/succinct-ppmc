@@ -65,16 +65,35 @@ void WT_Free(WT_Struct *WT__) {
 }
 
 /*
- * Delete - this functionality is not implemented.
+ * Delete symbol at given position.
  *
  * @param  WT__  Reference to WT_Struct object.
  * @param  pos__  Position of to be deleted symbol.
  */
 void WT_Delete(WT_Struct* WT__, uint32_t pos__) {
-  UNUSED(WT__);
-  UNUSED(pos__);
+  uint32_t tmp, bit;
 
-  FATAL("Not Implemented (and likely never will...)");
+  bit = RAS_Get(WT__->RaS[WT_MEM_WHOLE], pos__);
+  switch (bit) {
+    case 0:
+      tmp = RAS_Rank0(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Delete(&(WT__->RaS[WT_MEM_WHOLE]), pos__);
+      RAS_Delete(&(WT__->RaS[WT_MEM_LOWER]), tmp);
+      break;
+    case 1:
+      tmp = RAS_Rank(WT__->RaS[WT_MEM_WHOLE], pos__);
+      RAS_Delete(&(WT__->RaS[WT_MEM_WHOLE]), pos__);
+
+      bit = RAS_Get(WT__->RaS[WT_MEM_HIGHER], tmp);
+      if (bit) {
+        uint32_t tmp2 = RAS_Rank(WT__->RaS[WT_MEM_HIGHER], tmp);
+        RAS_Delete(&(WT__->RaS[WT_MEM_EXTRA]), tmp2);
+      }
+      RAS_Delete(&(WT__->RaS[WT_MEM_HIGHER]), tmp);
+      break;
+    default:
+      UNREACHABLE;
+  }
 }
 
 /*
