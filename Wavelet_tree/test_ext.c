@@ -133,14 +133,53 @@ bool test_deletion(void) {
   return true;
 }
 
+bool test_symbol_change(void) {
+  int32_t i;
+  char letter;
+
+  WT_Struct wt;
+  WT_Init(&wt);
+
+  char* seq_one = init_random_char_extdna_sequence(SEQENCE_LEN);
+  char* seq_two = init_random_char_extdna_sequence(SEQENCE_LEN);
+
+  // insert chars into dynamic WT
+  for (i = 0; i < SEQENCE_LEN; i++) {
+    letter = get_char_sequence(seq_one, SEQENCE_LEN, i);
+    WT_Insert(&wt, i, letter);
+  }
+
+  _test_wavelet_tree(&wt, seq_one);
+
+  // exchange symbols from first sequence with second sequence symbols
+  for (i = 0; i < SEQENCE_LEN; i++) {
+    WT_Delete(&wt, i);
+
+    letter = get_char_sequence(seq_two, SEQENCE_LEN, i);
+    WT_Insert(&wt, i, letter);
+  }
+
+  _test_wavelet_tree(&wt, seq_two);
+
+  free_char_sequence(&seq_one);
+  free_char_sequence(&seq_two);
+  WT_Free(&wt);
+
+  return true;
+}
+
 int main(int argc, char* argv[]) {
   UNUSED(argc);
   UNUSED(argv);
+
+  // seed the random string generator
+  srand(time(NULL));
 
   test_front_insert();
   test_rear_insert();
 
   test_deletion();
+  test_symbol_change();
 
   printf("All tests successfull\n");
 

@@ -14,9 +14,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-/* whether generated sequences should be random or seeded with static value */
-#define SEQUENCE_RANDOM_
-
 /*
  * Generate symbol sequence.
  *
@@ -31,12 +28,6 @@ char* init_random_char_sequence_aux_(int32_t ssize__, char* dict__, int32_t dsiz
 
   char* sequence = (char*)malloc(ssize__ * sizeof(char));
 
-#ifdef SEQUENCE_RANDOM_
-  srand(time(NULL));
-#else
-  srand(0);
-#endif
-
   for (i = 0; i < ssize__; i++) {
     ri = rand() % dsize__;
     sequence[i] = dict__[ri];
@@ -46,6 +37,9 @@ char* init_random_char_sequence_aux_(int32_t ssize__, char* dict__, int32_t dsiz
 
 /*
  * Generate sequence with dna symbols (A, C, G, T).
+ *
+ * Random should be seeded at this point as this function does not
+ * seed the generator in any way.
  *
  * @param  ssize__  Length of the sequence.
  *
@@ -60,6 +54,8 @@ char* init_random_char_dna_sequence(int32_t ssize__) {
  * Generate sequence with dna symbols (A, C, G, T) and dolar symbol.
  *
  * These symbols are used for deBuijn graphs.
+ * Random should be seeded at this point as this function does not
+ * seed the generator in any way.
  *
  * @param  ssize__  Length of the sequence.
  *
@@ -72,6 +68,9 @@ char* init_random_char_extdna_sequence(int32_t ssize__) {
 
 /*
  * Generate sequence with full ASCII (256 values).
+ *
+ * Random should be seeded at this point as this function does not
+ * seed the generator in any way.
  *
  * @param  ssize__  Length of the sequence.
  *

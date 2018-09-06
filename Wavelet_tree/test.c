@@ -99,6 +99,9 @@ int main(int argc, char* argv[]) {
   UNUSED(argc);
   UNUSED(argv);
 
+  // seed the random string generator
+  srand(time(NULL));
+
   test_front_insert();
   test_rear_insert();
 

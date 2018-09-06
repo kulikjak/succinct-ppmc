@@ -181,6 +181,9 @@ int main(int argc, char* argv[]) {
   UNUSED(argc);
   UNUSED(argv);
 
+  // seed the random string generator
+  srand(time(NULL));
+
   // simple_visual_test_();
   test_front_insert();
   test_rear_insert();
