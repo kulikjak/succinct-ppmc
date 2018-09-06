@@ -73,7 +73,7 @@ void RaS_Delete_32_(memory_32b* mem__, int32_t *root__, uint32_t pos__) {
   Leaf_32b* current_ref = MEMORY_GET_LEAF(mem__, current);
   assert(current_ref->p_ > 0);
 
-  uint32_t mask = ((pos__) == 0) ? 0 : ~(0) << (32 - (pos__));  
+  uint32_t mask = ((pos__) == 0) ? 0 : (uint32_t)(~(0)) << (32 - (pos__));
   uint32_t vector = 0;
 
   // contains any nonzero value for set bit (not exactly 1)

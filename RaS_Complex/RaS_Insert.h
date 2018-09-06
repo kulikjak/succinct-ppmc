@@ -11,20 +11,21 @@
 // TODO RB Tree
 
 /* Insert bit into the given leaf on given position with given value. */
-#define INSERT_BIT(leaf, pos, value)                         \
-  {                                                          \
-    uint32_t mask = ((pos) == 0) ? 0 : ~(0) << (32 - (pos)); \
-    uint32_t vector = 0;                                     \
-                                                             \
-    vector |= (leaf)->vector_ & mask;                        \
-    vector |= (((leaf)->vector_ & ~(mask))) >> 1;            \
-    (leaf)->vector_ = vector;                                \
-    (leaf)->p_ += 1;                                         \
-                                                             \
-    if (value) {                                             \
-      (leaf)->vector_ |= 0x1 << (31 - (pos));                \
-      (leaf)->r_ += 1;                                       \
-    }                                                        \
+#define INSERT_BIT(leaf, pos, value)                                     \
+  {                                                                      \
+    assert(pos < 32);                                                    \
+    uint32_t mask = ((pos) == 0) ? 0 : (uint32_t)(~(0)) << (32 - (pos)); \
+    uint32_t vector = 0;                                                 \
+                                                                         \
+    vector |= (leaf)->vector_ & mask;                                    \
+    vector |= (((leaf)->vector_ & ~(mask))) >> 1;                        \
+    (leaf)->vector_ = vector;                                            \
+    (leaf)->p_ += 1;                                                     \
+                                                                         \
+    if (value) {                                                         \
+      (leaf)->vector_ |= 0x1 << (31 - (pos));                            \
+      (leaf)->r_ += 1;                                                   \
+    }                                                                    \
   }
 
 /* Perform standard rank on more significant half of a 32 bit vector in given leaf. */
