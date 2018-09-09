@@ -21,6 +21,8 @@ bool static_basic_test(void) {
   int32_t resShorten1[] = {-1, -1, -1, -1, 3, 3, 3, -1, 7, 7, -1, 10, 10, 10, 10};
   int32_t resShorten2[] = {-1, -1, -1, -1, -1, -1, 5, -1, -1, 8, -1, -1, -1, -1, 13};
 
+  int32_t resContextLen[] = {0, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 1, 2, 2, 3};
+
   deBruijn_graph dB;
   deBruijn_Init(&dB);
 
@@ -43,11 +45,52 @@ bool static_basic_test(void) {
 
     assert(resShorten1[i] == deBruijn_Shorten_context(&dB, i, 1));
     assert(resShorten2[i] == deBruijn_Shorten_context(&dB, i, 2));
+
+    assert(resContextLen[i] == deBruijn_get_context_len(&dB, i));
   }
+
+  printf("Static basic test successfull.\n");
+  return true;
+}
+
+bool insertion_test(void) {
+
+  deBruijn_graph dB;
+  deBruijn_Init(&dB);
+  deBruijn_Insert_root_node(&dB);
+
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 0, 'G');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 1, 'G');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 0, 'A');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 2, 'G');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 3, 'A');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 0, 'C');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 6, 'C');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 10, 'C');
+  deBruijn_Print(&dB, true);
+
+  deBruijn_Add_context_symbol(&dB, 12, 'T');
+  deBruijn_Print(&dB, true);
 
   deBruijn_Free(&dB);
 
-  printf("Static basic test successfull.\n");
+  printf("Insertion test successfull.\n");
   return true;
 }
 
@@ -56,6 +99,7 @@ int main(int argc, char* argv[]) {
   UNUSED(argv);
 
   static_basic_test();
+  //insertion_test();
 
   printf("All tests successfull\n");
 

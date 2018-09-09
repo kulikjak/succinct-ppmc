@@ -37,7 +37,6 @@
     : (idx__ < dB__->F_[3]) ? 2 : 3)
 
 
-
 typedef struct {
   int32_t F_[SYMBOL_COUNT];
   RAS_Struct L_;
@@ -542,14 +541,12 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb_
       deBruijn_Tracker_pop(dB__);
 
       deBruijn_Print(dB__, true);
-
     }
   }
 
   // check what symbol is in W
   if (WT_Get(&(dB__->W_), idx__) == '$') {
     // current W symbol is $ - we can simply change it to new one
-
 
     // change symbol to new one
     WT_Delete(&(dB__->W_), idx__);
@@ -612,28 +609,5 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb_
       dB__->F_[i]++;
   }
 }
-
-// pridavani symbolu:
-
-// jsem v uzlu, za ktery chci retezit
-// check jestli kratsi context ma tento symbol pridany - pokud ne, jdu nejprve do nej
-
-// v momentalnim miste zjistim, jake je W
-// pokud je $, mohu ho proste zmenit na novy symbol
-
-// pokud neni $, musim najit v tom samem uzlu, jestli neni uz odchozi chrana na symbol
-// pokud je, neni co pridavat
-// pokud neni, musim najit kam to vlozit ??
-// vlozim do range na misto lexikograficky ?? a upravim F a L!
-
-// pokud mam v danem uzlu spravnou hranu, hledam nad ni nejblizsi stejny symbol jako vkladam
-// pokud existuje, pokracuji z teto hrany vpred (x)
-
-// pokud neexistuje, x = F[symbol] (existuje vzdy pokud nejsem uplne nahore mimo kontext)
-
-// na dane misto vlozim novy symbol $ a L nastavime na 1 (urcite je posledni)
-// upravime F!
-
-
 
 #endif  // _DEBRUIJN_GRAPH__
