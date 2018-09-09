@@ -24,6 +24,12 @@
     : ((symb__) == 2) ? 'G'           \
     : ((symb__) == 3) ? 'T' : '$')
 
+#define GET_VALUE_FROM_SYMBOL(symb__) \
+      (((symb__) == 'A') ? 0          \
+    : ((symb__) == 'C') ? 1           \
+    : ((symb__) == 'G') ? 2           \
+    : ((symb__) == 'T') ? 3 : 4)
+
 #define GET_VALUE_FROM_IDX(idx__, dB__) \
       ((idx__ < dB__->F_[0]) ? 4        \
     : (idx__ < dB__->F_[1]) ? 0         \
@@ -31,11 +37,36 @@
     : (idx__ < dB__->F_[3]) ? 2 : 3)
 
 
+
 typedef struct {
   int32_t F_[SYMBOL_COUNT];
   RAS_Struct L_;
   WT_Struct W_;
+
+  struct {
+    int32_t cnt_;
+    int32_t* arr_[CONTEXT_LENGTH + 4];
+  } tracker_;
 } deBruijn_graph;
+
+
+void deBruijn_Tracker_push(deBruijn_graph *dB__, int32_t* a__) {
+  assert(dB__->tracker_.cnt_ + 1 < CONTEXT_LENGTH + 4);
+  dB__->tracker_.arr_[dB__->tracker_.cnt_++] = a__;
+}
+
+void deBruijn_Tracker_pop(deBruijn_graph *dB__) {
+  assert(dB__->tracker_.cnt_ >= 1);
+  dB__->tracker_.cnt_ --;
+}
+
+void deBruijn_Tracker_update(deBruijn_graph *dB__, int32_t val__) {
+  int32_t i;
+
+  for (i = 0; i < dB__->tracker_.cnt_; i++)
+    if (*(dB__->tracker_.arr_[i]) >= val__)
+      (*(dB__->tracker_.arr_[i]))++;
+}
 
 /*
  * Initialize deBruijn_graph object.
@@ -47,7 +78,23 @@ void deBruijn_Init(deBruijn_graph *dB__) {
 
   RAS_Init(&(dB__->L_));
   WT_Init(&(dB__->W_));
+
+  dB__->tracker_.cnt_ = 0;
 }
+
+void deBruijn_Insert_root_node(deBruijn_graph *dB__) {
+  // insert first node (root)
+  RAS_Insert(&(dB__->L_), 0, 1);
+  WT_Insert(&(dB__->W_), 0, '$');
+
+  deBruijn_Tracker_update(dB__, 0);
+
+  dB__->F_[0] = 1;
+  dB__->F_[1] = 1;
+  dB__->F_[2] = 1;
+  dB__->F_[3] = 1;
+}
+
 
 /*
  * Free all memory associated with deBruijn graph object.
@@ -273,6 +320,11 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
   int32_t nextPos = 0;
   int32_t next = 0;
 
+  for (i = 0; i < 4; i++) {
+    printf("%d ", dB__->F_[i]);
+  }
+  printf("\n");
+
   // print header for main structure
   if (labels__) {
     printf("     F  L  Label  ");
@@ -427,6 +479,10 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 
   // context can be surely shortened beyond this point
 
+  // context of len 0 points surely to root node
+  if (ctx_len__ == 0)
+    return dB__->F_[0] - 1;
+
   while (idx__) { 
     // check for length of common suffix
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
@@ -440,6 +496,24 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
   return 0;
 }
 
+
+int32_t deBruijn_get_context_len(deBruijn_graph *dB__, int32_t idx__) {
+  int8_t symbol;
+  int32_t count = 0;
+
+  do {
+    symbol = GET_VALUE_FROM_IDX(idx__, dB__);
+    if (symbol == 4)
+      break;
+
+    count ++;
+    idx__ = deBruijn_Backward_(dB__, idx__);
+  } while (idx__ != -1);
+
+  return count;
+}
+
+
 /*
  * Add symbol to given context. 
  *
@@ -452,25 +526,91 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
  */
 void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb__) {
 
+  int32_t edge_pos, i;
 
   // check if shorter context already added this symbol
   // if not, symbol will be recursively added from top to this node
-  prev = deBruijn_Backward_(symb__);
 
-  deBruijn_Add_context_symbol(dB__, idx__, prev); // TODO
+  int32_t ctx_len = deBruijn_get_context_len(dB__, idx__);
+  if (ctx_len) {
+    int32_t prev_node = deBruijn_Shorten_context(dB__, idx__, ctx_len - 1);
+
+    // check if prev node has what it needs
+    if (deBruijn_Edge_Check(dB__, prev_node, symb__) == -1) {
+      deBruijn_Tracker_push(dB__, &idx__);
+      deBruijn_Add_context_symbol(dB__, prev_node, symb__);
+      deBruijn_Tracker_pop(dB__);
+
+      deBruijn_Print(dB__, true);
+
+    }
+  }
 
   // check what symbol is in W
   if (WT_Get(&(dB__->W_), idx__) == '$') {
     // current W symbol is $ - we can simply change it to new one
 
-    // TODO chagne symbol
+
+    // change symbol to new one
+    WT_Delete(&(dB__->W_), idx__);
+    WT_Insert(&(dB__->W_), idx__, symb__);
 
   } else {
+    edge_pos = deBruijn_Edge_Check(dB__, idx__, symb__);
 
+    // transition already exist at this node - nothing more do
+    if (edge_pos != -1) {
+      return;
+    }
 
+    // insert new edge into this node
+    RAS_Insert(&(dB__->L_), idx__, 0);
+    WT_Insert(&(dB__->W_), idx__, symb__);
 
+    deBruijn_Tracker_update(dB__, idx__);
+
+    // update F array according to added node
+    for (i = 0; i < SYMBOL_COUNT; i++) {
+      if (dB__->F_[i] > idx__)
+        dB__->F_[i]++;
+    }
   }
 
+  // find same transition symbol above this line
+  int32_t rank = WT_Rank(&(dB__->W_), idx__, symb__);
+
+  int32_t x, y;
+
+  if (!rank) {
+    // there is no symbol above this
+    int32_t sn = GET_VALUE_FROM_SYMBOL(symb__);
+    x = dB__->F_[sn];
+
+    WT_Insert(&(dB__->W_), x, '$');
+    RAS_Insert(&(dB__->L_), x, 1);
+
+    deBruijn_Tracker_update(dB__, x);
+
+    for (i = sn + 1; i < SYMBOL_COUNT; i++) {
+      dB__->F_[i]++;
+    }
+
+    return;
+
+  } else {
+    y = WT_Select(&(dB__->W_), rank, symb__);
+    x = deBruijn_Forward_(dB__, y-1) + 1;
+  }
+
+  WT_Insert(&(dB__->W_), x, '$');
+  RAS_Insert(&(dB__->L_), x, 1);
+
+  deBruijn_Tracker_update(dB__, x);
+
+  for (i = 0; i < SYMBOL_COUNT; i++) {
+    if (dB__->F_[i] >= x)
+      dB__->F_[i]++;
+  }
 }
 
 // pridavani symbolu:
