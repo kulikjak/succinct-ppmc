@@ -9,6 +9,7 @@
 bool static_basic_test(void) {
   int8_t L[] = {0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1};
   char W[] = {'A','C','G','C','G','C','$','$','$','$','A','G','G','A','$'};
+  int32_t P[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int32_t F[] = {3, 7, 10, 15};
 
   int32_t resOutdegree[] = {3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1};
@@ -24,9 +25,7 @@ bool static_basic_test(void) {
   int32_t resContextLen[] = {0, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 1, 2, 2, 3};
 
   deBruijn_graph dB;
-  deBruijn_Init(&dB);
-
-  deBruijn_Insert_test_data_(&dB, L, W, F, 15);
+  deBruijn_Insert_test_data_(&dB, L, W, P, F, 15);
 
 #if PRINT_DEBRUIJN_
   deBruijn_Print(&dB, true);
@@ -49,6 +48,8 @@ bool static_basic_test(void) {
     assert(resContextLen[i] == deBruijn_get_context_len(&dB, i));
   }
 
+  deBruijn_Free(&dB);
+
   printf("Static basic test successfull.\n");
   return true;
 }
@@ -57,36 +58,23 @@ bool insertion_test(void) {
 
   deBruijn_graph dB;
   deBruijn_Init(&dB);
-  deBruijn_Insert_root_node(&dB);
 
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 0, 'G');
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 1, 'G');
   deBruijn_Print(&dB, true);
 
   deBruijn_Add_context_symbol(&dB, 0, 'A');
+  deBruijn_Add_context_symbol(&dB, 1, 'C');
+  deBruijn_Add_context_symbol(&dB, 4, 'C');
+
+  deBruijn_Add_context_symbol(&dB, 5, 'A');
+  deBruijn_Add_context_symbol(&dB, 3, 'G');
+  deBruijn_Add_context_symbol(&dB, 13, 'T');
+  deBruijn_Add_context_symbol(&dB, 17, 'C');
+  deBruijn_Add_context_symbol(&dB, 13, 'C');
+  deBruijn_Add_context_symbol(&dB, 11, 'T');
+
+
   deBruijn_Print(&dB, true);
 
-  deBruijn_Add_context_symbol(&dB, 2, 'G');
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 3, 'A');
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 0, 'C');
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 6, 'C');
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 10, 'C');
-  deBruijn_Print(&dB, true);
-
-  deBruijn_Add_context_symbol(&dB, 12, 'T');
-  deBruijn_Print(&dB, true);
 
   deBruijn_Free(&dB);
 
@@ -99,7 +87,7 @@ int main(int argc, char* argv[]) {
   UNUSED(argv);
 
   static_basic_test();
-  //insertion_test();
+  insertion_test();
 
   printf("All tests successfull\n");
 

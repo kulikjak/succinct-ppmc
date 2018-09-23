@@ -7,6 +7,7 @@
 #include "../shared/utils.h"
 
 #include "../RaS_Complex/structure.h"
+#include "../Indel_array/structure.h"
 #include "../Wavelet_tree/structure_ext.h"
 
 // Length of the PPMC context (not used yet)
@@ -41,6 +42,7 @@ typedef struct {
   int32_t F_[SYMBOL_COUNT];
   RAS_Struct L_;
   WT_Struct W_;
+  Indel_Struct P_;
 
   struct {
     int32_t cnt_;
@@ -73,27 +75,25 @@ void deBruijn_Tracker_update(deBruijn_graph *dB__, int32_t val__) {
  * @param  dB__  Reference to deBruijn_graph object.
  */
 void deBruijn_Init(deBruijn_graph *dB__) {
-  memset(dB__->F_, 0, sizeof(dB__->F_));
+  int32_t i;
 
+  // initialize all structures
   RAS_Init(&(dB__->L_));
   WT_Init(&(dB__->W_));
+  Indel_Init(&(dB__->P_));
 
+  // initialize variable tracker
   dB__->tracker_.cnt_ = 0;
-}
 
-void deBruijn_Insert_root_node(deBruijn_graph *dB__) {
-  // insert first node (root)
+  // insert root (null) node
   RAS_Insert(&(dB__->L_), 0, 1);
   WT_Insert(&(dB__->W_), 0, '$');
+  Indel_Insert(&(dB__->P_), 0, 0);
 
-  deBruijn_Tracker_update(dB__, 0);
-
-  dB__->F_[0] = 1;
-  dB__->F_[1] = 1;
-  dB__->F_[2] = 1;
-  dB__->F_[3] = 1;
+  // initialize F array
+  for (i = 0; i < SYMBOL_COUNT; i++)
+    dB__->F_[i] = 1;
 }
-
 
 /*
  * Free all memory associated with deBruijn graph object.
@@ -103,6 +103,7 @@ void deBruijn_Insert_root_node(deBruijn_graph *dB__) {
 void deBruijn_Free(deBruijn_graph *dB__) {
   RAS_Free(&(dB__->L_));
   WT_Free(&(dB__->W_));
+  Indel_Free(&(dB__->P_));
 }
 
 /*
@@ -319,22 +320,17 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
   int32_t nextPos = 0;
   int32_t next = 0;
 
-  for (i = 0; i < 4; i++) {
-    printf("%d ", dB__->F_[i]);
-  }
-  printf("\n");
-
   // print header for main structure
   if (labels__) {
     printf("     F  L  Label  ");
     for (i = 0; i < CONTEXT_LENGTH - 5; i++)
       printf(" ");
-    printf("W\n--------------------");
+    printf("W   P\n------------------------");
     for (i = 0; i < CONTEXT_LENGTH - 5; i++)
       printf("-");
     printf("\n");
   } else {
-    printf("     F  L  W\n-------------\n");
+    printf("     F  L  W   P\n-----------------\n");
   }
 
   size = RAS_Size(dB__->L_);
@@ -374,30 +370,44 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
         printf(" ");
       }
     }
-    printf("%c\n", WT_Get(&(dB__->W_), (uint32_t)i));
+    printf("%c   ", WT_Get(&(dB__->W_), (uint32_t)i));
+    printf("%d\n", Indel_Get(&(dB__->P_), (int32_t)i));
   }
 }
 
 /*
- * Insert test data into the deBruijn graph.
+ * Initialize structure with given test data.
  *
  * This function is for testing purposes only. It simply fills all the
  * structures with given data. There is no error checking (except for checks of
  * underlying structures) and if used incorrectly, all other functions can have
- * wrong results. Also it does not delete any previously inserted values.
+ * wrong results.
+ *
+ * Structure should not be initialized whne this is called!
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  L__  L array (last edge of corresponding node).
  * @param  W__  W array (label of given outgoing edge).
+ * @param  P__  P array (frequencies of each symbol in context).
  * @param  F__  F array (base positions of symbols)
  * @param  size__  Size of arrays L and W.
  */
-void deBruijn_Insert_test_data_(deBruijn_graph *dB__, int8_t *L__, char *W__, int32_t F__[SYMBOL_COUNT], int32_t size__) {
+void deBruijn_Insert_test_data_(deBruijn_graph *dB__, int8_t *L__, char *W__, int32_t* P__, int32_t F__[SYMBOL_COUNT], int32_t size__) {
   int32_t i;
 
+  // initialize all structures
+  RAS_Init(&(dB__->L_));
+  WT_Init(&(dB__->W_));
+  Indel_Init(&(dB__->P_));
+
+  // initialize variable tracker
+  dB__->tracker_.cnt_ = 0;
+
+  // insert test data
   for (i = 0; i < size__; i++) {
     RAS_Insert(&(dB__->L_), i, L__[i]);
     WT_Insert(&(dB__->W_), i, W__[i]);
+    Indel_Insert(&(dB__->P_), i, P__[i]);
   }
 
   memcpy(dB__->F_, F__, sizeof(dB__->F_));
@@ -512,27 +522,41 @@ int32_t deBruijn_get_context_len(deBruijn_graph *dB__, int32_t idx__) {
   return count;
 }
 
+void deBruijn_Increase_frequency_rec(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+
+  if (WT_Get(&(dB__->W_), idx__) != symb__)
+    idx__ = deBruijn_Edge_Check(dB__, idx__, symb__);
+
+  Indel_Inc(&(dB__->P_), idx__);
+
+  // recursively increase frequency in higher nodes
+  int32_t next = deBruijn_Shorten_context(dB__, idx__, deBruijn_get_context_len(dB__, idx__) - 1);
+  if (next == -1) return;
+
+  deBruijn_Increase_frequency_rec(dB__, next, symb__);
+}
 
 /*
- * Add symbol to given context. 
+ * Append new symbol to given context.
  *
- * TODO desc
- * TODO function
+ * Symbol automatically appended to all shorter contexts. Those which have this
+ * symbol have their frequency increased. This function does basically
+ * everything needed for PPMC compression algorithm.
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Node index (line) in deBruijn graph.
  * @param  symb__ Additional symbol.
  */
 void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb__) {
-
-  int32_t edge_pos, i;
+  int32_t edge_pos, i, rank;
+  int32_t prev_node, ctx_len;
+  int32_t x, sv;
 
   // check if shorter context already added this symbol
   // if not, symbol will be recursively added from top to this node
-
-  int32_t ctx_len = deBruijn_get_context_len(dB__, idx__);
+  ctx_len = deBruijn_get_context_len(dB__, idx__);
   if (ctx_len) {
-    int32_t prev_node = deBruijn_Shorten_context(dB__, idx__, ctx_len - 1);
+    prev_node = deBruijn_Shorten_context(dB__, idx__, ctx_len - 1);
 
     // check if prev node has what it needs
     if (deBruijn_Edge_Check(dB__, prev_node, symb__) == -1) {
@@ -540,7 +564,9 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb_
       deBruijn_Add_context_symbol(dB__, prev_node, symb__);
       deBruijn_Tracker_pop(dB__);
 
-      deBruijn_Print(dB__, true);
+    } else {
+      // increase frequency of these lines
+      deBruijn_Increase_frequency_rec(dB__, prev_node, symb__);
     }
   }
 
@@ -548,9 +574,10 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb_
   if (WT_Get(&(dB__->W_), idx__) == '$') {
     // current W symbol is $ - we can simply change it to new one
 
-    // change symbol to new one
+    // change symbol to new one and increase frequency to 1
     WT_Delete(&(dB__->W_), idx__);
     WT_Insert(&(dB__->W_), idx__, symb__);
+    Indel_Inc(&(dB__->P_), idx__);
 
   } else {
     edge_pos = deBruijn_Edge_Check(dB__, idx__, symb__);
@@ -563,7 +590,9 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb_
     // insert new edge into this node
     RAS_Insert(&(dB__->L_), idx__, 0);
     WT_Insert(&(dB__->W_), idx__, symb__);
+    Indel_Insert(&(dB__->P_), idx__, 1);
 
+    // update registered variables
     deBruijn_Tracker_update(dB__, idx__);
 
     // update F array according to added node
@@ -574,40 +603,34 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, char symb_
   }
 
   // find same transition symbol above this line
-  int32_t rank = WT_Rank(&(dB__->W_), idx__, symb__);
+  rank = WT_Rank(&(dB__->W_), idx__, symb__);
 
-  int32_t x, y;
+  if (!rank) {    // there is no symbol above this
+    sv = GET_VALUE_FROM_SYMBOL(symb__);
+    x = dB__->F_[sv];
 
-  if (!rank) {
-    // there is no symbol above this
-    int32_t sn = GET_VALUE_FROM_SYMBOL(symb__);
-    x = dB__->F_[sn];
-
-    WT_Insert(&(dB__->W_), x, '$');
-    RAS_Insert(&(dB__->L_), x, 1);
-
-    deBruijn_Tracker_update(dB__, x);
-
-    for (i = sn + 1; i < SYMBOL_COUNT; i++) {
+    // update F array
+    for (i = sv + 1; i < SYMBOL_COUNT; i++)
       dB__->F_[i]++;
+
+  } else {    // we found another line with this symbol
+    // go forward from this node
+    x = deBruijn_Forward_(dB__, WT_Select(&(dB__->W_), rank, symb__) - 1) + 1;
+
+    // update F array
+    for (i = 0; i < SYMBOL_COUNT; i++) {
+      if (dB__->F_[i] >= x)
+        dB__->F_[i]++;
     }
-
-    return;
-
-  } else {
-    y = WT_Select(&(dB__->W_), rank, symb__);
-    x = deBruijn_Forward_(dB__, y-1) + 1;
   }
 
+  // insert new leaf node into the graph
   WT_Insert(&(dB__->W_), x, '$');
   RAS_Insert(&(dB__->L_), x, 1);
+  Indel_Insert(&(dB__->P_), x, 0);
 
+  // update registered variables
   deBruijn_Tracker_update(dB__, x);
-
-  for (i = 0; i < SYMBOL_COUNT; i++) {
-    if (dB__->F_[i] >= x)
-      dB__->F_[i]++;
-  }
 }
 
 #endif  // _DEBRUIJN_GRAPH__
