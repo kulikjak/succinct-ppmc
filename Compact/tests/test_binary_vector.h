@@ -3,7 +3,7 @@
 
 #include "../../misc/bit_sequence.h"
 
-#define BV_SEQENCE_LEN 20
+#define BV_SEQENCE_LEN 100
 #define BV_PRINT_SEQUENCES false
 
 void _test_binary_vector(GraphRef Graph__, uint64_t* sequence) {
@@ -32,12 +32,18 @@ void _test_binary_vector(GraphRef Graph__, uint64_t* sequence) {
   }
 
   // test select
-//  for (i = 0; i <= BV_SEQENCE_LEN; i++) {
-//    assert(select_bit_sequence(sequence, BV_SEQENCE_LEN, i) == Graph_Rank(*Graph__, i, 0));
-//  }
+  for (i = 0; i <= BV_SEQENCE_LEN; i++) {
+    //printf("%d %d\n", select_bit_sequence(sequence, BV_SEQENCE_LEN, i), Graph_Select(Graph__, i, VECTOR_L, VALUE_1));
+    assert(select_bit_sequence(sequence, BV_SEQENCE_LEN, i) == Graph_Select(Graph__, i, VECTOR_L, VALUE_1));
+  }
+
+  // test select0
+  for (i = 0; i <= BV_SEQENCE_LEN; i++) {
+    assert(select0_bit_sequence(sequence, BV_SEQENCE_LEN, i) == Graph_Select(Graph__, i, VECTOR_L, VALUE_0));
+  }
 }
 
-bool test_BV_rear_insert(void) {
+void test_BV_rear_insert(void) {
   int32_t i;
 
   Graph_Struct Graph;
@@ -58,7 +64,7 @@ bool test_BV_rear_insert(void) {
   free(sequence);
 }
 
-bool test_BV_front_insert(void) {
+void test_BV_front_insert(void) {
   int32_t i;
 
   Graph_Struct Graph;

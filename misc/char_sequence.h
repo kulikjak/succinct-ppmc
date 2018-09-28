@@ -28,6 +28,9 @@ char* init_random_char_sequence_aux_(int32_t ssize__, char* dict__, int32_t dsiz
 
   char* sequence = (char*)malloc(ssize__ * sizeof(char));
 
+  // seed random number generator
+  srand(time(NULL));
+
   for (i = 0; i < ssize__; i++) {
     ri = rand() % dsize__;
     sequence[i] = dict__[ri];

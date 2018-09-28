@@ -15,7 +15,7 @@
 // number of block pointers preallocated
 #define INITIAL_BLOCK_COUNT_ 2
 
-#define MEMORY_VERBOSE_ true
+#define MEMORY_VERBOSE_ false
 
 // ------------------------------------------------------------------------- //
 

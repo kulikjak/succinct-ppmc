@@ -53,6 +53,8 @@ typedef enum {
 	VALUE_$
 } Graph_value;
 
+#include "rank.h"
+#include "select.h"
 
 int32_t get_mask_from_char_(char symb__) {
 	switch (symb__) {
@@ -114,6 +116,14 @@ void Graph_Free(GraphRef Graph__) {
 }
 
 
+/* Simple debuging function to print whole integer vector in binary form */
+void print_bitvector_(int32_t vector__) {
+  int32_t i;
+
+  for (i = 0; i < 32; i++)
+    printf("%d", (vector__ >> (31 - i)) & 0x1);
+  printf("\n");
+}
 
 
 /* Perform standard rank on more significant half of a 32 bit vector. */
@@ -122,10 +132,6 @@ void Graph_Free(GraphRef Graph__) {
 
 
 void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
-  leaf__->p_ ++;
-
-  //printf("%c %d %d %d %d\n", line__->W_, leaf__->rW_, leaf__->rWl_, leaf__->rWh_, leaf__->rWs_);
-
   switch(line__->W_) {
     case 'A':
       INSERT_BIT(&(leaf__->vectorWl0_), &(leaf__->rW_), pos__, 0);
@@ -155,9 +161,6 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
     default:
       assert(0);
   }
-  //printf("  %d %d %d %d\n---------------\n", leaf__->rW_, leaf__->rWl_, leaf__->rWh_, leaf__->rWs_);
-
-
   INSERT_BIT(&(leaf__->vectorL_), &(leaf__->rL_), pos__, line__->L_);
 
   // move all later integers to next position and insert new one
@@ -167,6 +170,8 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
             (leaf__->p_ - pos__) * sizeof(int32_t));
   }
   leaf__->vectorP_[pos__] = line__->P_;
+
+  leaf__->p_ ++;
 }
 
 
@@ -175,7 +180,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
   STACK_CLEAN();
 
-  //VERBOSE( fprintf(stderr, "Inserting value %d on position %u\n", val__, pos__); )
+  VERBOSE( fprintf(stderr, "Inserting new line on position %u\n", pos__); )
 
   // traverse the tree and enter correct leaf
   int32_t mask = get_mask_from_char_(line__->W_);
@@ -187,11 +192,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node_32e* node = MEMORY_GET_NODE(Graph__->mem_, current);
     node->p_ += 1;
 
-    UNREACHABLE;
-
     node->rL_ += line__->L_;
-		node->rW_ += mask & 0x4;
-		node->rWl_ += (mask & 0x2) && ~(mask & 0x4);
+		node->rW_ += (mask & 0x4) >> 0x2;
+		node->rWl_ += (mask & 0x2) && ((~mask) & 0x4);
 		node->rWh_ += (mask & 0x2) && (mask & 0x4);
 		node->rWs_ += (mask & 0x1) && (mask & 0x2) && (mask & 0x4);
 
@@ -212,19 +215,17 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   	Graph_Insert_Line_(current_ref, pos__, line__);
 
   } else {  // current leaf is full and we have to split it
-
-    UNREACHABLE;
     VERBOSE( fprintf(stderr, "Splitting full node\n"); )
 
     mem_ptr node = Memory_new_node(Graph__->mem_);
     NodeRef node_ref = MEMORY_GET_NODE(Graph__->mem_, node);
 
     node_ref->p_ = 33;
-    node_ref->rL_ = line__->L_;
-		node_ref->rW_ = current_ref->rW_ + mask & 0x4;
-		node_ref->rWl_ = current_ref->rWl_ + (mask & 0x2) && ~(mask & 0x4);
-		node_ref->rWh_ = current_ref->rWh_ + (mask & 0x2) && (mask & 0x4);
-		node_ref->rWs_ = current_ref->rWs_ + (mask & 0x1) && (mask & 0x2) && (mask & 0x4);
+    node_ref->rL_ = current_ref->rL_ + line__->L_;
+		node_ref->rW_ = current_ref->rW_ + ((mask & 0x4) >> 0x2);
+		node_ref->rWl_ = current_ref->rWl_ + ((mask & 0x2) && ((~mask) & 0x4));
+		node_ref->rWh_ = current_ref->rWh_ + ((mask & 0x2) && (mask & 0x4));
+		node_ref->rWs_ = current_ref->rWs_ + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4));
 
     // allocate new right leaf and reuse current as left leaf
     node_ref->right_ = Memory_new_leaf(Graph__->mem_); // FIXME
@@ -335,7 +336,6 @@ void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   // check correct boundaries
   node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
 
-  assert(pos__ >= 0);
   assert(pos__ < node_ref->p_);
 
   // traverse the tree and enter correct leaf
@@ -381,9 +381,7 @@ int32_t Graph_Size(GraphRef Graph__) {
  * @param  Graph__  Reference to Graph_Struct object.
  */
 void Graph_Print(GraphRef Graph__) {
-  int32_t i, j, size;
-  int32_t nextPos = 0;
-  int32_t next = 0;
+  int32_t i, size;
 
   Graph_Line line;
 
@@ -398,330 +396,44 @@ void Graph_Print(GraphRef Graph__) {
   }
 }
 
-
-int32_t Graph_Rank_L(Graph_Struct Graph__, uint32_t pos__) {
-  int32_t i, temp, limit, current, rank;
-  mem_ptr tmp_node;
-  
-  current = Graph__.root_;
-  rank = 0;
-
-  NodeRef node_ref;
-  LeafRef leaf_ref;
-
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, current);
-  if (pos__ >= node_ref->p_)
-    return node_ref->rL_;
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);
-    tmp_node = node_ref->left_;
-
-    // get p_ counter of left child and act accordingly
-    temp = MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_;
-    if ((uint32_t)temp >= pos__) {
-      current = tmp_node;
-    } else {
-      pos__ -= temp;
-      rank += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rL_;
-      current = node_ref->right_;
-    }
-  }
-
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);
-
-  // handle last leaf of this query
-  limit = (pos__ <= 32) ? pos__ : 32;
-  for (i = 0; i < limit; i++)
-    rank += (leaf_ref->vectorL_ >> (31 - i)) & 0x1;
-
-  return rank;
-}
-
-/*
- * Auxiliary function for 32 bit Select operation.
- *
- * This function should not be called directly,
- * RAS_Select() should be used instead.
- *
- * @param  mem__  Reference to memory object.
- * @param  root__  Number referencing the tree root in the memory.
- * @param  pos__  Select position number.
- * @param  zero__  Whether this should select ones or zeroes.
- */
-int32_t Graph_Select_L(Graph_Struct Graph__, uint32_t num__, bool zero__) {
-  int32_t i, temp, tmp_node;
-
-  int32_t current = Graph__.root_;
-  int32_t select = 0;
-
-  NodeRef node_ref;
-  LeafRef leaf_ref;
-
-  // check correct boundaries
-  if (num__ <= 0) return 0;
-
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, Graph__.root_);
-  if (zero__) {
-    if (num__ > node_ref->p_ - node_ref->rL_) return -1;
-  } else {
-    if (num__ > node_ref->rL_) return -1;
-  }
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);
-
-    tmp_node = node_ref->left_;
-
-    // get rL_ counter of left child and act accordingly
-    temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ - MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rL_
-                    : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rL_;
-    if ((uint32_t)temp >= num__) {
-      current = tmp_node;
-    } else {
-      num__ -= temp;
-      select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_;
-      current = node_ref->right_;
-    }
-  }
-
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);
-
-  // handle last leaf of this query
-  for (i = 0; num__; i++) {
-    num__ -= (zero__) ? ((leaf_ref->vectorL_ >> (31 - i)) & 0x1) ^ 1
-                      : ((leaf_ref->vectorL_ >> (31 - i)) & 0x1);
-  }
-
-  return select + i;
-}
-
-
-int32_t Graph_WRank_Top(Graph_Struct Graph__, uint32_t pos__) {
-  int32_t i, temp, limit, current, rank, local_p;
-  
-  current = Graph__.root_;
-  rank = 0;
-
-  LeafRef leaf_ref;
-  NodeRef node_ref;
-  NodeRef left_child;
-
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, current);
-  if (pos__ >= node_ref->p_)
-    return node_ref->rW_;
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);
-    left_child = MEMORY_GET_ANY(Graph__.mem_, node_ref->left_);
-
-    // get p_ counter of left child and act accordingly
-    if ((uint32_t)left_child->p_ >= pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= left_child->p_;
-      rank += left_child->rW_;
-      current = node_ref->right_;
-    }
-  }
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);
-
-  // handle last leaf of this query
-  limit = (pos__ <= 32) ? pos__ : 32;
-  for (i = 0; i < limit; i++)
-    rank += (leaf_ref->vectorWl0_ >> (31 - i)) & 0x1;
-
-  return rank;
-}
-
-void print_bitvector_(int32_t vector__) {
-  int32_t i;
-
-  for (i = 0; i < 32; i++)
-    printf("%d", (vector__ >> (31 - i)) & 0x1);
-  printf("\n");
-}
-
-
-int32_t Graph_WRank_Left(Graph_Struct Graph__, uint32_t pos__) {
-  int32_t i, temp, current, rank;
-  int32_t vector, local_p, mask;
-  
-  current = Graph__.root_;
-  rank = 0;
-
-  LeafRef leaf_ref;
-  NodeRef node_ref;
-  NodeRef left_child;
-
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, current);
-  local_p = node_ref->p_ - node_ref->rW_;
-  if (pos__ >= local_p)
-    return node_ref->rWl_;
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);
-    left_child = MEMORY_GET_ANY(Graph__.mem_, node_ref->left_);
-
-    // get p_ counter of left child and act accordingly
-    temp = left_child->p_ - left_child->rW_;
-    if ((uint32_t)temp >= pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      rank += left_child->rWl_;
-      current = node_ref->right_;
-    }
-  }
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);
-
-  // handle last leaf of this query
-  vector = ~(leaf_ref->vectorWl0_) & leaf_ref->vectorWl1_;
-  mask = ~(leaf_ref->vectorWl0_);
-  
-  for (i = 0; pos__; i++) {
-    if ((mask >> (31 - i)) & 0x1) {
-      rank += (vector >> (31 - i)) & 0x1;
-      pos__--;
-    }
-  }
-  return rank;
-}
-
-int32_t Graph_WRank_Right(Graph_Struct Graph__, uint32_t pos__) {
-  int32_t i, temp, current, rank;
-  int32_t vector, local_p, mask;
-  
-  current = Graph__.root_;
-  rank = 0;
-
-  LeafRef leaf_ref;
-  NodeRef node_ref;
-  NodeRef left_child;
-
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, current);
-  local_p = node_ref->rW_;
-  if (pos__ >= local_p)
-    return node_ref->rWh_;
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);
-    left_child = MEMORY_GET_ANY(Graph__.mem_, node_ref->left_);
-
-    // get p_ counter of left child and act accordingly
-  	temp = left_child->rW_;
-    if ((uint32_t)temp >= pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      rank += left_child->rWh_;
-      current = node_ref->right_;
-    }
-  }
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);
-
-  // handle last leaf of this query
-  vector = leaf_ref->vectorWl0_ & leaf_ref->vectorWl1_;
-  mask = leaf_ref->vectorWl0_;
-  
-  for (i = 0; pos__; i++) {
-    if ((mask >> (31 - i)) & 0x1) {
-      rank += (vector >> (31 - i)) & 0x1;
-      pos__--;
-    }
-  }
-  return rank;
-}
-
-int32_t Graph_WRank_Bottom(Graph_Struct Graph__, uint32_t pos__) {
-  int32_t i, temp, current, rank;
-  int32_t vector, local_p, mask;
-  
-  current = Graph__.root_;
-  rank = 0;
-
-  LeafRef leaf_ref;
-  NodeRef node_ref;
-  NodeRef left_child;
-
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, current);
-  local_p = node_ref->rWh_;
-  if (pos__ >= local_p)
-    return node_ref->rWs_;
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);
-    left_child = MEMORY_GET_ANY(Graph__.mem_, node_ref->left_);
-
-    // get p_ counter of left child and act accordingly
-  	temp = left_child->rWh_;
-    if ((uint32_t)temp >= pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      rank += left_child->rWs_;
-      current = node_ref->right_;
-    }
-  }
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);
-
-  // handle last leaf of this query
-  vector = leaf_ref->vectorWl0_ & leaf_ref->vectorWl1_ & leaf_ref->vectorWl2_;
-  mask = leaf_ref->vectorWl0_ & leaf_ref->vectorWl1_;
-  
-  for (i = 0; pos__; i++) {
-    if ((mask >> (31 - i)) & 0x1) {
-      rank += (vector >> (31 - i)) & 0x1;
-      pos__--;
-    }
-  }
-  return rank;
-}
-
 /*
  * Rank Graph_struct.
  *
- * @param  Graph__  Reference to WT_Struct object.
- * @param  pos__  
- * @param  type__  
- * @param  val__  
+ * @param  Graph__  Reference to graph structure object.
+ * @param  pos__  Query position.
+ * @param  type__  Sub structure that should be queried [enum: [Graph_vector]].
+ * @param  val__  Query value [enum: Graph_value].
  */
 int32_t Graph_Rank(GraphRef Graph__, uint32_t pos__, Graph_vector type__, Graph_value val__) {
 	int32_t temp;
 
 	if (type__ == VECTOR_L) {
 		if (val__ == VALUE_0)
-			return pos__ - Graph_Rank_L(*Graph__, pos__);
+			return pos__ - graph_Lrank_(*Graph__, pos__);
 		else if (val__ == VALUE_1)
-			return Graph_Rank_L(*Graph__, pos__);
+			return graph_Lrank_(*Graph__, pos__);
 		else
 			FATAL("VECTOR_L does not support this query value.");
 
 	} else if (type__ == VECTOR_W) {
 	  switch (val__) {
 	    case VALUE_A:
-	    	temp = pos__ - Graph_WRank_Top(*Graph__, pos__);
-	    	return temp - Graph_WRank_Left(*Graph__, temp);
+	    	temp = pos__ - graph_Wrank_top_(*Graph__, pos__);
+	    	return temp - graph_Wrank_left_(*Graph__, temp);
 	    case VALUE_C:
-	    	temp = pos__ - Graph_WRank_Top(*Graph__, pos__);
-	    	return Graph_WRank_Left(*Graph__, temp);
+	    	temp = pos__ - graph_Wrank_top_(*Graph__, pos__);
+	    	return graph_Wrank_left_(*Graph__, temp);
 	    case VALUE_G:
-	    	temp = Graph_WRank_Top(*Graph__, pos__);
-	    	return temp - Graph_WRank_Right(*Graph__, temp);
+	    	temp = graph_Wrank_top_(*Graph__, pos__);
+	    	return temp - graph_Wrank_right_(*Graph__, temp);
 	    case VALUE_T:
-	    	temp = Graph_WRank_Top(*Graph__, pos__);
-	    	temp = Graph_WRank_Right(*Graph__, temp);
-	    	return temp - Graph_WRank_Bottom(*Graph__, temp);
+	    	temp = graph_Wrank_top_(*Graph__, pos__);
+	    	temp = graph_Wrank_right_(*Graph__, temp);
+	    	return temp - graph_Wrank_bottom_(*Graph__, temp);
 	    case VALUE_$:
-	    	temp = Graph_WRank_Top(*Graph__, pos__);
-	    	temp = Graph_WRank_Right(*Graph__, temp);
-	    	return Graph_WRank_Bottom(*Graph__, temp);
+	    	temp = graph_Wrank_top_(*Graph__, pos__);
+	    	temp = graph_Wrank_right_(*Graph__, temp);
+	    	return graph_Wrank_bottom_(*Graph__, temp);
 			default:
 				FATAL("VECTOR_W does not support this query value.");
 		}
@@ -730,12 +442,50 @@ int32_t Graph_Rank(GraphRef Graph__, uint32_t pos__, Graph_vector type__, Graph_
 	return 0;
 }
 
+/*
+ * Select Graph_struct.
+ *
+ * @param  Graph__  Reference to WT_Struct object.
+ * @param  pos__  Query position.
+ * @param  type__  Sub structure that should be queried [enum: [Graph_vector]].
+ * @param  val__  Query value [enum: Graph_value].
+ */
+int32_t Graph_Select(GraphRef Graph__, uint32_t pos__, Graph_vector type__, Graph_value val__) {
+	int32_t temp;
 
+	if (type__ == VECTOR_L) {
+		if (val__ == VALUE_0)
+			return graph_Lselect_(*Graph__, pos__, true);
+		else if (val__ == VALUE_1)
+			return graph_Lselect_(*Graph__, pos__, false);
+		else
+			FATAL("VECTOR_L does not support this query value.");
 
-
-
-
-
-
+	} else if (type__ == VECTOR_W) {
+	  switch (val__) {
+	    case VALUE_A:
+	    	temp = graph_Wselect_left_(*Graph__, pos__, true);
+	    	return graph_Wselect_top_(*Graph__, temp, true);
+	    case VALUE_C:
+        temp = graph_Wselect_left_(*Graph__, pos__, false);
+        return graph_Wselect_top_(*Graph__, temp, true);
+	    case VALUE_G:
+        temp = graph_Wselect_right_(*Graph__, pos__, true);
+        return graph_Wselect_top_(*Graph__, temp, false);
+	    case VALUE_T:
+        temp = graph_Wselect_bottom_(*Graph__, pos__, true);
+        temp = graph_Wselect_right_(*Graph__, temp, false);
+        return graph_Wselect_top_(*Graph__, temp, false);
+	    case VALUE_$:
+        temp = graph_Wselect_bottom_(*Graph__, pos__, false);
+        temp = graph_Wselect_right_(*Graph__, temp, false);
+        return graph_Wselect_top_(*Graph__, temp, false);
+			default:
+				FATAL("VECTOR_W does not support this query value.");
+		}
+	}
+	FATAL("Unknown vector type");
+	return 0;
+}
 
 #endif  // _COMPRESSION_STRUCT__
