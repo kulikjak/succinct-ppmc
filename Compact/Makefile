@@ -6,10 +6,10 @@ UTILS = ../shared/utils.h
 
 all: test
 
-test: test.c *.h tests/*.h $(SHARED)
-	$(CXX) test.c -lm -o $@
+test:
+	$(MAKE) default -C tests
 
 clean:
-	rm -f test
+	$(MAKE) clean -C tests
 
 .PHONY: all test

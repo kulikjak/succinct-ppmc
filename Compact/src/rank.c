@@ -1,9 +1,7 @@
-#ifndef _COMPRESSION_STRUCT_RANK__
-#define _COMPRESSION_STRUCT_RANK__
+#include "structure.h"
 
-#include "memory.h"
-
-/* TODO fix this and somehow merge these function into more compact source code */
+/* TODO fix this and somehow merge these function into more compact source code
+ */
 
 /*
  * Auxiliary function for 32 bit rank operation above L vector.
@@ -242,4 +240,41 @@ int32_t graph_Wrank_bottom_(Graph_Struct Graph__, uint32_t pos__) {
   return rank;
 }
 
-#endif  // _COMPRESSION_STRUCT_RANK__
+int32_t Graph_Rank(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
+                   Graph_value val__) {
+  int32_t temp;
+
+  if (type__ == VECTOR_L) {
+    if (val__ == VALUE_0)
+      return pos__ - graph_Lrank_(*Graph__, pos__);
+    else if (val__ == VALUE_1)
+      return graph_Lrank_(*Graph__, pos__);
+    else
+      FATAL("VECTOR_L does not support this query value.");
+
+  } else if (type__ == VECTOR_W) {
+    switch (val__) {
+      case VALUE_A:
+        temp = pos__ - graph_Wrank_top_(*Graph__, pos__);
+        return temp - graph_Wrank_left_(*Graph__, temp);
+      case VALUE_C:
+        temp = pos__ - graph_Wrank_top_(*Graph__, pos__);
+        return graph_Wrank_left_(*Graph__, temp);
+      case VALUE_G:
+        temp = graph_Wrank_top_(*Graph__, pos__);
+        return temp - graph_Wrank_right_(*Graph__, temp);
+      case VALUE_T:
+        temp = graph_Wrank_top_(*Graph__, pos__);
+        temp = graph_Wrank_right_(*Graph__, temp);
+        return temp - graph_Wrank_bottom_(*Graph__, temp);
+      case VALUE_$:
+        temp = graph_Wrank_top_(*Graph__, pos__);
+        temp = graph_Wrank_right_(*Graph__, temp);
+        return graph_Wrank_bottom_(*Graph__, temp);
+      default:
+        FATAL("VECTOR_W does not support this query value.");
+    }
+  }
+  FATAL("Unknown vector type");
+  return 0;
+}

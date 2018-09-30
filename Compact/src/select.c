@@ -1,7 +1,4 @@
-#ifndef _COMPRESSION_STRUCT_SELECT__
-#define _COMPRESSION_STRUCT_SELECT__
-
-#include "memory.h"
+#include "structure.h"
 
 /* TODO fix this and somehow merge these function into more compact source code
  */
@@ -310,4 +307,41 @@ int32_t graph_Wselect_bottom_(Graph_Struct Graph__, uint32_t num__,
   return select;
 }
 
-#endif  // _COMPRESSION_STRUCT_SELECT__
+int32_t Graph_Select(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
+                     Graph_value val__) {
+  int32_t temp;
+
+  if (type__ == VECTOR_L) {
+    if (val__ == VALUE_0)
+      return graph_Lselect_(*Graph__, pos__, true);
+    else if (val__ == VALUE_1)
+      return graph_Lselect_(*Graph__, pos__, false);
+    else
+      FATAL("VECTOR_L does not support this query value.");
+
+  } else if (type__ == VECTOR_W) {
+    switch (val__) {
+      case VALUE_A:
+        temp = graph_Wselect_left_(*Graph__, pos__, true);
+        return graph_Wselect_top_(*Graph__, temp, true);
+      case VALUE_C:
+        temp = graph_Wselect_left_(*Graph__, pos__, false);
+        return graph_Wselect_top_(*Graph__, temp, true);
+      case VALUE_G:
+        temp = graph_Wselect_right_(*Graph__, pos__, true);
+        return graph_Wselect_top_(*Graph__, temp, false);
+      case VALUE_T:
+        temp = graph_Wselect_bottom_(*Graph__, pos__, true);
+        temp = graph_Wselect_right_(*Graph__, temp, false);
+        return graph_Wselect_top_(*Graph__, temp, false);
+      case VALUE_$:
+        temp = graph_Wselect_bottom_(*Graph__, pos__, false);
+        temp = graph_Wselect_right_(*Graph__, temp, false);
+        return graph_Wselect_top_(*Graph__, temp, false);
+      default:
+        FATAL("VECTOR_W does not support this query value.");
+    }
+  }
+  FATAL("Unknown vector type");
+  return 0;
+}
