@@ -99,7 +99,47 @@ TEST(StructWaveletTree, CorrectRearInsertion) {
   _test_wavelet_tree(&Graph, sequence);
 }
 
+TEST(StructWaveletTree, CorrectSymbolChanging) {
+  char letter;
+  int32_t i;
+
+  for (i = 0; i < WAVELET_TREE_SAMPLE_SIZE_; i++) {
+    letter = get_char_sequence(sequence, WAVELET_TREE_SAMPLE_SIZE_, i);
+
+    GLine_Fill(&line, VAR_IGNORE, letter, VAR_IGNORE);
+    GLine_Insert(&Graph, i, &line);
+  }
+
+  srand(time(NULL));
+  for (i = 0; i < WAVELET_TREE_SAMPLE_SIZE_; i++) {
+    switch(rand() % 5) {
+      case 0:
+        sequence[i] = 'A';
+        Graph_Change_symbol(&Graph, i, VALUE_A);
+        break;
+      case 1:
+        sequence[i] = 'C';
+        Graph_Change_symbol(&Graph, i, VALUE_C);
+        break;
+      case 2:
+        sequence[i] = 'G';
+        Graph_Change_symbol(&Graph, i, VALUE_G);
+        break;
+      case 3:
+        sequence[i] = 'T';
+        Graph_Change_symbol(&Graph, i, VALUE_T);
+        break;
+      case 4:
+        sequence[i] = '$';
+        Graph_Change_symbol(&Graph, i, VALUE_$);
+        break;
+    }
+  }
+  _test_wavelet_tree(&Graph, sequence);
+}
+
 TEST_GROUP_RUNNER(StructWaveletTree) {
   RUN_TEST_CASE(StructWaveletTree, CorrectFrontInsertion);
   RUN_TEST_CASE(StructWaveletTree, CorrectRearInsertion);
+  RUN_TEST_CASE(StructWaveletTree, CorrectSymbolChanging);
 }

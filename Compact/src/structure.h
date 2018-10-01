@@ -45,14 +45,16 @@ typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
 typedef enum {
   VALUE_0 = 0,
   VALUE_1 = 1,
-  VALUE_A,
-  VALUE_C,
-  VALUE_G,
-  VALUE_T,
-  VALUE_$
+
+  VALUE_A = 0,
+  VALUE_C = 1,
+  VALUE_G = 2,
+  VALUE_T = 3,
+  VALUE_$ = 4
 } Graph_value;
 
 int32_t get_mask_from_char_(char symb__);
+int32_t get_mask_from_graph_value_(Graph_value val__);
 char get_char_from_mask_(int32_t mask__);
 
 /*
@@ -128,7 +130,7 @@ void Graph_Print(GraphRef Graph__);
  *
  * @param  Graph__  Reference to graph structure object.
  * @param  pos__  Query position.
- * @param  type__  Sub structure that should be queried [enum: [Graph_vector]].
+ * @param  type__  Sub structure that should be queried [enum: Graph_vector].
  * @param  val__  Query value [enum: Graph_value].
  */
 int32_t Graph_Rank(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
@@ -137,12 +139,29 @@ int32_t Graph_Rank(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
 /*
  * Select Graph_struct.
  *
- * @param  Graph__  Reference to WT_Struct object.
+ * @param  Graph__  Reference to graph structure object.
  * @param  pos__  Query position.
- * @param  type__  Sub structure that should be queried [enum: [Graph_vector]].
+ * @param  type__  Sub structure that should be queried [enum: Graph_vector].
  * @param  val__  Query value [enum: Graph_value].
  */
 int32_t Graph_Select(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
                      Graph_value val__);
+
+/*
+ * Update value in W vector of Graph_struct.
+ *
+ * @param  Graph__  Reference to WT_Struct object.
+ * @param  pos__  Update position.
+ * @param  val__  New symbol [enum: Graph_value].
+ */
+void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__);
+
+/*
+ * Increase frequency in P vector of Graph_struct.
+ *
+ * @param  Graph__  Reference to WT_Struct object.
+ * @param  pos__  Update position.
+ */
+void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
 
 #endif  // _COMPRESSION_STRUCT__

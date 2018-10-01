@@ -1,6 +1,6 @@
 CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic
-CFLAGS = -Wno-error=unused-function -Wno-unused-function
+CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -g
+CFLAGS += -Wno-error=unused-function -Wno-unused-function
 #CFLAGS += -Wpointer-arith -Wcast-align -Wwrite-strings
 #CFLAGS += -Wswitch-default -Wunreachable-code -Winit-self
 #CFLAGS += -Wmissing-field-initializers -Wno-unknown-pragmas
@@ -19,13 +19,15 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/memory.c \
 	$(SOURCE_ROOT)/structure.c \
 	$(SOURCE_ROOT)/rank.c \
-	$(SOURCE_ROOT)/select.c
+	$(SOURCE_ROOT)/select.c \
+	$(SOURCE_ROOT)/deBruijn.c
 
 SRC_FILES += \
 	TestStructMemory.c \
 	TestStructBinaryVector.c \
 	TestStructWaveletTree.c \
 	TestStructIntegerVector.c \
+	TestDeBruijn.c \
 	TestAll.c
 
 all: clean default
@@ -37,7 +39,7 @@ download: .downloaded
 	touch .downloaded
 
 default: download
-	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $(TARGET) -lm
+	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
 	- ./$(TARGET) -v
 
 clean:

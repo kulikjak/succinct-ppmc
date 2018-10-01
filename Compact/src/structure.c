@@ -17,6 +17,23 @@ int32_t get_mask_from_char_(char symb__) {
   return 0;
 }
 
+int32_t get_mask_from_graph_value_(Graph_value val__) {
+  switch (val__) {
+    case VALUE_A:
+      return 0;
+    case VALUE_C:
+      return 2;
+    case VALUE_G:
+      return 4;
+    case VALUE_T:
+      return 6;
+    case VALUE_$:
+      return 7;
+  }
+  FATAL("Unexpected symbol");
+  return 0;  
+}
+
 char get_char_from_mask_(int32_t mask__) {
   switch (mask__) {
     case 0:
@@ -284,3 +301,92 @@ void Graph_Print(GraphRef Graph__) {
     printf("%d  %c   %d\n", line.L_, line.W_, line.P_);
   }
 }
+
+void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
+  int32_t nchar_mask, ochar_mask;
+  mem_ptr temp;
+  mem_ptr current = Graph__->root_;
+
+  NodeRef node_ref;
+  LeafRef leaf_ref;
+
+  STACK_CLEAN();
+
+  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
+  assert(pos__ < node_ref->p_);
+
+  // traverse the tree and enter correct leaf
+  while (!IS_LEAF(current)) {
+    STACK_PUSH(current);
+    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
+
+    // get p_ counter of left child and act accordingly
+    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
+    if ((uint32_t)temp > pos__) {
+      current = node_ref->left_;
+    } else {
+      pos__ -= temp;
+      current = node_ref->right_;
+    }
+  }
+
+  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+
+  // get masks for both characters
+  nchar_mask = get_mask_from_graph_value_(val__);
+  ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
+               (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
+               (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
+
+  // change old cahracter to new one
+  leaf_ref->vectorWl0_ ^= (-(unsigned)(!!(nchar_mask & 0x4)) ^ leaf_ref->vectorWl0_) & (0x1 << (31 - pos__));
+  leaf_ref->vectorWl1_ ^= (-(unsigned)(!!(nchar_mask & 0x2)) ^ leaf_ref->vectorWl1_) & (0x1 << (31 - pos__));
+  leaf_ref->vectorWl2_ ^= (-(unsigned)(!!(nchar_mask & 0x1)) ^ leaf_ref->vectorWl2_) & (0x1 << (31 - pos__));
+
+  do {
+    node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
+
+    // decrease counters
+    if (ochar_mask & 0x1) node_ref->rWs_ -= 1;
+    if ((ochar_mask & 0x2) && (!(ochar_mask & 0x4))) node_ref->rWl_ -= 1;
+    if ((ochar_mask & 0x2) && (ochar_mask & 0x4)) node_ref->rWh_ -= 1;
+    if (ochar_mask & 0x4) node_ref->rW_ -= 1;
+    
+    // increase counter
+    if (nchar_mask & 0x1) node_ref->rWs_ += 1;
+    if ((nchar_mask & 0x2) && (!(nchar_mask & 0x4))) node_ref->rWl_ += 1;
+    if ((nchar_mask & 0x2) && (nchar_mask & 0x4)) node_ref->rWh_ += 1;
+    if (nchar_mask & 0x4) node_ref->rW_ += 1;
+
+    current = STACK_POP();
+  } while (current != -1);
+}
+
+void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
+  mem_ptr temp;
+  mem_ptr current = Graph__->root_;
+
+  NodeRef node_ref;
+  LeafRef leaf_ref;
+
+  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
+  assert(pos__ < node_ref->p_);
+
+  // traverse the tree and enter correct leaf
+  while (!IS_LEAF(current)) {
+    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
+
+    // get p_ counter of left child and act accordingly
+    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
+    if ((uint32_t)temp > pos__) {
+      current = node_ref->left_;
+    } else {
+      pos__ -= temp;
+      current = node_ref->right_;
+    }
+  }
+
+  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+  leaf_ref->vectorP_[pos__] ++;
+}
+
