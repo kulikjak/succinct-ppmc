@@ -6,16 +6,17 @@ Implementation and possible text todo list for this thesis
 * red black tree support
 * more optimal indel array ?
 
+
 ## Compact version:
 * red black tree support
 * rank support - done
 * select support - done
-* de Bruijn graph operations
+* de Bruijn graph operations - done
 * compression of given text
 * arithmetic coding output of compression
 
-* write more better tests
-* add tests for P array
+* write more and better tests
+* add tests for P array - done
 
 * decompression of compressed text
 * extensive tests for compression and decompression

@@ -31,7 +31,7 @@ int32_t get_mask_from_graph_value_(Graph_value val__) {
       return 7;
   }
   FATAL("Unexpected symbol");
-  return 0;  
+  return 0;
 }
 
 char get_char_from_mask_(int32_t mask__) {
@@ -351,7 +351,7 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
     if ((ochar_mask & 0x2) && (!(ochar_mask & 0x4))) node_ref->rWl_ -= 1;
     if ((ochar_mask & 0x2) && (ochar_mask & 0x4)) node_ref->rWh_ -= 1;
     if (ochar_mask & 0x4) node_ref->rW_ -= 1;
-    
+
     // increase counter
     if (nchar_mask & 0x1) node_ref->rWs_ += 1;
     if ((nchar_mask & 0x2) && (!(nchar_mask & 0x4))) node_ref->rWl_ += 1;
@@ -389,4 +389,3 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
   leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
   leaf_ref->vectorP_[pos__] ++;
 }
-
