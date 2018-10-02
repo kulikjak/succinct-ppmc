@@ -76,22 +76,22 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__);
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  symb__  Symbol to find.
+ * @param  gval__  Symbol (Graph_value) to find.
  *
  * @return  Index of edge in given node.
  */
-int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, char symb__);
+int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * From given node follow edge labeled by given symbol.
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  symb__  Symbol to follow.
+ * @param  gval__  Symbol (Graph_value) to follow.
  *
  * @return  Index of new node.
  */
-int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, char symb__);
+int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * Get label of a node corresponding to given line.
@@ -127,7 +127,7 @@ int32_t deBruijn_Indegree(deBruijn_graph *dB__, int32_t idx__);
  * As this is not important for compression and it's not super straightforward,
  * it is not implemented.
  */
-int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, char symb__);
+int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * Print whole deBruijn graph struct.
@@ -158,7 +158,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__);
  * @param  F__  F array (base positions of symbols)
  * @param  size__  Size of arrays L and W.
  */
-void deBruijn_Insert_test_data(deBruijn_graph *dB__, const int8_t *L__, const char *W__,
+void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
                                const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
                                const int32_t size__);
 
@@ -185,10 +185,9 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Node index (line) in deBruijn graph.
- * @param  symb__ Additional symbol.
+ * @param  gval__ Additional symbol (Graph_value).
  */
-void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__,
-                                 char symb__);
+void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 
 // make hidden function visible to unit testing framework
@@ -233,7 +232,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
 
 int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__);
 
-void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__, char symb__);
+void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 #endif  // _UNITY
 

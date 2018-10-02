@@ -6,7 +6,6 @@
 TEST_GROUP(StructBinaryVector);
 
 #define VAR_IGNORE 0
-#define CHAR_IGNORE '$'
 #define BINARY_VECTOR_SAMPLE_SIZE_ 250
 #define BINARY_VECTOR_PRINT_SEQUENCES false
 
@@ -63,7 +62,7 @@ TEST(StructBinaryVector, CorrectFrontInsertion) {
   for (i = 0; i < BINARY_VECTOR_SAMPLE_SIZE_; i++) {
     bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
 
-    GLine_Fill(&line, bit, CHAR_IGNORE, VAR_IGNORE);
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
     GLine_Insert(&Graph, i, &line);
   }
   _test_binary_vector(&Graph, sequence);
@@ -76,7 +75,7 @@ TEST(StructBinaryVector, CorrectRearInsertion) {
   for (i = BINARY_VECTOR_SAMPLE_SIZE_ - 1; i >= 0; i--) {
     bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
 
-    GLine_Fill(&line, bit, CHAR_IGNORE, VAR_IGNORE);
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
     GLine_Insert(&Graph, 0, &line);
   }
   _test_binary_vector(&Graph, sequence);

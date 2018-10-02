@@ -4,7 +4,6 @@
 TEST_GROUP(StructIntegerVector);
 
 #define VAR_IGNORE 0
-#define CHAR_IGNORE '$'
 #define INTEGER_VECTOR_SAMPLE_SIZE_ 250
 #define INTEGER_VECTOR_PRINT_SEQUENCES false
 
@@ -21,7 +20,7 @@ TEST(StructIntegerVector, CorrectFrontInsertion) {
   for (i = 0; i < INTEGER_VECTOR_SAMPLE_SIZE_; i++) {
     sequence[i] = rand();
 
-    GLine_Fill(&line, VAR_IGNORE, CHAR_IGNORE, sequence[i]);
+    GLine_Fill(&line, VAR_IGNORE, VAR_IGNORE, sequence[i]);
     GLine_Insert(&Graph, 0, &line);
   }
 
@@ -38,7 +37,7 @@ TEST(StructIntegerVector, CorrectRearInsertion) {
   for (i = 0; i < INTEGER_VECTOR_SAMPLE_SIZE_; i++) {
     sequence[i] = rand();
 
-    GLine_Fill(&line, VAR_IGNORE, CHAR_IGNORE, sequence[i]);
+    GLine_Fill(&line, VAR_IGNORE, VAR_IGNORE, sequence[i]);
     GLine_Insert(&Graph, i, &line);
   }
 
@@ -54,7 +53,7 @@ TEST(StructIntegerVector, FrequencyIncrease) {
   for (i = 0; i < INTEGER_VECTOR_SAMPLE_SIZE_; i++) {
     sequence[i] = rand();
 
-    GLine_Fill(&line, VAR_IGNORE, CHAR_IGNORE, sequence[i]);
+    GLine_Fill(&line, VAR_IGNORE, VAR_IGNORE, sequence[i]);
     GLine_Insert(&Graph, i, &line);
   }
 

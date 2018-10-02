@@ -5,6 +5,8 @@ TEST_GROUP(deBruijn);
 
 #define DEBRUIJN_PRINT_SEQUENCE false
 
+#define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
+
 deBruijn_graph dB;
 Graph_Line line;
 
@@ -13,8 +15,8 @@ TEST_SETUP(deBruijn) { deBruijn_Init(&dB); }
 TEST_TEAR_DOWN(deBruijn) { deBruijn_Free(&dB); }
 
 TEST(deBruijn, BasicStaticTest) {
-  const int8_t L[] = {0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1};
-  const char W[] = {'A', 'C', 'G', 'C', 'G', 'C', '$', '$', '$', '$', 'A', 'G', 'G', 'A', '$'};
+  const Graph_value L[] = {0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1};
+  const Graph_value W[] = {_('A'), _('C'), _('G'), _('C'), _('G'), _('C'), _('$'), _('$'), _('$'), _('$'), _('A'), _('G'), _('G'), _('A'), _('$')};
   const int32_t P[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   const int32_t F[] = {3, 7, 10, 15};
 
@@ -36,11 +38,11 @@ TEST(deBruijn, BasicStaticTest) {
   for (int32_t i = 0; i < 15; i++) {
     TEST_ASSERT_EQUAL_INT32(resOutdegree[i], deBruijn_Outdegree(&dB, i));
 
-    TEST_ASSERT_EQUAL_INT32(resOutgoingA[i], deBruijn_Outgoing(&dB, i, 'A'));
-    TEST_ASSERT_EQUAL_INT32(resOutgoingC[i], deBruijn_Outgoing(&dB, i, 'C'));
-    TEST_ASSERT_EQUAL_INT32(resOutgoingG[i], deBruijn_Outgoing(&dB, i, 'G'));
-    TEST_ASSERT_EQUAL_INT32(-1, deBruijn_Outgoing(&dB, i, 'T'));
-    TEST_ASSERT_EQUAL_INT32(-1, deBruijn_Outgoing(&dB, i, '$'));
+    TEST_ASSERT_EQUAL_INT32(resOutgoingA[i], deBruijn_Outgoing(&dB, i, _('A')));
+    TEST_ASSERT_EQUAL_INT32(resOutgoingC[i], deBruijn_Outgoing(&dB, i, _('C')));
+    TEST_ASSERT_EQUAL_INT32(resOutgoingG[i], deBruijn_Outgoing(&dB, i, _('G')));
+    TEST_ASSERT_EQUAL_INT32(-1, deBruijn_Outgoing(&dB, i, _('T')));
+    TEST_ASSERT_EQUAL_INT32(-1, deBruijn_Outgoing(&dB, i, _('$')));
 
     TEST_ASSERT_EQUAL_INT32(resIndegree[i], deBruijn_Indegree(&dB, i));
 
@@ -55,11 +57,11 @@ TEST(deBruijn, InsertionStaticTest) {
   int32_t i, size;
   char buffer[CONTEXT_LENGTH + 1];
 
-  const int8_t L[] = {0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0,
-                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-  const char W[] = {'C', 'G', 'T', 'A', 'G', 'C', 'G', '$', 'T',
-                    'A', 'C', 'C', 'T', 'A', '$', '$', 'C', '$',
-                    'T', 'T', '$', 'C', '$', '$', 'C', '$'};
+  const Graph_value L[] = {0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0,
+                           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  const Graph_value W[] = {_('C'), _('G'), _('T'), _('A'), _('G'), _('C'), _('G'), _('$'), _('T'),
+                           _('A'), _('C'), _('C'), _('T'), _('A'), _('$'), _('$'), _('C'), _('$'),
+                           _('T'), _('T'), _('$'), _('C'), _('$'), _('$'), _('C'), _('$')};
   const int32_t P[] = {4, 1, 2, 2, 1, 1, 1, 0, 1, 1, 2, 1, 1,
                        1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0};
 
@@ -76,16 +78,16 @@ TEST(deBruijn, InsertionStaticTest) {
       "$$$G", "$$AG", "$CAG", "$$$T", "$$CT", "$CCT", "$$GT", "$AGT"};
 #endif
 
-  deBruijn_Add_context_symbol(&dB, 0, 'A');
-  deBruijn_Add_context_symbol(&dB, 1, 'C');
-  deBruijn_Add_context_symbol(&dB, 4, 'C');
+  deBruijn_Add_context_symbol(&dB, 0, _('A'));
+  deBruijn_Add_context_symbol(&dB, 1, _('C'));
+  deBruijn_Add_context_symbol(&dB, 4, _('C'));
 
-  deBruijn_Add_context_symbol(&dB, 5, 'A');
-  deBruijn_Add_context_symbol(&dB, 3, 'G');
-  deBruijn_Add_context_symbol(&dB, 13, 'T');
-  deBruijn_Add_context_symbol(&dB, 17, 'C');
-  deBruijn_Add_context_symbol(&dB, 13, 'C');
-  deBruijn_Add_context_symbol(&dB, 11, 'T');
+  deBruijn_Add_context_symbol(&dB, 5, _('A'));
+  deBruijn_Add_context_symbol(&dB, 3, _('G'));
+  deBruijn_Add_context_symbol(&dB, 13, _('T'));
+  deBruijn_Add_context_symbol(&dB, 17, _('C'));
+  deBruijn_Add_context_symbol(&dB, 13, _('C'));
+  deBruijn_Add_context_symbol(&dB, 11, _('T'));
 
   size = Graph_Size(&(dB.Graph_));
   TEST_ASSERT_EQUAL_INT32(size, 26);

@@ -24,6 +24,40 @@ TEST_TEAR_DOWN(StructWaveletTree) {
   Graph_Free(&Graph);
 }
 
+char char_to_graph_value_(char symb__) {
+  switch (symb__) {
+    case 'A':
+      return VALUE_A;
+    case 'C':
+      return VALUE_C;
+    case 'G':
+      return VALUE_G;
+    case 'T':
+      return VALUE_T;
+    case '$':
+      return VALUE_$;
+  }
+  FATAL("Unexpected mask");
+  return 0;
+}
+char graph_value_to_char_(Graph_value mask__) {
+  switch (mask__) {
+    case VALUE_A:
+      return 'A';
+    case VALUE_C:
+      return 'C';
+    case VALUE_G:
+      return 'G';
+    case VALUE_T:
+      return 'T';
+    case VALUE_$:
+      return '$';
+  }
+  FATAL("Unexpected mask");
+  return 0;
+}
+
+
 void _test_wavelet_tree(GraphRef Graph__, char* sequence) {
   int32_t i;
 
@@ -35,7 +69,7 @@ void _test_wavelet_tree(GraphRef Graph__, char* sequence) {
   for (i = 0; i < WAVELET_TREE_SAMPLE_SIZE_; i++) {
     GLine_Get(Graph__, i, &line);
     TEST_ASSERT_EQUAL_INT8(
-        get_char_sequence(sequence, WAVELET_TREE_SAMPLE_SIZE_, i), line.W_);
+        get_char_sequence(sequence, WAVELET_TREE_SAMPLE_SIZE_, i), graph_value_to_char_(line.W_));
   }
 
   for (i = 0; i <= WAVELET_TREE_SAMPLE_SIZE_; i++) {
@@ -80,7 +114,7 @@ TEST(StructWaveletTree, CorrectFrontInsertion) {
   for (i = WAVELET_TREE_SAMPLE_SIZE_ - 1; i >= 0; i--) {
     letter = get_char_sequence(sequence, WAVELET_TREE_SAMPLE_SIZE_, i);
 
-    GLine_Fill(&line, VAR_IGNORE, letter, VAR_IGNORE);
+    GLine_Fill(&line, VAR_IGNORE, char_to_graph_value_(letter), VAR_IGNORE);
     GLine_Insert(&Graph, 0, &line);
   }
   _test_wavelet_tree(&Graph, sequence);
@@ -93,7 +127,7 @@ TEST(StructWaveletTree, CorrectRearInsertion) {
   for (i = 0; i < WAVELET_TREE_SAMPLE_SIZE_; i++) {
     letter = get_char_sequence(sequence, WAVELET_TREE_SAMPLE_SIZE_, i);
 
-    GLine_Fill(&line, VAR_IGNORE, letter, VAR_IGNORE);
+    GLine_Fill(&line, VAR_IGNORE, char_to_graph_value_(letter), VAR_IGNORE);
     GLine_Insert(&Graph, i, &line);
   }
   _test_wavelet_tree(&Graph, sequence);
@@ -106,7 +140,7 @@ TEST(StructWaveletTree, CorrectSymbolChanging) {
   for (i = 0; i < WAVELET_TREE_SAMPLE_SIZE_; i++) {
     letter = get_char_sequence(sequence, WAVELET_TREE_SAMPLE_SIZE_, i);
 
-    GLine_Fill(&line, VAR_IGNORE, letter, VAR_IGNORE);
+    GLine_Fill(&line, VAR_IGNORE, char_to_graph_value_(letter), VAR_IGNORE);
     GLine_Insert(&Graph, i, &line);
   }
 

@@ -26,20 +26,6 @@
 /* Perform standard rank on more significant half of a 32 bit vector. */
 #define RANK16(vector) __builtin_popcount((vector)&0xFFFF0000)
 
-typedef struct {
-  mem_ptr root_;
-  MemObj mem_;
-} Graph_Struct;
-
-typedef struct {
-  bool L_;
-  char W_;
-  uint32_t P_;
-} Graph_Line;
-
-#define GraphRef Graph_Struct*
-#define GLineRef Graph_Line*
-
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
 
 typedef enum {
@@ -52,6 +38,20 @@ typedef enum {
   VALUE_T = 3,
   VALUE_$ = 4
 } Graph_value;
+
+typedef struct {
+  mem_ptr root_;
+  MemObj mem_;
+} Graph_Struct;
+
+typedef struct {
+  Graph_value L_;
+  Graph_value W_;
+  uint32_t P_;
+} Graph_Line;
+
+#define GraphRef Graph_Struct*
+#define GLineRef Graph_Line*
 
 int32_t get_mask_from_char_(char symb__);
 int32_t get_mask_from_graph_value_(Graph_value val__);
@@ -88,7 +88,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__);
  * @param  W__  Corresponding line variable.
  * @param  P__  Corresponding line variable.
  */
-void GLine_Fill(GLineRef line__, bool L__, char W__, uint32_t P__);
+void GLine_Fill(GLineRef line__, Graph_value L__, Graph_value W__, uint32_t P__);
 
 /*
  * Explode Graph_Line struct variables into separate variables.
@@ -98,7 +98,7 @@ void GLine_Fill(GLineRef line__, bool L__, char W__, uint32_t P__);
  * @param  W__  [Out] Reference to corresponding line variable.
  * @param  P__  [Out] Reference to corresponding line variable.
  */
-void GLine_Explode(GLineRef line__, bool* L__, char* W__, uint32_t* P__);
+void GLine_Explode(GLineRef line__, Graph_value* L__, Graph_value* W__, uint32_t* P__);
 
 /*
  * Get one line in given Graph_Struct object.

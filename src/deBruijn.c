@@ -28,7 +28,7 @@ void deBruijn_Init(deBruijn_graph *dB__) {
   dB__->tracker_.cnt_ = 0;
 
   // insert root (null) node
-  GLine_Fill(&line, 1, '$', 0);
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(dB__->Graph_), 0, &line);
 
   // initialize F array
@@ -39,21 +39,19 @@ void deBruijn_Free(deBruijn_graph *dB__) { Graph_Free(&(dB__->Graph_)); }
 
 int32_t deBruijn_Forward_(deBruijn_graph *dB__, int32_t idx__) {
   int32_t rank, spos, temp;
-  Graph_value symbol;
   Graph_Line line;
 
   // find edge label of given edge (outgoing edge symbol)
   GLine_Get(&(dB__->Graph_), idx__, &line);
-  symbol = GET_VALUE_FROM_SYMBOL(line.W_);
 
   // if edge label is dollar, there is nowhere to go
-  if (symbol == VALUE_$) return -1;
+  if (line.W_ == VALUE_$) return -1;
 
   // calculate rank of edge label in the W array
-  rank = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_W, symbol);
+  rank = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_W, line.W_);
 
   // get starting position of edge label TODO CAN BE OPTIMIZED (cannot be $)
-  spos = (symbol != VALUE_$) ? dB__->F_[symbol] : 0;
+  spos = dB__->F_[line.W_];
 
   // get index of the last edge of the node pointed to by given edge
   temp = Graph_Rank(&(dB__->Graph_), spos, VECTOR_L, VALUE_1);
@@ -100,11 +98,8 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__) {
          Graph_Select(&(dB__->Graph_), node_id, VECTOR_L, VALUE_1);
 }
 
-int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   int32_t node_id, last_pos, range, select, temp;
-  Graph_value symbol;
-
-  symbol = GET_VALUE_FROM_SYMBOL(symb__);
 
   // get last edge index for this node
   node_id = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_L, VALUE_1);
@@ -114,19 +109,19 @@ int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, char symb__) {
   range = last_pos - Graph_Select(&(dB__->Graph_), node_id, VECTOR_L, VALUE_1);
 
   // get position of last 'symbol' up to this node
-  temp = Graph_Rank(&(dB__->Graph_), last_pos, VECTOR_W, symbol);
-  select = Graph_Select(&(dB__->Graph_), temp, VECTOR_W, symbol) - 1;
+  temp = Graph_Rank(&(dB__->Graph_), last_pos, VECTOR_W, gval__);
+  select = Graph_Select(&(dB__->Graph_), temp, VECTOR_W, gval__) - 1;
 
   // check if this position is in the range (transition exist)
   if (last_pos - range <= select) return select;
   return -1;
 }
 
-int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   int32_t edge_idx;
 
   // get index of edge we should follow
-  edge_idx = deBruijn_Edge_Check(dB__, idx__, symb__);
+  edge_idx = deBruijn_Edge_Check(dB__, idx__, gval__);
 
   // check if such edge exist
   if (edge_idx == -1) return -1;
@@ -159,10 +154,10 @@ int32_t deBruijn_Indegree(deBruijn_graph *dB__, int32_t idx__) {
   return 1;
 }
 
-int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, char symb__) {
+int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   UNUSED(dB__);
   UNUSED(idx__);
-  UNUSED(symb__);
+  UNUSED(gval__);
 
   FATAL("Not Implemented");
   return 0;
@@ -231,7 +226,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
   }
 }
 
-void deBruijn_Insert_test_data(deBruijn_graph *dB__, const int8_t *L__, const char *W__,
+void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
                                const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
                                const int32_t size__) {
   int32_t i;
@@ -288,8 +283,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__,
   return common;
 }
 
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
-                                 int32_t ctx_len__) {
+int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__) {
   // if this is root node it is not possible to shorten context
   if (idx__ < dB__->F_[0]) return -1;
 
@@ -330,13 +324,12 @@ int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__) {
   return count;
 }
 
-void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__,
-                                      char symb__) {
+void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   Graph_Line line;
 
   GLine_Get(&(dB__->Graph_), (uint32_t)idx__, &line);
 
-  if (line.W_ != symb__) idx__ = deBruijn_Edge_Check(dB__, idx__, symb__);
+  if (line.W_ != gval__) idx__ = deBruijn_Edge_Check(dB__, idx__, gval__);
 
   Graph_Increase_frequency(&(dB__->Graph_), idx__);
 
@@ -345,14 +338,12 @@ void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__,
       dB__, idx__, deBruijn_get_context_len_(dB__, idx__) - 1);
   if (next == -1) return;
 
-  deBruijn_Increase_frequency_rec_(dB__, next, symb__);
+  deBruijn_Increase_frequency_rec_(dB__, next, gval__);
 }
 
-void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__,
-                                 char symb__) {
+void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   int32_t edge_pos, i, rank, temp;
-  int32_t prev_node, ctx_len;
-  int32_t x, sv;
+  int32_t prev_node, ctx_len x;
   Graph_Line line;
 
   // check if shorter context already added this symbol
@@ -362,28 +353,28 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__,
     prev_node = deBruijn_Shorten_context(dB__, idx__, ctx_len - 1);
 
     // check if prev node has what it needs
-    if (deBruijn_Edge_Check(dB__, prev_node, symb__) == -1) {
+    if (deBruijn_Edge_Check(dB__, prev_node, gval__) == -1) {
       deBruijn_Tracker_push(dB__, &idx__);
-      deBruijn_Add_context_symbol(dB__, prev_node, symb__);
+      deBruijn_Add_context_symbol(dB__, prev_node, gval__);
       deBruijn_Tracker_pop(dB__);
 
     } else {
       // increase frequency of these lines
-      deBruijn_Increase_frequency_rec_(dB__, prev_node, symb__);
+      deBruijn_Increase_frequency_rec_(dB__, prev_node, gval__);
     }
   }
 
   // check what symbol is in W
   GLine_Get(&(dB__->Graph_), (uint32_t)idx__, &line);
-  if (line.W_ == '$') {
+  if (line.W_ == VALUE_$) {
     // current W symbol is $ - we can simply change it to new one
 
     // change symbol to new one and increase frequency to 1
-    Graph_Change_symbol(&(dB__->Graph_), idx__, GET_VALUE_FROM_SYMBOL(symb__));
+    Graph_Change_symbol(&(dB__->Graph_), idx__, gval__);
     Graph_Increase_frequency(&(dB__->Graph_), idx__);
 
   } else {
-    edge_pos = deBruijn_Edge_Check(dB__, idx__, symb__);
+    edge_pos = deBruijn_Edge_Check(dB__, idx__, gval__);
 
     // transition already exist at this node - nothing more do
     if (edge_pos != -1) {
@@ -391,7 +382,7 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__,
     }
 
     // insert new edge into this node
-    GLine_Fill(&line, 0, symb__, 1);
+    GLine_Fill(&line, VALUE_0, gval__, 1);
     GLine_Insert(&(dB__->Graph_), idx__, &line);
 
     // update registered variables
@@ -404,21 +395,18 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__,
   }
 
   // find same transition symbol above this line
-  rank = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_W,
-                    GET_VALUE_FROM_SYMBOL(symb__));
+  rank = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_W, gval__);
   // rank = WT_Rank(&(dB__->W_), idx__, symb__);
 
   if (!rank) {  // there is no symbol above this
-    sv = GET_VALUE_FROM_SYMBOL(symb__);
-    x = dB__->F_[sv];
+    x = dB__->F_[gval__];
 
     // update F array
-    for (i = sv + 1; i < SYMBOL_COUNT; i++) dB__->F_[i]++;
+    for (i = gval__ + 1; i < SYMBOL_COUNT; i++) dB__->F_[i]++;
 
   } else {  // we found another line with this symbol
     // go forward from this node
-    temp = Graph_Select(&(dB__->Graph_), rank, VECTOR_W,
-                        GET_VALUE_FROM_SYMBOL(symb__));
+    temp = Graph_Select(&(dB__->Graph_), rank, VECTOR_W, gval__);
     x = deBruijn_Forward_(dB__, temp - 1) + 1;
 
     // update F array
@@ -428,7 +416,7 @@ void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__,
   }
 
   // insert new leaf node into the graph
-  GLine_Fill(&line, 1, '$', 0);
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(dB__->Graph_), x, &line);
 
   // update registered variables

@@ -1,22 +1,5 @@
 #include "structure.h"
 
-int32_t get_mask_from_char_(char symb__) {
-  switch (symb__) {
-    case 'A':
-      return 0;
-    case 'C':
-      return 2;
-    case 'G':
-      return 4;
-    case 'T':
-      return 6;
-    case '$':
-      return 7;
-  }
-  FATAL("Unexpected symbol");
-  return 0;
-}
-
 int32_t get_mask_from_graph_value_(Graph_value val__) {
   switch (val__) {
     case VALUE_A:
@@ -34,18 +17,18 @@ int32_t get_mask_from_graph_value_(Graph_value val__) {
   return 0;
 }
 
-char get_char_from_mask_(int32_t mask__) {
+char get_graph_value_from_mask_(int32_t mask__) {
   switch (mask__) {
     case 0:
-      return 'A';
+      return VALUE_A;
     case 2:
-      return 'C';
+      return VALUE_C;
     case 4:
-      return 'G';
+      return VALUE_G;
     case 6:
-      return 'T';
+      return VALUE_T;
     case 7:
-      return '$';
+      return VALUE_$;
   }
   FATAL("Unexpected mask");
   return 0;
@@ -68,27 +51,27 @@ void Graph_Free(GraphRef Graph__) {
 
 void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
   switch (line__->W_) {
-    case 'A':
+    case VALUE_A:
       INSERT_BIT(&(leaf__->vectorWl0_), &(leaf__->rW_), pos__, 0);
       INSERT_BIT(&(leaf__->vectorWl1_), &(leaf__->rWl_), pos__, 0);
       INSERT_BIT(&(leaf__->vectorWl2_), &(leaf__->rWs_), pos__, 0);
       break;
-    case 'C':
+    case VALUE_C:
       INSERT_BIT(&(leaf__->vectorWl0_), &(leaf__->rW_), pos__, 0);
       INSERT_BIT(&(leaf__->vectorWl1_), &(leaf__->rWl_), pos__, 1);
       INSERT_BIT(&(leaf__->vectorWl2_), &(leaf__->rWs_), pos__, 0);
       break;
-    case 'G':
+    case VALUE_G:
       INSERT_BIT(&(leaf__->vectorWl0_), &(leaf__->rW_), pos__, 1);
       INSERT_BIT(&(leaf__->vectorWl1_), &(leaf__->rWh_), pos__, 0);
       INSERT_BIT(&(leaf__->vectorWl2_), &(leaf__->rWs_), pos__, 0);
       break;
-    case 'T':
+    case VALUE_T:
       INSERT_BIT(&(leaf__->vectorWl0_), &(leaf__->rW_), pos__, 1);
       INSERT_BIT(&(leaf__->vectorWl1_), &(leaf__->rWh_), pos__, 1);
       INSERT_BIT(&(leaf__->vectorWl2_), &(leaf__->rWs_), pos__, 0);
       break;
-    case '$':
+    case VALUE_$:
       INSERT_BIT(&(leaf__->vectorWl0_), &(leaf__->rW_), pos__, 1);
       INSERT_BIT(&(leaf__->vectorWl1_), &(leaf__->rWh_), pos__, 1);
       INSERT_BIT(&(leaf__->vectorWl2_), &(leaf__->rWs_), pos__, 1);
@@ -116,7 +99,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   VERBOSE(fprintf(stderr, "Inserting new line on position %u\n", pos__);)
 
   // traverse the tree and enter correct leaf
-  int32_t mask = get_mask_from_char_(line__->W_);
+  int32_t mask = get_mask_from_graph_value_(line__->W_);
   int32_t current = Graph__->root_;
   STACK_PUSH(current);
 
@@ -227,13 +210,13 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   }
 }
 
-void GLine_Fill(GLineRef line__, bool L__, char W__, uint32_t P__) {
+void GLine_Fill(GLineRef line__, Graph_value L__, Graph_value W__, uint32_t P__) {
   line__->L_ = L__;
   line__->W_ = W__;
   line__->P_ = P__;
 }
 
-void GLine_Explode(GLineRef line__, bool* L__, char* W__, uint32_t* P__) {
+void GLine_Explode(GLineRef line__, Graph_value* L__, Graph_value* W__, uint32_t* P__) {
   assert(*L__ == 0 || *L__ == 1);
 
   *L__ = line__->L_;
@@ -277,7 +260,7 @@ void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
                  (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
 
   line__->L_ = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
-  line__->W_ = get_char_from_mask_(wavelet_mask);
+  line__->W_ = get_graph_value_from_mask_(wavelet_mask);
   line__->P_ = leaf_ref->vectorP_[pos__];
 }
 
@@ -338,7 +321,7 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
                (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
                (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
 
-  // change old cahracter to new one
+  // change old character to the new one
   leaf_ref->vectorWl0_ ^= (-(unsigned)(!!(nchar_mask & 0x4)) ^ leaf_ref->vectorWl0_) & (0x1 << (31 - pos__));
   leaf_ref->vectorWl1_ ^= (-(unsigned)(!!(nchar_mask & 0x2)) ^ leaf_ref->vectorWl1_) & (0x1 << (31 - pos__));
   leaf_ref->vectorWl2_ ^= (-(unsigned)(!!(nchar_mask & 0x1)) ^ leaf_ref->vectorWl2_) & (0x1 << (31 - pos__));
