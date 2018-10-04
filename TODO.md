@@ -27,7 +27,8 @@ Implementation and possible text todo list for this thesis
 * benchmarks for all versions
 
 * fix rank and select correct values when pos is bigger than size of the vector
-
+* implement PPMD for testing purposes with 7zip
+	- Image and Text Compression (Storer)
 
 ## Text (among all other):
 
@@ -35,3 +36,4 @@ Implementation and possible text todo list for this thesis
 * removal of pointers in graph structure
 * compression vs memory usage (size of P values)
 
+* info about existing SDSL library
