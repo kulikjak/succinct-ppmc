@@ -53,6 +53,8 @@ typedef struct {
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
 
+#define RED_BLACK_BALANCING
+
 int32_t get_mask_from_char_(char symb__);
 int32_t get_mask_from_graph_value_(Graph_value val__);
 char get_char_from_mask_(int32_t mask__);
@@ -163,5 +165,11 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__);
  * @param  pos__  Update position.
  */
 void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
+
+#ifdef _UNITY
+
+//int32_t Graph_Get_max_depth__();
+
+#endif  // _UNITY
 
 #endif  // _COMPRESSION_STRUCT__

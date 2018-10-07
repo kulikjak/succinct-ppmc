@@ -21,6 +21,8 @@ typedef struct stack_32b {
   ((stack.current_ >= 1) ? stack.stack_[stack.current_ - 1] : -1)
 #define STACK_GET_GRANDPARENT() \
   ((stack.current_ >= 2) ? stack.stack_[stack.current_ - 2] : -1)
+#define STACK_GET_GRANDGRANDPARENT() \
+  ((stack.current_ >= 3) ? stack.stack_[stack.current_ - 3] : -1)
 
 #define STACK_PUSH(arg)                                                \
   {                                                                    \

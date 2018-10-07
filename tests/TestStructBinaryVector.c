@@ -81,7 +81,84 @@ TEST(StructBinaryVector, CorrectRearInsertion) {
   _test_binary_vector(&Graph, sequence);
 }
 
+TEST(StructBinaryVector, CorrectFrontRearInsertion) {
+  int8_t bit;
+  int32_t i;
+
+  for (i = 0; i < BINARY_VECTOR_SAMPLE_SIZE_ / 2; i++) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, i, &line);
+  }
+
+  for (i = BINARY_VECTOR_SAMPLE_SIZE_ - 1; i >= BINARY_VECTOR_SAMPLE_SIZE_ / 2; i--) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, BINARY_VECTOR_SAMPLE_SIZE_ / 2, &line);
+  }
+  _test_binary_vector(&Graph, sequence);
+}
+
+TEST(StructBinaryVector, CorrectRearFrontInsertion) {
+  int8_t bit;
+  int32_t i;
+
+  for (i = (BINARY_VECTOR_SAMPLE_SIZE_ / 2) - 1; i >= 0; i--) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, 0, &line);
+  }
+
+  for (i = BINARY_VECTOR_SAMPLE_SIZE_ / 2; i < BINARY_VECTOR_SAMPLE_SIZE_; i++) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, i, &line);
+  }
+  _test_binary_vector(&Graph, sequence);
+}
+
+TEST(StructBinaryVector, CorrectMixedInsertion) {
+  int8_t bit;
+  int32_t i;
+
+  for (i = 0; i < BINARY_VECTOR_SAMPLE_SIZE_ / 4; i++) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, i, &line);
+  }
+
+  for (i = BINARY_VECTOR_SAMPLE_SIZE_ - 1; i >= (BINARY_VECTOR_SAMPLE_SIZE_ / 4 ) * 3; i--) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, BINARY_VECTOR_SAMPLE_SIZE_ / 4, &line);
+  }
+
+  for (i = (BINARY_VECTOR_SAMPLE_SIZE_ / 2) - 1; i >= BINARY_VECTOR_SAMPLE_SIZE_ / 4; i--) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, BINARY_VECTOR_SAMPLE_SIZE_ / 4, &line);
+  }
+
+  for (i = BINARY_VECTOR_SAMPLE_SIZE_ / 2; i < (BINARY_VECTOR_SAMPLE_SIZE_ / 4 ) * 3; i++) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, i, &line);
+  }
+  _test_binary_vector(&Graph, sequence);
+}
+
 TEST_GROUP_RUNNER(StructBinaryVector) {
   RUN_TEST_CASE(StructBinaryVector, CorrectFrontInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectRearInsertion);
+  RUN_TEST_CASE(StructBinaryVector, CorrectFrontRearInsertion);
+  RUN_TEST_CASE(StructBinaryVector, CorrectRearFrontInsertion);
+  RUN_TEST_CASE(StructBinaryVector, CorrectMixedInsertion);
 }

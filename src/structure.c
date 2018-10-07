@@ -91,6 +91,26 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
   leaf__->p_++;
 }
 
+void print_graph_aux_(GraphRef Graph__, mem_ptr ptr__) {
+
+  NodeRef any = MEMORY_GET_ANY(Graph__->mem_, ptr__);
+  printf("ptr: %d counters: %d %d %d %d %d %d ", ptr__, any->p_, any->rL_, any->rW_, any->rWl_, any->rWh_, any->rWs_);
+
+  if (IS_LEAF(ptr__)) {
+    printf("leaf B\n");
+  } else {
+    NodeRef node = any;
+    printf("node %c\n children: %d %d\n", ((node->rb_flag_) ? 'R' : 'B'), node->left_, node->right_);
+
+    print_graph_aux_(Graph__, node->left_);
+    print_graph_aux_(Graph__, node->right_);
+  }
+}
+
+void print_graph(GraphRef Graph__) {
+  print_graph_aux_(Graph__, Graph__->root_);
+}
+
 void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   assert(pos__ <= MEMORY_GET_ANY(Graph__->mem_, Graph__->root_)->p_);
 
@@ -101,9 +121,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   // traverse the tree and enter correct leaf
   int32_t mask = get_mask_from_graph_value_(line__->W_);
   int32_t current = Graph__->root_;
-  STACK_PUSH(current);
 
   while (!IS_LEAF(current)) {
+    STACK_PUSH(current);
     // update p and r counters as we are traversing the structure
     node_32e* node = MEMORY_GET_NODE(Graph__->mem_, current);
     node->p_ += 1;
@@ -121,8 +141,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       pos__ -= temp;
       current = node->right_;
     }
-
-    STACK_PUSH(current);
   }
 
   LeafRef current_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
@@ -147,6 +165,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     // allocate new right leaf and reuse current as left leaf
     node_ref->right_ = Memory_new_leaf(Graph__->mem_);  // FIXME
     node_ref->left_ = current;
+
+    STACK_PUSH(node);
 
     // initialize new right node
     LeafRef right_ref = MEMORY_GET_LEAF(Graph__->mem_, node_ref->right_);
@@ -207,6 +227,190 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       else
         parent->right_ = node;
     }
+
+#ifdef RED_BLACK_BALANCING
+
+    // red black balancing
+    node_ref->rb_flag_ = true;
+
+    do {
+      // current node is the root - change it to black and end
+      if (STACK_GET_PARENT() == -1) {
+        //printf("abc 1\n");
+        node_ref->rb_flag_ = false;
+        return;
+      }
+
+      mem_ptr parent_idx = STACK_GET_PARENT();
+      NodeRef parent = MEMORY_GET_NODE(Graph__->mem_, parent_idx);
+      // parent node is a black node - do nothing
+      if (parent->rb_flag_ == false) {
+        //printf("abc 2\n");
+        return;
+      }
+
+      mem_ptr grandparent_idx = STACK_GET_GRANDPARENT();
+      NodeRef grandparent = MEMORY_GET_NODE(Graph__->mem_, grandparent_idx);
+
+      // get uncle
+      mem_ptr uncle_idx = grandparent->left_;
+      bool grandparent_left = false;
+      if (grandparent->left_ == STACK_GET_PARENT()) {
+        uncle_idx = grandparent->right_;
+        grandparent_left = true;
+      }
+
+      NodeRef uncle = MEMORY_GET_ANY(Graph__->mem_, uncle_idx);
+
+      // uncle is red - change colors and go to start
+      if (!IS_LEAF(uncle_idx) && uncle->rb_flag_ == true) {
+        parent->rb_flag_ = false;
+        uncle->rb_flag_ = false;
+        grandparent->rb_flag_ = true;
+
+        node = grandparent_idx;
+        node_ref = grandparent;
+        STACK_POP();
+        STACK_POP();
+        continue;
+      }
+
+      // uncle is black - time for rotations
+      bool parent_left = true;
+      if (node == parent->right_) {
+        parent_left = false;
+      }
+
+      mem_ptr newroot = 0;
+      if (parent_left && grandparent_left) {
+        grandparent->rb_flag_ = true;
+        parent->rb_flag_ = false;
+
+        grandparent->left_ = parent->right_;
+        parent->right_ = grandparent_idx;
+
+        grandparent->p_ -= node_ref->p_;
+        grandparent->rL_ -= node_ref->rL_;
+        grandparent->rW_ -= node_ref->rW_;
+        grandparent->rWl_ -= node_ref->rWl_;
+        grandparent->rWh_ -= node_ref->rWh_;
+        grandparent->rWs_ -= node_ref->rWs_;
+
+        parent->p_ += uncle->p_;
+        parent->rL_ += uncle->rL_;
+        parent->rW_ += uncle->rW_;
+        parent->rWl_ += uncle->rWl_;
+        parent->rWh_ += uncle->rWh_;
+        parent->rWs_ += uncle->rWs_;
+
+        newroot = parent_idx;
+      } else if (!parent_left && !grandparent_left) {
+        grandparent->rb_flag_ = true;
+        parent->rb_flag_ = false;
+
+        grandparent->right_ = parent->left_;
+        parent->left_ = grandparent_idx;
+
+        grandparent->p_ -= node_ref->p_;
+        grandparent->rL_ -= node_ref->rL_;
+        grandparent->rW_ -= node_ref->rW_;
+        grandparent->rWl_ -= node_ref->rWl_;
+        grandparent->rWh_ -= node_ref->rWh_;
+        grandparent->rWs_ -= node_ref->rWs_;
+
+        parent->p_ += uncle->p_;
+        parent->rL_ += uncle->rL_;
+        parent->rW_ += uncle->rW_;
+        parent->rWl_ += uncle->rWl_;
+        parent->rWh_ += uncle->rWh_;
+        parent->rWs_ += uncle->rWs_;
+
+        newroot = parent_idx;
+      } else if (!parent_left && grandparent_left) {
+        grandparent->rb_flag_ = true;
+        node_ref->rb_flag_ = false;
+
+        grandparent->left_ = node_ref->right_;
+        parent->right_ = node_ref->left_;
+
+        node_ref->left_ = parent_idx;
+        node_ref->right_ = grandparent_idx;
+
+        NodeRef temp = MEMORY_GET_ANY(Graph__->mem_, grandparent->left_);
+
+        parent->p_ -= temp->p_;
+        parent->rL_ -= temp->rL_;
+        parent->rW_ -= temp->rW_;
+        parent->rWl_ -= temp->rWl_;
+        parent->rWh_ -= temp->rWh_;
+        parent->rWs_ -= temp->rWs_;
+
+        grandparent->p_ -= parent->p_;
+        grandparent->rL_ -= parent->rL_;
+        grandparent->rW_ -= parent->rW_;
+        grandparent->rWl_ -= parent->rWl_;
+        grandparent->rWh_ -= parent->rWh_;
+        grandparent->rWs_ -= parent->rWs_;        
+
+        node_ref->p_ = parent->p_ + grandparent->p_;
+        node_ref->rL_ = parent->rL_ + grandparent->rL_;
+        node_ref->rW_ = parent->rW_ + grandparent->rW_;
+        node_ref->rWl_ = parent->rWl_ + grandparent->rWl_;
+        node_ref->rWh_ = parent->rWh_ + grandparent->rWh_;
+        node_ref->rWs_ = parent->rWs_ + grandparent->rWs_;
+
+        newroot = node;
+      } else if (parent_left && !grandparent_left) {
+        grandparent->rb_flag_ = true;
+        node_ref->rb_flag_ = false;
+
+        grandparent->right_ = node_ref->left_;
+        parent->left_ = node_ref->right_;
+
+        node_ref->left_ = grandparent_idx;
+        node_ref->right_ = parent_idx;
+
+        NodeRef temp = MEMORY_GET_ANY(Graph__->mem_, grandparent->right_);
+
+        parent->p_ -= temp->p_;
+        parent->rL_ -= temp->rL_;
+        parent->rW_ -= temp->rW_;
+        parent->rWl_ -= temp->rWl_;
+        parent->rWh_ -= temp->rWh_;
+        parent->rWs_ -= temp->rWs_;
+
+        grandparent->p_ -= parent->p_;
+        grandparent->rL_ -= parent->rL_;
+        grandparent->rW_ -= parent->rW_;
+        grandparent->rWl_ -= parent->rWl_;
+        grandparent->rWh_ -= parent->rWh_;
+        grandparent->rWs_ -= parent->rWs_;
+
+        node_ref->p_ = parent->p_ + grandparent->p_;
+        node_ref->rL_ = parent->rL_ + grandparent->rL_;
+        node_ref->rW_ = parent->rW_ + grandparent->rW_;
+        node_ref->rWl_ = parent->rWl_ + grandparent->rWl_;
+        node_ref->rWh_ = parent->rWh_ + grandparent->rWh_;
+        node_ref->rWs_ = parent->rWs_ + grandparent->rWs_;
+
+        newroot = node;
+      }
+
+      // finally exchange pointers to new node
+      if (STACK_GET_GRANDGRANDPARENT() == -1) {
+        Graph__->root_ = newroot;
+      } else {
+        NodeRef grandgrandparent = MEMORY_GET_NODE(Graph__->mem_, STACK_GET_GRANDGRANDPARENT());
+        if (grandgrandparent->left_ == grandparent_idx)
+          grandgrandparent->left_ = newroot;
+        else
+          grandgrandparent->right_ = newroot;
+      }
+      break;
+    } while (true);
+
+#endif  // RED_BLACK_BALANCING
+
   }
 }
 

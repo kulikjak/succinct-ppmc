@@ -343,7 +343,7 @@ void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__, Graph
 
 void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   int32_t edge_pos, i, rank, temp;
-  int32_t prev_node, ctx_len x;
+  int32_t prev_node, ctx_len, x;
   Graph_Line line;
 
   // check if shorter context already added this symbol

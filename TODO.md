@@ -8,12 +8,13 @@ Implementation and possible text todo list for this thesis
 
 
 ## Compact version:
-* red black tree support
+* red black tree support - done
 * rank support - done
 * select support - done
 * de Bruijn graph operations - done
 * compression of given text
 * arithmetic coding output of compression
+* change main rank and select functions to macros
 
 * write more and better tests
 * add tests for P array - done
