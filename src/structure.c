@@ -163,58 +163,78 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         current_ref->rWs_ + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4));
 
     // allocate new right leaf and reuse current as left leaf
-    node_ref->right_ = Memory_new_leaf(Graph__->mem_);  // FIXME
+    node_ref->right_ = Memory_new_leaf(Graph__->mem_);
     node_ref->left_ = current;
 
     STACK_PUSH(node);
 
+    // find a position for clever splitting
+    int32_t split_mask = 0xFFFF;
+    int32_t split_offset = 0;
+
+#ifndef DISABLE_CLEVER_NODE_SPLIT
+    if ((current_ref->vectorL_ >> 16) & 0x1) {
+      // do nothing
+    } else if ((current_ref->vectorL_ >> 15) & 0x1) {
+      split_mask = 0x7FFF;
+      split_offset = 1;
+    } else if ((current_ref->vectorL_ >> 17) & 0x1) {
+      split_mask = 0x1FFFF;
+      split_offset = -1;
+    } else if ((current_ref->vectorL_ >> 14) & 0x1) {
+      split_mask = 0x3FFF;
+      split_offset = 2;
+    } else {
+      FATAL("Node split unsuccessful, structure is corrupted.");
+    }
+#endif
+
     // initialize new right node
     LeafRef right_ref = MEMORY_GET_LEAF(Graph__->mem_, node_ref->right_);
-    right_ref->vectorL_ = (current_ref->vectorL_ & (0xFFFF)) << 16;
+    right_ref->vectorL_ = 0x0 | ((current_ref->vectorL_ & (split_mask)) << (16 + split_offset));
 
-    right_ref->vectorWl0_ = (current_ref->vectorWl0_ & (0xFFFF)) << 16;
-    right_ref->vectorWl1_ = (current_ref->vectorWl1_ & (0xFFFF)) << 16;
-    right_ref->vectorWl2_ = (current_ref->vectorWl2_ & (0xFFFF)) << 16;
+    right_ref->vectorWl0_ = 0x0 | ((current_ref->vectorWl0_ & (split_mask)) << (16 + split_offset));
+    right_ref->vectorWl1_ = 0x0 | ((current_ref->vectorWl1_ & (split_mask)) << (16 + split_offset));
+    right_ref->vectorWl2_ = 0x0 | ((current_ref->vectorWl2_ & (split_mask)) << (16 + split_offset));
 
-    memcpy(right_ref->vectorP_, current_ref->vectorP_ + 16,
-           16 * sizeof(uint32_t));
+    memcpy(right_ref->vectorP_, current_ref->vectorP_ + 16 + split_offset, (16 - split_offset) * sizeof(uint32_t));
 
-    right_ref->p_ = 16;
+    right_ref->p_ = 16 - split_offset;
 
     // calculate rank on newly created leaf
-    right_ref->rL_ = RANK16(right_ref->vectorL_);
-    right_ref->rW_ = RANK16(right_ref->vectorWl0_);
+    right_ref->rL_ = RANK(right_ref->vectorL_);
+    right_ref->rW_ = RANK(right_ref->vectorWl0_);
     right_ref->rWl_ =
-        RANK16((~(right_ref->vectorWl0_)) & (right_ref->vectorWl1_));
-    right_ref->rWh_ = RANK16((right_ref->vectorWl0_) & (right_ref->vectorWl1_));
-    right_ref->rWs_ = RANK16((right_ref->vectorWl0_) & (right_ref->vectorWl1_) &
+        RANK((~(right_ref->vectorWl0_)) & (right_ref->vectorWl1_));
+    right_ref->rWh_ = RANK((right_ref->vectorWl0_) & (right_ref->vectorWl1_));
+    right_ref->rWs_ = RANK((right_ref->vectorWl0_) & (right_ref->vectorWl1_) &
                              (right_ref->vectorWl2_));
 
     // initialize (reuse) old leaf as left one
-    current_ref->vectorL_ = current_ref->vectorL_ & (0xFFFF0000);
+    current_ref->vectorL_ = current_ref->vectorL_ & (~split_mask);
 
-    current_ref->vectorWl0_ = current_ref->vectorWl0_ & (0xFFFF0000);
-    current_ref->vectorWl1_ = current_ref->vectorWl1_ & (0xFFFF0000);
-    current_ref->vectorWl2_ = current_ref->vectorWl2_ & (0xFFFF0000);
+    current_ref->vectorWl0_ = current_ref->vectorWl0_ & (~split_mask);
+    current_ref->vectorWl1_ = current_ref->vectorWl1_ & (~split_mask);
+    current_ref->vectorWl2_ = current_ref->vectorWl2_ & (~split_mask);
 
-    current_ref->p_ = 16;
+    current_ref->p_ = 16 + split_offset;
 
     // recalculate rank on old shrinked leaf
-    current_ref->rL_ = RANK16(current_ref->vectorL_);
-    current_ref->rW_ = RANK16(current_ref->vectorWl0_);
+    current_ref->rL_ = RANK(current_ref->vectorL_);
+    current_ref->rW_ = RANK(current_ref->vectorWl0_);
     current_ref->rWl_ =
-        RANK16((~(current_ref->vectorWl0_)) & (current_ref->vectorWl1_));
+        RANK((~(current_ref->vectorWl0_)) & (current_ref->vectorWl1_));
     current_ref->rWh_ =
-        RANK16((current_ref->vectorWl0_) & (current_ref->vectorWl1_));
+        RANK((current_ref->vectorWl0_) & (current_ref->vectorWl1_));
     current_ref->rWs_ =
-        RANK16((current_ref->vectorWl0_) & (current_ref->vectorWl1_) &
+        RANK((current_ref->vectorWl0_) & (current_ref->vectorWl1_) &
                (current_ref->vectorWl2_));
 
     // now insert bit into correct leaf
-    if (pos__ <= 16) {
+    if (pos__ <= (uint32_t)(16 + split_offset)) {
       Graph_Insert_Line_(current_ref, pos__, line__);
     } else {
-      Graph_Insert_Line_(right_ref, pos__ - 16, line__);
+      Graph_Insert_Line_(right_ref, pos__ - (16 + split_offset), line__);
     }
 
     // finally exchange pointers to new node
@@ -228,7 +248,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         parent->right_ = node;
     }
 
-#ifdef RED_BLACK_BALANCING
+#ifndef DISABLE_RED_BLACK_BALANCING
 
     // red black balancing
     node_ref->rb_flag_ = true;

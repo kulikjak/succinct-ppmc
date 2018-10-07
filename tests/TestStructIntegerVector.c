@@ -3,7 +3,7 @@
 
 TEST_GROUP(StructIntegerVector);
 
-#define VAR_IGNORE 0
+#define VAR_IGNORE 1
 #define INTEGER_VECTOR_SAMPLE_SIZE_ 250
 #define INTEGER_VECTOR_PRINT_SEQUENCES false
 

@@ -5,7 +5,7 @@
 
 TEST_GROUP(StructWaveletTree);
 
-#define VAR_IGNORE 0
+#define VAR_IGNORE 1
 #define WAVELET_TREE_SAMPLE_SIZE_ 250
 #define WAVELET_TREE_PRINT_SEQUENCES false
 

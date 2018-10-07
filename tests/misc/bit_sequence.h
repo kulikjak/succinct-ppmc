@@ -23,7 +23,7 @@
  * @return  Newly created bit sequence (64 bit integer array).
  */
 uint64_t* init_random_bin_sequence(int32_t ssize__) {
-  int32_t i;
+  int32_t i, limiter = 3;
 
   // allocate space for new bit sequence
   int32_t limit = (int)ceil(ssize__ / 64.0);
@@ -34,9 +34,11 @@ uint64_t* init_random_bin_sequence(int32_t ssize__) {
 
   // fill sequence with random bits
   for (i = 0; i < ssize__; i++) {
-    if (rand() % 2) {
+    if (rand() % 2 || !limiter) {
       sequence[i / 64] |= ((uint64_t)0x1) << (63 - (i % 64));
-    }
+      limiter = 3;
+    } else
+      limiter--;
   }
   return sequence;
 }

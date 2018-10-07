@@ -23,8 +23,7 @@
     }                                                                    \
   }
 
-/* Perform standard rank on more significant half of a 32 bit vector. */
-#define RANK16(vector) __builtin_popcount((vector)&0xFFFF0000)
+#define RANK(vector) __builtin_popcount((vector))
 
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
 
@@ -53,7 +52,8 @@ typedef struct {
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
 
-#define RED_BLACK_BALANCING
+//#define DISABLE_RED_BLACK_BALANCING
+//#define DISABLE_CLEVER_NODE_SPLIT
 
 int32_t get_mask_from_char_(char symb__);
 int32_t get_mask_from_graph_value_(Graph_value val__);

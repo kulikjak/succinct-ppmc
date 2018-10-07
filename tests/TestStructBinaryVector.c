@@ -5,7 +5,7 @@
 
 TEST_GROUP(StructBinaryVector);
 
-#define VAR_IGNORE 0
+#define VAR_IGNORE 1
 #define BINARY_VECTOR_SAMPLE_SIZE_ 250
 #define BINARY_VECTOR_PRINT_SEQUENCES false
 
