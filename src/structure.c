@@ -49,6 +49,46 @@ void Graph_Free(GraphRef Graph__) {
   Memory_free(&(Graph__->mem_));
 }
 
+void print_graph_aux_(GraphRef Graph__, mem_ptr ptr__) {
+  NodeRef any = MEMORY_GET_ANY(Graph__->mem_, ptr__);
+  printf("ptr: %d counters: %d %d %d %d %d %d ", ptr__, any->p_, any->rL_, any->rW_, any->rWl_, any->rWh_, any->rWs_);
+
+  if (IS_LEAF(ptr__)) {
+    printf("leaf B\n");
+  } else {
+    printf("node %c\n children: %d %d\n", ((any->rb_flag_) ? 'R' : 'B'), any->left_, any->right_);
+
+    print_graph_aux_(Graph__, any->left_);
+    print_graph_aux_(Graph__, any->right_);
+  }
+}
+
+void print_graph(GraphRef Graph__) {
+  print_graph_aux_(Graph__, Graph__->root_);
+}
+
+bool test_clever_node_split_aux(GraphRef Graph__, mem_ptr ptr__) {
+  LeafRef leaf;
+  NodeRef node;
+
+  if (IS_LEAF(ptr__)) {
+    leaf = MEMORY_GET_LEAF(Graph__->mem_, ptr__);
+    if (!(leaf->vectorL_ >> (32 - leaf->p_) & 0x1))
+      return false;
+
+  } else {
+    node = MEMORY_GET_NODE(Graph__->mem_, ptr__);
+    if (!test_clever_node_split_aux(Graph__, node->left_))
+      return false;
+    return test_clever_node_split_aux(Graph__, node->right_);
+  }
+  return true;
+}
+
+bool test_clever_node_split(GraphRef Graph__) {
+  return test_clever_node_split_aux(Graph__, Graph__->root_);
+}
+
 void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
   switch (line__->W_) {
     case VALUE_A:
@@ -89,26 +129,6 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
   leaf__->vectorP_[pos__] = line__->P_;
 
   leaf__->p_++;
-}
-
-void print_graph_aux_(GraphRef Graph__, mem_ptr ptr__) {
-
-  NodeRef any = MEMORY_GET_ANY(Graph__->mem_, ptr__);
-  printf("ptr: %d counters: %d %d %d %d %d %d ", ptr__, any->p_, any->rL_, any->rW_, any->rWl_, any->rWh_, any->rWs_);
-
-  if (IS_LEAF(ptr__)) {
-    printf("leaf B\n");
-  } else {
-    NodeRef node = any;
-    printf("node %c\n children: %d %d\n", ((node->rb_flag_) ? 'R' : 'B'), node->left_, node->right_);
-
-    print_graph_aux_(Graph__, node->left_);
-    print_graph_aux_(Graph__, node->right_);
-  }
-}
-
-void print_graph(GraphRef Graph__) {
-  print_graph_aux_(Graph__, Graph__->root_);
 }
 
 void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
@@ -185,7 +205,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       split_mask = 0x3FFF;
       split_offset = 2;
     } else {
-      FATAL("Node split unsuccessful, structure is corrupted.");
+      //FATAL("Node split unsuccessful, structure is corrupted.");
     }
 #endif
 
@@ -256,7 +276,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     do {
       // current node is the root - change it to black and end
       if (STACK_GET_PARENT() == -1) {
-        //printf("abc 1\n");
         node_ref->rb_flag_ = false;
         return;
       }
@@ -265,7 +284,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       NodeRef parent = MEMORY_GET_NODE(Graph__->mem_, parent_idx);
       // parent node is a black node - do nothing
       if (parent->rb_flag_ == false) {
-        //printf("abc 2\n");
         return;
       }
 

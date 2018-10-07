@@ -40,6 +40,8 @@ uint64_t* init_random_bin_sequence(int32_t ssize__) {
     } else
       limiter--;
   }
+  sequence[(ssize__-1) / 64] |= ((uint64_t)0x1) << (63 - ((ssize__-1) % 64));
+
   return sequence;
 }
 

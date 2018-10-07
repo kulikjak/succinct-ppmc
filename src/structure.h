@@ -168,7 +168,7 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
 
 #ifdef _UNITY
 
-//int32_t Graph_Get_max_depth__();
+bool test_clever_node_split(GraphRef Graph__);
 
 #endif  // _UNITY
 

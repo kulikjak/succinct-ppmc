@@ -155,10 +155,24 @@ TEST(StructBinaryVector, CorrectMixedInsertion) {
   _test_binary_vector(&Graph, sequence);
 }
 
+TEST(StructBinaryVector, CorrectCleverNodeSplit) {
+  int8_t bit;
+  int32_t i;
+
+  for (i = BINARY_VECTOR_SAMPLE_SIZE_ - 1; i >= 0; i--) {
+    bit = (sequence[i / 64] >> (63 - (i % 64))) & 0x1;
+
+    GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
+    GLine_Insert(&Graph, 0, &line);
+  }
+  TEST_ASSERT_EQUAL_INT32(test_clever_node_split(&Graph), true);
+}
+
 TEST_GROUP_RUNNER(StructBinaryVector) {
   RUN_TEST_CASE(StructBinaryVector, CorrectFrontInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectRearInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectFrontRearInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectRearFrontInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectMixedInsertion);
+  RUN_TEST_CASE(StructBinaryVector, CorrectCleverNodeSplit);
 }
