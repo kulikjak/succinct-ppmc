@@ -35,17 +35,13 @@ typedef struct {
   int32_t F_[SYMBOL_COUNT];
   Graph_Struct Graph_;
 
+  int32_t depth;
+
   struct {
     int32_t cnt_;
     int32_t *arr_[CONTEXT_LENGTH + 4];
   } tracker_;
 } deBruijn_graph;
-
-void deBruijn_Tracker_push(deBruijn_graph *dB__, int32_t *a__);
-
-void deBruijn_Tracker_pop(deBruijn_graph *dB__);
-
-void deBruijn_Tracker_update(deBruijn_graph *dB__, int32_t val__);
 
 /*
  * Initialize deBruijn_graph object.
@@ -80,7 +76,7 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__);
  *
  * @return  Index of edge in given node.
  */
-int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
+int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * From given node follow edge labeled by given symbol.
@@ -142,27 +138,6 @@ int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
 void deBruijn_Print(deBruijn_graph *dB__, bool labels__);
 
 /*
- * Initialize structure with given test data.
- *
- * This function is for testing purposes only. It simply fills all the
- * structures with given data. There is no error checking (except for checks of
- * underlying structures) and if used incorrectly, all other functions can have
- * wrong results.
- *
- * Structure should not be initialized whne this is called!
- *
- * @param  dB__  Reference to deBruijn_graph object.
- * @param  L__  L array (last edge of corresponding node).
- * @param  W__  W array (label of given outgoing edge).
- * @param  P__  P array (frequencies of each symbol in context).
- * @param  F__  F array (base positions of symbols)
- * @param  size__  Size of arrays L and W.
- */
-void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
-                               const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
-                               const int32_t size__);
-
-/*
  * Shorten current context.
  *
  * This function effectively follows suffix links of PPM tree.
@@ -177,18 +152,15 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
                                  int32_t ctx_len__);
 
 /*
- * Append new symbol to given context.
- *
- * Symbol automatically appended to all shorter contexts. Those which have this
- * symbol have their frequency increased. This function does basically
- * everything needed for PPMC compression algorithm.
+ * Get cumulative frequency from node pointed to by given index.
  *
  * @param  dB__  Reference to deBruijn_graph object.
- * @param  idx__  Node index (line) in deBruijn graph.
- * @param  gval__ Additional symbol (Graph_value).
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  gval__  Symbol (Graph_value) to follow.
+ * @param  freq__  [Out] Frequency count structure.
  */
-void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
-
+void deBruijn_Get_cumulative_frequency(deBruijn_graph *dB__, uint32_t idx__,
+                                       Graph_value gval__, cfreq *freq__);
 
 // make hidden function visible to unit testing framework
 #ifdef _UNITY
@@ -230,9 +202,30 @@ int32_t deBruijn_Backward_(deBruijn_graph *dB__, int32_t idx__);
  */
 int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int32_t limit__);
 
-int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__);
+/*
+ * Initialize structure with given test data.
+ *
+ * This function is for testing purposes only. It simply fills all the
+ * structures with given data. There is no error checking (except for checks of
+ * underlying structures) and if used incorrectly, all other functions can have
+ * wrong results.
+ *
+ * Structure should not be initialized whne this is called!
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  L__  L array (last edge of corresponding node).
+ * @param  W__  W array (label of given outgoing edge).
+ * @param  P__  P array (frequencies of each symbol in context).
+ * @param  F__  F array (base positions of symbols)
+ * @param  size__  Size of arrays L and W.
+ */
+void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
+                               const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
+                               const int32_t size__);
 
-void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
+
+
+int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__);
 
 #endif  // _UNITY
 

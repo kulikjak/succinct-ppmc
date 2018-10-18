@@ -327,19 +327,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         grandparent->left_ = parent->right_;
         parent->right_ = grandparent_idx;
 
-        grandparent->p_ -= node_ref->p_;
-        grandparent->rL_ -= node_ref->rL_;
-        grandparent->rW_ -= node_ref->rW_;
-        grandparent->rWl_ -= node_ref->rWl_;
-        grandparent->rWh_ -= node_ref->rWh_;
-        grandparent->rWs_ -= node_ref->rWs_;
-
-        parent->p_ += uncle->p_;
-        parent->rL_ += uncle->rL_;
-        parent->rW_ += uncle->rW_;
-        parent->rWl_ += uncle->rWl_;
-        parent->rWh_ += uncle->rWh_;
-        parent->rWs_ += uncle->rWs_;
+        NODE_OPERATION_2(grandparent, node_ref, -=);
+        NODE_OPERATION_2(parent, uncle, +=);
 
         newroot = parent_idx;
       } else if (!parent_left && !grandparent_left) {
@@ -349,19 +338,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         grandparent->right_ = parent->left_;
         parent->left_ = grandparent_idx;
 
-        grandparent->p_ -= node_ref->p_;
-        grandparent->rL_ -= node_ref->rL_;
-        grandparent->rW_ -= node_ref->rW_;
-        grandparent->rWl_ -= node_ref->rWl_;
-        grandparent->rWh_ -= node_ref->rWh_;
-        grandparent->rWs_ -= node_ref->rWs_;
-
-        parent->p_ += uncle->p_;
-        parent->rL_ += uncle->rL_;
-        parent->rW_ += uncle->rW_;
-        parent->rWl_ += uncle->rWl_;
-        parent->rWh_ += uncle->rWh_;
-        parent->rWs_ += uncle->rWs_;
+        NODE_OPERATION_2(grandparent, node_ref, -=);
+        NODE_OPERATION_2(parent, uncle, +=);
 
         newroot = parent_idx;
       } else if (!parent_left && grandparent_left) {
@@ -376,26 +354,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
         NodeRef temp = MEMORY_GET_ANY(Graph__->mem_, grandparent->left_);
 
-        parent->p_ -= temp->p_;
-        parent->rL_ -= temp->rL_;
-        parent->rW_ -= temp->rW_;
-        parent->rWl_ -= temp->rWl_;
-        parent->rWh_ -= temp->rWh_;
-        parent->rWs_ -= temp->rWs_;
-
-        grandparent->p_ -= parent->p_;
-        grandparent->rL_ -= parent->rL_;
-        grandparent->rW_ -= parent->rW_;
-        grandparent->rWl_ -= parent->rWl_;
-        grandparent->rWh_ -= parent->rWh_;
-        grandparent->rWs_ -= parent->rWs_;        
-
-        node_ref->p_ = parent->p_ + grandparent->p_;
-        node_ref->rL_ = parent->rL_ + grandparent->rL_;
-        node_ref->rW_ = parent->rW_ + grandparent->rW_;
-        node_ref->rWl_ = parent->rWl_ + grandparent->rWl_;
-        node_ref->rWh_ = parent->rWh_ + grandparent->rWh_;
-        node_ref->rWs_ = parent->rWs_ + grandparent->rWs_;
+        NODE_OPERATION_2(parent, temp, -=);
+        NODE_OPERATION_2(grandparent, parent, -=);
+        NODE_OPERATION_3(node_ref, parent, grandparent, +);
 
         newroot = node;
       } else if (parent_left && !grandparent_left) {
@@ -410,26 +371,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
         NodeRef temp = MEMORY_GET_ANY(Graph__->mem_, grandparent->right_);
 
-        parent->p_ -= temp->p_;
-        parent->rL_ -= temp->rL_;
-        parent->rW_ -= temp->rW_;
-        parent->rWl_ -= temp->rWl_;
-        parent->rWh_ -= temp->rWh_;
-        parent->rWs_ -= temp->rWs_;
-
-        grandparent->p_ -= parent->p_;
-        grandparent->rL_ -= parent->rL_;
-        grandparent->rW_ -= parent->rW_;
-        grandparent->rWl_ -= parent->rWl_;
-        grandparent->rWh_ -= parent->rWh_;
-        grandparent->rWs_ -= parent->rWs_;
-
-        node_ref->p_ = parent->p_ + grandparent->p_;
-        node_ref->rL_ = parent->rL_ + grandparent->rL_;
-        node_ref->rW_ = parent->rW_ + grandparent->rW_;
-        node_ref->rWl_ = parent->rWl_ + grandparent->rWl_;
-        node_ref->rWh_ = parent->rWh_ + grandparent->rWh_;
-        node_ref->rWs_ = parent->rWs_ + grandparent->rWs_;
+        NODE_OPERATION_2(parent, temp, -=);
+        NODE_OPERATION_2(grandparent, parent, -=);
+        NODE_OPERATION_3(node_ref, parent, grandparent, +);
 
         newroot = node;
       }
@@ -614,3 +558,86 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
   leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
   leaf_ref->vectorP_[pos__] ++;
 }
+
+
+/*void Graph_Get_cumulative_frequency(GraphRef Graph__, uint32_t pos__, Graph_value val__, cfreq* freq__) {
+//uint32_t Graph_Get_cumulative_frequency(GraphRef Graph__, uint32_t pos__) {
+  mem_ptr temp;
+  mem_ptr current = Graph__->root_;
+  int32_t l_bit, ochar_mask;
+
+  NodeRef node_ref;
+  LeafRef leaf_ref;
+
+  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
+  assert(pos__ < node_ref->p_);
+
+  // traverse the tree and enter correct leaf
+  while (!IS_LEAF(current)) {
+    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
+
+    // get p_ counter of left child and act accordingly
+    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
+    if ((uint32_t)temp > pos__) {
+      current = node_ref->left_;
+    } else {
+      pos__ -= temp;
+      current = node_ref->right_;
+    }
+  }
+
+  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+
+  printf("pos__ %d\n", pos__);
+  l_bit = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
+  while (!l_bit) {
+    if (pos__ == 0)
+      break;
+
+    printf("here\n");
+
+    l_bit = leaf_ref->vectorL_ >> (31 - (pos__)) & 0x1;
+    if (!l_bit) {
+      pos__++;
+      break;
+    }
+    pos__--;
+  }
+
+  memset(freq__, 0, sizeof(*freq__));
+
+  do {
+    printf("%d\n", pos__);
+    ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
+          (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
+          (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
+
+    Graph_value value = get_graph_value_from_mask_(ochar_mask);
+
+    if (value < val__) {
+      freq__->lower += leaf_ref->vectorP_[pos__];
+      freq__->higher += leaf_ref->vectorP_[pos__];
+    } else if (value == val__) {
+      freq__->higher += leaf_ref->vectorP_[pos__];
+    }
+
+    freq__->total += leaf_ref->vectorP_[pos__++];
+    l_bit = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
+  } while (!l_bit);
+
+  printf("%d\n", pos__);
+  ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
+        (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
+        (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
+
+  Graph_value value = get_graph_value_from_mask_(ochar_mask);
+
+  if (value < val__) {
+    freq__->lower += leaf_ref->vectorP_[pos__];
+    freq__->higher += leaf_ref->vectorP_[pos__];
+  } else if (value == val__) {
+    freq__->higher += leaf_ref->vectorP_[pos__];
+  }
+
+  freq__->total += leaf_ref->vectorP_[pos__];
+}*/

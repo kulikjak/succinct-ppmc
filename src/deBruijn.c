@@ -1,41 +1,48 @@
 #include "deBruijn.h"
 
-void deBruijn_Tracker_push(deBruijn_graph *dB__, int32_t *a__) {
-  assert(dB__->tracker_.cnt_ + 1 < CONTEXT_LENGTH + 4);
-  dB__->tracker_.arr_[dB__->tracker_.cnt_++] = a__;
-}
-
-void deBruijn_Tracker_pop(deBruijn_graph *dB__) {
-  assert(dB__->tracker_.cnt_ >= 1);
-  dB__->tracker_.cnt_--;
-}
-
-void deBruijn_Tracker_update(deBruijn_graph *dB__, int32_t val__) {
-  int32_t i;
-
-  for (i = 0; i < dB__->tracker_.cnt_; i++)
-    if (*(dB__->tracker_.arr_[i]) >= val__) (*(dB__->tracker_.arr_[i]))++;
-}
-
 void deBruijn_Init(deBruijn_graph *dB__) {
-  int32_t i;
   Graph_Line line;
 
   // initialize all structures
   Graph_Init(&(dB__->Graph_));
 
-  // initialize variable tracker
-  dB__->tracker_.cnt_ = 0;
+  // insert root node with all four transitions
+  GLine_Fill(&line, VALUE_0, VALUE_A, 1);
+  GLine_Insert(&(dB__->Graph_), 0, &line);
+  GLine_Fill(&line, VALUE_0, VALUE_C, 1);
+  GLine_Insert(&(dB__->Graph_), 1, &line);
+  GLine_Fill(&line, VALUE_0, VALUE_G, 1);
+  GLine_Insert(&(dB__->Graph_), 2, &line);
+  GLine_Fill(&line, VALUE_1, VALUE_T, 1);
+  GLine_Insert(&(dB__->Graph_), 3, &line);
+
+  // insert target null nodes
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
+  GLine_Insert(&(dB__->Graph_), 4, &line);
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
+  GLine_Insert(&(dB__->Graph_), 5, &line);
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
+  GLine_Insert(&(dB__->Graph_), 6, &line);
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
+  GLine_Insert(&(dB__->Graph_), 7, &line);
+
+  dB__->F_[0] = 4;
+  dB__->F_[1] = 5;
+  dB__->F_[2] = 6;
+  dB__->F_[3] = 7;
 
   // insert root (null) node
+  /*int32_t i;
   GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(dB__->Graph_), 0, &line);
 
   // initialize F array
-  for (i = 0; i < SYMBOL_COUNT; i++) dB__->F_[i] = 1;
+  for (i = 0; i < SYMBOL_COUNT; i++) dB__->F_[i] = 1;*/
 }
 
-void deBruijn_Free(deBruijn_graph *dB__) { Graph_Free(&(dB__->Graph_)); }
+void deBruijn_Free(deBruijn_graph *dB__) {
+  Graph_Free(&(dB__->Graph_));
+}
 
 int32_t deBruijn_Forward_(deBruijn_graph *dB__, int32_t idx__) {
   int32_t rank, spos, temp;
@@ -98,7 +105,7 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__) {
          Graph_Select(&(dB__->Graph_), node_id, VECTOR_L, VALUE_1);
 }
 
-int32_t deBruijn_Edge_Check(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
+int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
   int32_t node_id, last_pos, range, select, temp;
 
   // get last edge index for this node
@@ -121,7 +128,7 @@ int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval_
   int32_t edge_idx;
 
   // get index of edge we should follow
-  edge_idx = deBruijn_Edge_Check(dB__, idx__, gval__);
+  edge_idx = deBruijn_Find_Edge(dB__, idx__, gval__);
 
   // check if such edge exist
   if (edge_idx == -1) return -1;
@@ -164,7 +171,7 @@ int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
 }
 
 void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
-  char label[CONTEXT_LENGTH + 1];
+  char label[CONTEXT_LENGTH + 10];
   int32_t i, j, size;
   int32_t nextPos = 0;
   int32_t next = 0;
@@ -221,7 +228,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
         printf(" ");
       }
     }
-    printf("%c   ", line.W_);
+    printf("%c   ", GET_SYMBOL_FROM_VALUE(line.W_));
     printf("%d\n", line.P_);
   }
 }
@@ -324,101 +331,24 @@ int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__) {
   return count;
 }
 
-void deBruijn_Increase_frequency_rec_(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
+void deBruijn_Get_cumulative_frequency(deBruijn_graph *dB__, uint32_t idx__, Graph_value gval__, cfreq* freq__) {
+  int32_t idx;
+  Graph_value i;
   Graph_Line line;
 
-  GLine_Get(&(dB__->Graph_), (uint32_t)idx__, &line);
+  memset(freq__, 0, sizeof(*freq__));
 
-  if (line.W_ != gval__) idx__ = deBruijn_Edge_Check(dB__, idx__, gval__);
+  for (i = VALUE_A; i <= VALUE_T; i++) {
+    idx = deBruijn_Find_Edge(dB__, idx__, i);
+    if (idx == -1) continue;
 
-  Graph_Increase_frequency(&(dB__->Graph_), idx__);
-
-  // recursively increase frequency in higher nodes
-  int32_t next = deBruijn_Shorten_context(
-      dB__, idx__, deBruijn_get_context_len_(dB__, idx__) - 1);
-  if (next == -1) return;
-
-  deBruijn_Increase_frequency_rec_(dB__, next, gval__);
-}
-
-void deBruijn_Add_context_symbol(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
-  int32_t edge_pos, i, rank, temp;
-  int32_t prev_node, ctx_len, x;
-  Graph_Line line;
-
-  // check if shorter context already added this symbol
-  // if not, symbol will be recursively added from top to this node
-  ctx_len = deBruijn_get_context_len_(dB__, idx__);
-  if (ctx_len) {
-    prev_node = deBruijn_Shorten_context(dB__, idx__, ctx_len - 1);
-
-    // check if prev node has what it needs
-    if (deBruijn_Edge_Check(dB__, prev_node, gval__) == -1) {
-      deBruijn_Tracker_push(dB__, &idx__);
-      deBruijn_Add_context_symbol(dB__, prev_node, gval__);
-      deBruijn_Tracker_pop(dB__);
-
-    } else {
-      // increase frequency of these lines
-      deBruijn_Increase_frequency_rec_(dB__, prev_node, gval__);
+    GLine_Get(&(dB__->Graph_), (uint32_t)idx, &line);
+    if (line.W_ < gval__) {
+      freq__->lower_ += line.P_;
+      freq__->upper_ += line.P_;
+    } else if (line.W_ == gval__) {
+      freq__->upper_ += line.P_;
     }
+    freq__->total_ += line.P_;
   }
-
-  // check what symbol is in W
-  GLine_Get(&(dB__->Graph_), (uint32_t)idx__, &line);
-  if (line.W_ == VALUE_$) {
-    // current W symbol is $ - we can simply change it to new one
-
-    // change symbol to new one and increase frequency to 1
-    Graph_Change_symbol(&(dB__->Graph_), idx__, gval__);
-    Graph_Increase_frequency(&(dB__->Graph_), idx__);
-
-  } else {
-    edge_pos = deBruijn_Edge_Check(dB__, idx__, gval__);
-
-    // transition already exist at this node - nothing more do
-    if (edge_pos != -1) {
-      return;
-    }
-
-    // insert new edge into this node
-    GLine_Fill(&line, VALUE_0, gval__, 1);
-    GLine_Insert(&(dB__->Graph_), idx__, &line);
-
-    // update registered variables
-    deBruijn_Tracker_update(dB__, idx__);
-
-    // update F array according to added node
-    for (i = 0; i < SYMBOL_COUNT; i++) {
-      if (dB__->F_[i] > idx__) dB__->F_[i]++;
-    }
-  }
-
-  // find same transition symbol above this line
-  rank = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_W, gval__);
-  // rank = WT_Rank(&(dB__->W_), idx__, symb__);
-
-  if (!rank) {  // there is no symbol above this
-    x = dB__->F_[gval__];
-
-    // update F array
-    for (i = gval__ + 1; i < SYMBOL_COUNT; i++) dB__->F_[i]++;
-
-  } else {  // we found another line with this symbol
-    // go forward from this node
-    temp = Graph_Select(&(dB__->Graph_), rank, VECTOR_W, gval__);
-    x = deBruijn_Forward_(dB__, temp - 1) + 1;
-
-    // update F array
-    for (i = 0; i < SYMBOL_COUNT; i++) {
-      if (dB__->F_[i] >= x) dB__->F_[i]++;
-    }
-  }
-
-  // insert new leaf node into the graph
-  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
-  GLine_Insert(&(dB__->Graph_), x, &line);
-
-  // update registered variables
-  deBruijn_Tracker_update(dB__, x);
 }

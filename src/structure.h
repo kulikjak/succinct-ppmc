@@ -25,6 +25,27 @@
 
 #define RANK(vector) __builtin_popcount((vector))
 
+#define NODE_OPERATION_2(r1, r2, op) \
+  {                                  \
+    r1->p_ op r2->p_;                \
+    r1->rL_ op r2->rL_;              \
+    r1->rW_ op r2->rW_;              \
+    r1->rWl_ op r2->rWl_;            \
+    r1->rWh_ op r2->rWh_;            \
+    r1->rWs_ op r2->rWs_;            \
+  }
+
+#define NODE_OPERATION_3(r1, r2, r3, op) \
+  {                                      \
+    r1->p_ = r2->p_ op r3->p_;           \
+    r1->rL_ = r2->rL_ op r3->rL_;        \
+    r1->rW_ = r2->rW_ op r3->rW_;        \
+    r1->rWl_ = r2->rWl_ op r3->rWl_;     \
+    r1->rWh_ = r2->rWh_ op r3->rWh_;     \
+    r1->rWs_ = r2->rWs_ op r3->rWs_;     \
+  }
+
+
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
 
 typedef enum {
@@ -51,6 +72,12 @@ typedef struct {
 
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
+
+typedef struct {
+  uint32_t total_;
+  uint32_t lower_;
+  uint32_t upper_;
+} cfreq;
 
 //#define DISABLE_RED_BLACK_BALANCING
 //#define DISABLE_CLEVER_NODE_SPLIT
@@ -165,6 +192,8 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__);
  * @param  pos__  Update position.
  */
 void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
+
+//void Graph_Get_cumulative_frequency(GraphRef Graph__, uint32_t pos__, Graph_value val__, cfreq* freq__);
 
 #ifdef _UNITY
 
