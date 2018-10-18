@@ -53,61 +53,35 @@ TEST(deBruijn, BasicStaticTest) {
   }
 }
 
-TEST(deBruijn, InsertionStaticTest) {
-  int32_t i, size;
-  char buffer[CONTEXT_LENGTH + 1];
+TEST(deBruijn, CummulativeFrequencyTest) {
+  cfreq freq;
 
-  const Graph_value L[] = {0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0,
-                           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-  const Graph_value W[] = {_('C'), _('G'), _('T'), _('A'), _('G'), _('C'), _('G'), _('$'), _('T'),
-                           _('A'), _('C'), _('C'), _('T'), _('A'), _('$'), _('$'), _('C'), _('$'),
-                           _('T'), _('T'), _('$'), _('C'), _('$'), _('$'), _('C'), _('$')};
-  const int32_t P[] = {4, 1, 2, 2, 1, 1, 1, 0, 1, 1, 2, 1, 1,
-                       1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0};
+  const Graph_value L[] = {0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1};
+  const Graph_value W[] = {_('A'), _('C'), _('G'), _('T'), _('$'),
+                           _('G'), _('C'), _('G'), _('A'), _('C'),
+                           _('G'), _('A'), _('G'), _('T'), _('A')};
+  const int32_t P[] = {12, 3, 3, 5, 0, 8, 1, 2, 5, 4, 6, 6, 1, 4, 5};
 
-  // this works only with CONTEXT_LENGTH 4
-#ifdef OMIT_EXCESSIVE_DOLLAR_SIGNS_
-  const char *Labels[] = {
-      "   $", "   $", "   $", "   $", "  $A", "  $A", " $CA", "$CCA", "  $C",
-      "  $C", "  $C", " $AC", " $CC", " $CC", "$ACC", "$TCC", " $TC", "$GTC",
-      "  $G", " $AG", "$CAG", "  $T", " $CT", "$CCT", " $GT", "$AGT"};
-#else
-  const char *Labels[] = {
-      "$$$$", "$$$$", "$$$$", "$$$$", "$$$A", "$$$A", "$$CA", "$CCA", "$$$C",
-      "$$$C", "$$$C", "$$AC", "$$CC", "$$CC", "$ACC", "$TCC", "$$TC", "$GTC",
-      "$$$G", "$$AG", "$CAG", "$$$T", "$$CT", "$CCT", "$$GT", "$AGT"};
-#endif
+  // not important for this test
+  const int32_t F[] = {1, 2, 4, 8};
 
-  deBruijn_Add_context_symbol(&dB, 0, _('A'));
-  deBruijn_Add_context_symbol(&dB, 1, _('C'));
-  deBruijn_Add_context_symbol(&dB, 4, _('C'));
+  const int32_t resLower[] = {0, 12, 15, 18, 0, 0, 0, 1, 0, 5, 9, 0, 6, 7, 0};
+  const int32_t resUpper[] = {12, 15, 18, 23, 0, 8, 1, 3, 5, 9, 15, 6, 7, 11, 5};
+  const int32_t resTotal[] = {23, 23, 23, 23, 0,  8, 3, 3, 15, 15, 15, 11, 11, 11, 5};
 
-  deBruijn_Add_context_symbol(&dB, 5, _('A'));
-  deBruijn_Add_context_symbol(&dB, 3, _('G'));
-  deBruijn_Add_context_symbol(&dB, 13, _('T'));
-  deBruijn_Add_context_symbol(&dB, 17, _('C'));
-  deBruijn_Add_context_symbol(&dB, 13, _('C'));
-  deBruijn_Add_context_symbol(&dB, 11, _('T'));
+  deBruijn_Free(&dB);
+  deBruijn_Insert_test_data(&dB, L, W, P, F, 15);
 
-  size = Graph_Size(&(dB.Graph_));
-  TEST_ASSERT_EQUAL_INT32(size, 26);
+  for (int32_t i = 0; i < 15; i++) {
+    deBruijn_Get_cumulative_frequency(&dB, i, W[i], &freq);
 
-  for (i = 0; i < size; i++) {
-    GLine_Get(&(dB.Graph_), i, &line);
-    TEST_ASSERT_EQUAL_INT8(line.L_, L[i]);
-    TEST_ASSERT_EQUAL_INT8(line.W_, W[i]);
-    TEST_ASSERT_EQUAL_INT32(line.P_, P[i]);
-
-    deBruijn_Label(&dB, i, buffer);
-    TEST_ASSERT_EQUAL_STRING(buffer, Labels[i]);
+    TEST_ASSERT_EQUAL_INT32(resLower[i], freq.lower_);
+    TEST_ASSERT_EQUAL_INT32(resUpper[i], freq.upper_);
+    TEST_ASSERT_EQUAL_INT32(resTotal[i], freq.total_);
   }
-
-#if DEBRUIJN_PRINT_SEQUENCE
-  deBruijn_Print(&dB, true);
-#endif
 }
 
 TEST_GROUP_RUNNER(deBruijn) {
   RUN_TEST_CASE(deBruijn, BasicStaticTest);
-  RUN_TEST_CASE(deBruijn, InsertionStaticTest);
+  RUN_TEST_CASE(deBruijn, CummulativeFrequencyTest);
 }

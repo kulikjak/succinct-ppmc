@@ -20,7 +20,8 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/structure.c \
 	$(SOURCE_ROOT)/rank.c \
 	$(SOURCE_ROOT)/select.c \
-	$(SOURCE_ROOT)/deBruijn.c
+	$(SOURCE_ROOT)/deBruijn.c \
+	$(SOURCE_ROOT)/compression.c
 
 SRC_FILES += \
 	TestStructMemory.c \
@@ -28,6 +29,7 @@ SRC_FILES += \
 	TestStructWaveletTree.c \
 	TestStructIntegerVector.c \
 	TestDeBruijn.c \
+	TestCompressor.c \
 	TestAll.c
 
 all: clean default
