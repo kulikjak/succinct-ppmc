@@ -88,7 +88,8 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
   printf("%d %d\n", ctx_len, C__->depth_);
 
   if (transition == -1) {
-    // this cannot happen because there is full level one
+    // this cannot happen because there level one is full
+    // that means, that we are never outputting character itself
     assert(ctx_len != 0);
 
     // output escape symbol

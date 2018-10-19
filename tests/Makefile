@@ -34,11 +34,11 @@ SRC_FILES += \
 
 all: clean default
 
-download: .downloaded
-.downloaded:
+download: .downloaded-unity
+.downloaded-unity:
 	wget -O unity.zip https://github.com/ThrowTheSwitch/Unity/archive/master.zip
 	unzip unity.zip
-	touch .downloaded
+	touch .downloaded-unity
 
 default: download
 	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
@@ -48,6 +48,6 @@ clean:
 	rm -f $(TARGET)
 
 purge: clean
-	rm -rf $(UNITY_ROOT) unity.zip .downloaded
+	rm -rf $(UNITY_ROOT) unity.zip .downloaded-unity
 
 .PHONY: all clean default download
