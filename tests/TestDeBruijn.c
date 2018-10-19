@@ -67,7 +67,9 @@ TEST(deBruijn, CummulativeFrequencyTest) {
 
   const int32_t resLower[] = {0, 12, 15, 18, 0, 0, 0, 1, 0, 5, 9, 0, 6, 7, 0};
   const int32_t resUpper[] = {12, 15, 18, 23, 0, 8, 1, 3, 5, 9, 15, 6, 7, 11, 5};
-  const int32_t resTotal[] = {23, 23, 23, 23, 0,  8, 3, 3, 15, 15, 15, 11, 11, 11, 5};
+  const int32_t resTotal[] = {27, 27, 27, 27, 0, 9, 5, 5, 18, 18, 18, 14, 14, 14, 6};
+
+  const int32_t resEsc[] = {4, 4, 4, 4, 0, 1, 2, 2, 3, 3, 3, 3, 3, 3, 1};
 
   deBruijn_Free(&dB);
   deBruijn_Insert_test_data(&dB, L, W, P, F, 15);
@@ -78,6 +80,12 @@ TEST(deBruijn, CummulativeFrequencyTest) {
     TEST_ASSERT_EQUAL_INT32(resLower[i], freq.lower_);
     TEST_ASSERT_EQUAL_INT32(resUpper[i], freq.upper_);
     TEST_ASSERT_EQUAL_INT32(resTotal[i], freq.total_);
+  }
+
+  for (int32_t i = 0; i < 15; i++) {
+    deBruijn_Get_cumulative_frequency(&dB, i, VALUE_ESC, &freq);
+
+    TEST_ASSERT_EQUAL_INT32(resEsc[i], freq.upper_ - freq.lower_);
   }
 }
 

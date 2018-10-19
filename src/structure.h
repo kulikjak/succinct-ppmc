@@ -56,7 +56,8 @@ typedef enum {
   VALUE_C = 1,
   VALUE_G = 2,
   VALUE_T = 3,
-  VALUE_$ = 4
+  VALUE_$ = 4,
+  VALUE_ESC = 4
 } Graph_value;
 
 typedef struct {
