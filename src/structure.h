@@ -75,9 +75,9 @@ typedef struct {
 #define GLineRef Graph_Line*
 
 typedef struct {
-  uint32_t total_;
   uint32_t lower_;
   uint32_t upper_;
+  uint32_t total_;
 } cfreq;
 
 //#define DISABLE_RED_BLACK_BALANCING

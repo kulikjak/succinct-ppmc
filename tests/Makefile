@@ -1,10 +1,15 @@
-CXX = gcc
+CC = gcc
 CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -g
 CFLAGS += -Wno-error=unused-function -Wno-unused-function
 #CFLAGS += -Wpointer-arith -Wcast-align -Wwrite-strings
 #CFLAGS += -Wswitch-default -Wunreachable-code -Winit-self
 #CFLAGS += -Wmissing-field-initializers -Wno-unknown-pragmas
 #CFLAGS += -Wstrict-prototypes -Wundef -Wold-style-definition
+
+# Arithmetic coding library cannot be compiled with C compiler
+# due to its preprocessor calculations.
+CPP = g++
+CPPFLAGS = -Wall -Wextra -pedantic -g
 
 TARGET = Test
 UNITY_ROOT = Unity-master
@@ -21,7 +26,8 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/rank.c \
 	$(SOURCE_ROOT)/select.c \
 	$(SOURCE_ROOT)/deBruijn.c \
-	$(SOURCE_ROOT)/compression.c
+	$(SOURCE_ROOT)/compression.c \
+	arcd.o
 
 SRC_FILES += \
 	TestStructMemory.c \
@@ -41,7 +47,8 @@ download: .downloaded-unity
 	touch .downloaded-unity
 
 default: download
-	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
+	$(CPP) $(CPPFLAGS) -c $(SOURCE_ROOT)/arcd/arcd.c
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
 	- ./$(TARGET) -v
 
 clean:

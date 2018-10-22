@@ -162,9 +162,6 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
 void deBruijn_Get_cumulative_frequency(deBruijn_graph *dB__, uint32_t idx__,
                                        Graph_value gval__, cfreq *freq__);
 
-// make hidden function visible to unit testing framework
-#ifdef _UNITY
-
 /*
  * Move to next node pointed to by given edge (line) index.
  *
@@ -226,6 +223,10 @@ void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, con
 
 
 int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__);
+
+
+// make hidden function visible to unit testing framework
+#ifdef _UNITY
 
 #endif  // _UNITY
 

@@ -39,7 +39,7 @@
 // big for better memory layout
 #define bool32 int32_t
 
-#pragma pack(4)
+//#pragma pack(4)
 typedef struct {
   // shared counter for total number of elements
   uint32_t p_;

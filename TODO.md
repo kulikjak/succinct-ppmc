@@ -14,7 +14,6 @@ Implementation and possible text todo list for this thesis
 * de Bruijn graph operations - done
 * compression of given text
 * arithmetic coding output of compression
-* change main rank and select functions to macros
 
 * write more and better tests
 * add tests for P array - done
@@ -30,6 +29,11 @@ Implementation and possible text todo list for this thesis
 * fix rank and select correct values when pos is bigger than size of the vector
 * implement PPMD for testing purposes with 7zip
 	- Image and Text Compression (Storer)
+
+* move code tracker from compressor/decompressor
+* memory should be global and not associated with stucture
+* change several functions to macros
+* code deduplication
 
 ## Text (among all other):
 
