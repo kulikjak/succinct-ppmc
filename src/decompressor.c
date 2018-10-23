@@ -18,9 +18,20 @@
 //typedef unsigned (*arcd_input_t)(arcd_buf_t *buf, void *io);
 
 
+arcd_char_t Decompressor_getch_aux_(arcd_range_t v, arcd_range_t range, arcd_prob *prob, void *model) {
+  return 0;
+}
 
+unsigned Decompressor_input_aux_(arcd_buf_t* buf, void *io) {
+  uint32_t i, read;
+  FILE* ifp = (FILE*) io;
 
-void Decompressor_Init(decompressor* D__) {
+  read = fread((void*)buf, 1, 1, ifp);
+  printf("read: %d\n", read);
+  return 8 * read;
+}
+
+void Decompressor_Init(decompressor* D__, FILE* ifp__) {
   deBruijn_Init(&(D__->dB_));
 
   D__->depth_ = 0;
@@ -28,7 +39,7 @@ void Decompressor_Init(decompressor* D__) {
   D__->tracker_.cnt_ = 0;
 
   // initialize arythmetic decoder
-  arcd_dec_init(&(D__->decoder_), ...);
+  arcd_dec_init(&(D__->decoder_), Decompressor_getch_aux_, (void*)D__, Decompressor_input_aux_, (void*)ifp__);
 }
 
 

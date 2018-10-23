@@ -15,7 +15,7 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/rank.c \
 	$(SOURCE_ROOT)/select.c \
 	$(SOURCE_ROOT)/deBruijn.c \
-	$(SOURCE_ROOT)/compression.c \
+	$(SOURCE_ROOT)/compressor.c \
 	$(SOURCE_ROOT)/arcd/arcd.c \
 	$(SOURCE_ROOT)/main.c
 

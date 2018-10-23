@@ -4,6 +4,8 @@
 #include "deBruijn.h"
 #include "arcd/arcd.h"
 
+#define COMPRESSOR_VERBOSE false
+
 typedef struct {
   deBruijn_graph dB_;
   int32_t depth_;
@@ -28,8 +30,9 @@ void variable_Tracker_update(compressor* C__, int32_t val__);
  * Initialize compressor object.
  *
  * @param  C__  Reference to compressor object.
+ * @param  ofp__  File pointer for output file.
  */
-void Compressor_Init(compressor* C__);
+void Compressor_Init(compressor* C__, FILE* ofp__);
 
 
 void Compressor_Finalize(compressor * C__);

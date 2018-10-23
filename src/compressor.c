@@ -1,4 +1,4 @@
-#include "compression.h"
+#include "compressor.h"
 
 void variable_Tracker_push(compressor* C__, int32_t *a__) {
   assert(C__->tracker_.cnt_ + 1 < CONTEXT_LENGTH + 4);
@@ -17,29 +17,36 @@ void variable_Tracker_update(compressor* C__, int32_t val__) {
     if (*(C__->tracker_.arr_[i]) >= val__) (*(C__->tracker_.arr_[i]))++;
 }
 
+void compressor_debug(char* info__) {
+  if (COMPRESSOR_VERBOSE)
+    fprintf(stderr, "%s\n", info__);
+}
+
 
 void Compressor_getprob_aux_(arcd_char_t ch, arcd_prob *prob, void *model) {
 
   deBruijn_Get_cumulative_frequency(&(((compressor*)model)->dB_), ((compressor*)model)->state_,(Graph_value) ch, (cfreq*) prob);
 
-  printf("%d %d %d\n", prob->lower, prob->upper, prob->total);
+  //printf("%d %d %d\n", prob->lower, prob->upper, prob->total);
   if (prob->total == 0 && prob->upper == 0 && prob->lower == 0) {
     prob->total = 1;
     prob->upper = 1;
   }
-  printf("%d %d %d\n", prob->lower, prob->upper, prob->total);
+  //printf("%d %d %d\n", prob->lower, prob->upper, prob->total);
 }
 
 void Compressor_output_aux_(arcd_buf_t buf, unsigned buf_bits, void *io) {
   uint32_t i;
+  FILE* ofp = (FILE*) io;
 
+  fwrite(&buf, 1, 1, ofp);
   for (i = 0; i < buf_bits; i++) {
-    printf("%d\n", (buf >> (7 - i)) & 0x1);
+    printf("%d ", (buf >> (7 - i)) & 0x1);
   }
-  UNUSED(io);
+  printf("\n");
 }
 
-void Compressor_Init(compressor* C__) {
+void Compressor_Init(compressor* C__, FILE* ofp__) {
   deBruijn_Init(&(C__->dB_));
 
   C__->depth_ = 0;
@@ -47,7 +54,7 @@ void Compressor_Init(compressor* C__) {
   C__->tracker_.cnt_ = 0;
 
   // initialize arythmetic encoder
-  arcd_enc_init(&(C__->encoder_), Compressor_getprob_aux_, (void*) C__, Compressor_output_aux_, NULL);
+  arcd_enc_init(&(C__->encoder_), Compressor_getprob_aux_, (void*) C__, Compressor_output_aux_, (void*) ofp__);
 }
 
 void Compressor_Finalize(compressor * C__) {
@@ -71,7 +78,7 @@ void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_va
   Compressor_Increase_frequency_rec_(C__, next, gval__);
 }
 
-int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_value gval__, bool first);
+int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_value gval__);
 
 int32_t Compressor_Compress_symbol(compressor *C__, int32_t idx__, Graph_value gval__) {
   int32_t res, backup, ctx_len;
@@ -86,7 +93,7 @@ int32_t Compressor_Compress_symbol(compressor *C__, int32_t idx__, Graph_value g
   }
 
   // 
-  res = Compressor_Compress_symbol_aux(C__, idx__, gval__, true);
+  res = Compressor_Compress_symbol_aux(C__, idx__, gval__);
 
   // increase context depth if shorter than CONTEXT_LENGTH
   if (C__->depth_ < CONTEXT_LENGTH)
@@ -98,7 +105,7 @@ int32_t Compressor_Compress_symbol(compressor *C__, int32_t idx__, Graph_value g
 }
 
 int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_value gval__) {
-  int32_t edge_pos, i, rank, temp;
+  int32_t i, rank, temp;
   int32_t prev_node, ctx_len, x;
   int32_t transition;
   Graph_Line line;
@@ -111,6 +118,7 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
   // transition does not exist
   if (transition == -1) {
 
+    // TODO get this information from the depth C__ variable
     ctx_len = deBruijn_get_context_len_(&(C__->dB_), idx__);
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len - 1);
 
@@ -118,14 +126,10 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
      that means, that we are never outputting character itself */
     assert(ctx_len != 0);
 
-    //printf("here %d\n", idx__);
-    // output escape symbol
-    // FIXME if (ctx_len > Xdepth)
-
     /*
      * Output escape every time we are shortening the context except when at CONTEXT_LENGTH limit. This is not the most efficient solution since there are cases when escape is the only thing that can be done (when in node with no transition) however it will stil fast, correct and can be optimized later.
      */
-    if (C__->depth_ < CONTEXT_LENGT) {
+    if (C__->depth_ < CONTEXT_LENGTH) {
       C__->state_ = idx__;
       compressor_debug("Escape character output.");
       //deBruijn_Print(&(C__->dB_), true);
@@ -133,13 +137,14 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
     }
 
     /* save current value of the index and go to the context shorter node */
-    //printf("%d\n", C__->tracker_.cnt_);
     variable_Tracker_push(C__, &idx__);
-    Compressor_Compress_symbol_aux(C__, prev_node, gval__, false);
+    Compressor_Compress_symbol_aux(C__, prev_node, gval__);
     variable_Tracker_pop(C__);
   } else {
     // we have transition in this node
-    printf("output symbol\n");
+    compressor_debug("Symbol output.");
+
+    // TODO use state for operations and not idx__
     C__->state_ = idx__;
     arcd_enc_put(&(C__->encoder_), gval__);
     Compressor_Increase_frequency_rec_(C__, idx__, gval__);
@@ -157,7 +162,7 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
     Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
 
   } else {
-    edge_pos = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__);
+    //edge_pos = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__);
 
     // transition already exist at this node - nothing more do
     /*if (edge_pos != -1) {
@@ -180,7 +185,6 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
 
   // find same transition symbol above this line
   rank = Graph_Rank(&(C__->dB_.Graph_), idx__, VECTOR_W, gval__);
-  // rank = WT_Rank(&(dB__->W_), idx__, symb__);
 
   if (!rank) {  // there is no symbol above this
     x = C__->dB_.F_[gval__];
@@ -210,7 +214,7 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
 }
 
 
-
+/*
 int32_t Compressor_Decompress_symbol_aux(compressor *C__, int32_t idx__, Graph_value gval__, bool first);
 
 int32_t Compressor_Decompress_symbol(compressor *C__, int32_t idx__, Graph_value gval__) {
@@ -301,10 +305,6 @@ int32_t Compressor_Decompress_symbol_aux(compressor *C__, int32_t idx__, Graph_v
     edge_pos = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__);
 
     // transition already exist at this node - nothing more do
-    /*if (edge_pos != -1) {
-      Graph_Increase_frequency(&(dB__->Graph_), idx__);
-      return deBruijn_Forward_(dB__, idx__);
-    }*/
 
     // insert new edge into this node
     GLine_Fill(&line, VALUE_0, gval__, 1);
@@ -354,3 +354,4 @@ int32_t Compressor_Decompress_symbol_aux(compressor *C__, int32_t idx__, Graph_v
 
 
 
+*/
