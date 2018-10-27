@@ -2,7 +2,9 @@
 #define _COMPRESSOR__
 
 #include "deBruijn.h"
-#include "arcd/arcd.h"
+
+#include "arith/bitio.h"
+#include "arith/arith.h"
 
 #define COMPRESSOR_VERBOSE false
 
@@ -15,8 +17,6 @@ typedef struct {
     int32_t cnt_;
     int32_t *arr_[CONTEXT_LENGTH + 4];
   } tracker_;
-
-  arcd_enc encoder_;
 } compressor;
 
 typedef struct {
@@ -28,8 +28,6 @@ typedef struct {
     int32_t cnt_;
     int32_t *arr_[CONTEXT_LENGTH + 4];
   } tracker_;
-
-  arcd_dec decoder_;
 } decompressor;
 
 

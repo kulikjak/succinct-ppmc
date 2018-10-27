@@ -25,7 +25,103 @@ void compressor_debug(char* info__) {
 
 
 
-arcd_char_t Decompressor_getch_aux_(const arcd_range_t v, const arcd_range_t range, arcd_prob *prob, void *model) {
+/*void Compressor_getprob_aux_(arcd_char_t ch, arcd_prob *prob, void *model) {
+  cfreq freq;
+  Graph_value i, val = (Graph_value)ch;
+
+  memset(prob, 0, sizeof(*prob));
+  deBruijn_Get_symbol_frequency(&(((compressor*)model)->dB_), ((compressor*)model)->state_, &freq);
+
+  //xxprintf("%d - ", ((compressor*)model)->state_);
+  //xxprintf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
+
+  // in case there is no other transition, probability of escape is 100%
+  if (freq.total_ == 0) {
+    prob->total = prob->upper = 1;
+    printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
+    return;
+  }
+
+  // handle probability if there are some transitions
+  prob->total = freq.total_;
+  for (i = VALUE_A; i < val; i++)
+    prob->lower += freq.symbol_[i];
+  prob->upper = prob->lower + freq.symbol_[i];
+
+  printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
+}*/
+
+void Compressor_encode(compressor* C__, int32_t pos__, Graph_value gval__) {  
+  int32_t lower, upper;
+  Graph_value i;
+  cfreq freq;
+
+  //Graph_value i, val = (Graph_value)ch;
+
+  //memset(prob, 0, sizeof(*prob));
+  deBruijn_Get_symbol_frequency(&(C__->dB_), pos__, &freq);
+
+  //xxprintf("%d - ", ((compressor*)model)->state_);
+  //xxprintf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
+
+  // in case there is no other transition, probability of escape is 100%
+  if (freq.total_ == 0) {
+    //prob->total = prob->upper = 1;
+    //printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
+    arithmetic_encode(0, 1, 1);
+    return;
+  }
+
+  // handle probability if there are some transitions
+  for (lower = 0, i = VALUE_A; i < gval__; i++)
+    lower += freq.symbol_[i];
+  upper = lower + freq.symbol_[i];
+
+  //printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
+
+  arithmetic_encode(lower, upper, freq.total_);
+}
+
+Graph_value Decompressor_decode(decompressor* D__, int32_t idx__) {
+  cfreq freq;
+  Graph_value i;
+  int32_t target;
+  int32_t lower, upper;
+
+  deBruijn_Get_symbol_frequency(&(D__->dB_), idx__, &freq);
+
+  target = arithmetic_decode_target(freq.total_);
+
+  if (freq.total_ == 0) {
+    arithmetic_decode(0, 1, 1);
+    /*prob->total = prob->upper = 1;
+    prob->lower = 0;
+
+    printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);*/
+    return VALUE_ESC;
+  }  
+
+  upper = 0;
+
+  //const arcd_freq_t scaled = arcd_freq_scale(v, range, freq.total_);
+  //printf("XXX: %d %d %d %d\n", v, range, freq.total_, scaled);
+  for (i = VALUE_A; i <= VALUE_ESC; i++) {
+    lower = upper;
+    upper += freq.symbol_[i];
+
+    if (lower <= target && target < upper) {
+      //printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
+      arithmetic_decode(lower, upper, freq.total_);
+      return i;
+    }
+  }
+  UNREACHABLE;
+}
+
+
+
+
+/*arcd_char_t Decompressor_getch_aux_(const arcd_range_t v, const arcd_range_t range, arcd_prob *prob, void *model) {
   cfreq freq;
   Graph_value i;
 
@@ -39,18 +135,22 @@ arcd_char_t Decompressor_getch_aux_(const arcd_range_t v, const arcd_range_t ran
     prob->total = prob->upper = 1;
     prob->lower = 0;
 
+    printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
     return (arcd_char_t)VALUE_ESC;
   }
 
   prob->upper = 0;
 
   const arcd_freq_t scaled = arcd_freq_scale(v, range, freq.total_);
+  //printf("XXX: %d %d %d %d\n", v, range, freq.total_, scaled);
   for (i = VALUE_A; i <= VALUE_ESC; i++) {
     prob->lower = prob->upper;
     prob->upper += freq.symbol_[i];
 
     if (prob->lower <= scaled && scaled < prob->upper) {
       prob->total = freq.total_;
+
+      printf("AA %d %d %d\n", prob->lower, prob->upper, prob->total);
       return (arcd_char_t)i;
     }
   }
@@ -64,22 +164,29 @@ unsigned Decompressor_input_aux_(arcd_buf_t* buf, void *io) {
   read = fread((void*)buf, 1, 1, ifp);
   //printf("read: %d\n", read);
   return 8 * read;
-}
+}*/
 
 void Decompressor_Init(decompressor* D__, FILE* ifp__) {
   deBruijn_Init(&(D__->dB_));
+
+  UNUSED(ifp__);
 
   D__->depth_ = 0;
   D__->state_ = 0;
   D__->tracker_.cnt_ = 0;
 
   // initialize arythmetic decoder
-  arcd_dec_init(&(D__->decoder_), Decompressor_getch_aux_, (void*)D__, Decompressor_input_aux_, (void*)ifp__);
+  startinputtingbits();
+  start_decode();
+  //arcd_dec_init(&(D__->decoder_), Decompressor_getch_aux_, (void*)D__, Decompressor_input_aux_, (void*)ifp__);
 }
 
 
 void Decompressor_Finalize(decompressor* D__) {
   UNUSED(D__);
+
+  finish_decode();
+  doneinputtingbits();
 }
 
 void Decompressor_Free(decompressor* D__) {
@@ -88,59 +195,41 @@ void Decompressor_Free(decompressor* D__) {
 
 
 
-
-
-
-void Compressor_getprob_aux_(arcd_char_t ch, arcd_prob *prob, void *model) {
-  cfreq freq;
-  Graph_value i, val = (Graph_value)ch;
-
-  memset(prob, 0, sizeof(*prob));
-  deBruijn_Get_symbol_frequency(&(((compressor*)model)->dB_), ((compressor*)model)->state_, &freq);
-
-  //xxprintf("%d - ", ((compressor*)model)->state_);
-  //xxprintf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
-
-  // in case there is no other transition, probability of escape is 100%
-  if (freq.total_ == 0) {
-    prob->total = prob->upper = 1;
-    return;
-  }
-
-  // handle probability if there are some transitions
-  prob->total = freq.total_;
-  for (i = VALUE_A; i < val; i++)
-    prob->lower += freq.symbol_[i];
-  prob->upper = prob->lower + freq.symbol_[i];
-}
-
-void Compressor_output_aux_(arcd_buf_t buf, unsigned buf_bits, void *io) {
+/*void Compressor_output_aux_(arcd_buf_t buf, unsigned buf_bits, void *io) {
   //uint32_t i;
   UNUSED(buf_bits);
 
   FILE* ofp = (FILE*) io;
 
   fwrite(&buf, 1, 1, ofp);
-  /*for (i = 0; i < buf_bits; i++) {
-    printf("%d ", (buf >> (7 - i)) & 0x1);
-  }
-  printf("\n");*/
-}
+  //for (i = 0; i < buf_bits; i++) {
+  //  printf("%d ", (buf >> (7 - i)) & 0x1);
+  //}
+  printf("\n");*
+}*/
 
 void Compressor_Init(compressor* C__, FILE* ofp__) {
   deBruijn_Init(&(C__->dB_));
+
+  UNUSED(ofp__);
 
   C__->depth_ = 0;
   C__->state_ = 0;
   C__->tracker_.cnt_ = 0;
 
   // initialize arythmetic encoder
-  arcd_enc_init(&(C__->encoder_), Compressor_getprob_aux_, (void*)C__,
-                Compressor_output_aux_, (void*)ofp__);
+  /*arcd_enc_init(&(C__->encoder_), Compressor_getprob_aux_, (void*)C__,
+                Compressor_output_aux_, (void*)ofp__);*/
+  startoutputtingbits();
+  start_encode();
 }
 
 void Compressor_Finalize(compressor * C__) {
-  arcd_enc_fin(&(C__->encoder_));  
+  UNUSED(C__);
+  //arcd_enc_fin(&(C__->encoder_));
+
+  finish_encode();
+  doneoutputtingbits();
 }
 
 void Compressor_Free(compressor* C__) {
@@ -217,7 +306,10 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
       C__->state_ = idx__;
       compressor_debug("Escape character output.");
       // deBruijn_Print(&(C__->dB_), true);
-      arcd_enc_put(&(C__->encoder_), VALUE_ESC);
+      //arcd_enc_put(&(C__->encoder_), VALUE_ESC);
+      Compressor_encode(C__, idx__, VALUE_ESC);
+
+      //printf("%d ", VALUE_ESC);
     //}
 
     /* save current value of the index and go to the context shorter node */
@@ -230,7 +322,9 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
 
     // TODO use state for operations and not idx__
     C__->state_ = idx__;
-    arcd_enc_put(&(C__->encoder_), gval__);
+    //arcd_enc_put(&(C__->encoder_), gval__);
+    Compressor_encode(C__, idx__, gval__);
+    //printf("%d ", gval__);
     Compressor_Increase_frequency_rec_(C__, idx__, gval__);
 
     //printf("xxxxx %d\n", idx__);
@@ -334,9 +428,11 @@ int32_t Decompressor_Decompress_symbol_aux(decompressor *D__, int32_t idx__, Gra
 
   // get decompressed symbol
   D__->state_ = idx__;
-  Graph_value symbol = (Graph_value)arcd_dec_get(&(D__->decoder_));
+  Graph_value symbol = Decompressor_decode(D__, idx__); //(Graph_value)arcd_dec_get(&(D__->decoder_));
+  //printf("%d ", symbol);
 
   if (symbol == VALUE_ESC) {
+    compressor_debug("Escape character output.");
     // TODO get this information from the depth D__ variable
     ctx_len = deBruijn_get_context_len_(&(D__->dB_), idx__);
     prev_node = deBruijn_Shorten_context(&(D__->dB_), idx__, ctx_len - 1);
@@ -351,6 +447,7 @@ int32_t Decompressor_Decompress_symbol_aux(decompressor *D__, int32_t idx__, Gra
     *gval__ = symbol;
   } else {
 
+    compressor_debug("Symbol character output.");
     //printf("%d\n", symbol);
 
     transition = deBruijn_Find_Edge(&(D__->dB_), idx__, symbol);

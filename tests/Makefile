@@ -14,6 +14,7 @@ CPPFLAGS = -Wall -Wextra -pedantic -g
 TARGET = Test
 UNITY_ROOT = Unity-master
 SOURCE_ROOT = ../src
+ARITH_CODER_ROOT = $(SOURCE_ROOT)/arith
 
 INC_DIRS = -Isrc -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src -I$(SOURCE_ROOT)
 
@@ -27,7 +28,8 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/select.c \
 	$(SOURCE_ROOT)/deBruijn.c \
 	$(SOURCE_ROOT)/compressor.c \
-	arcd.o
+	$(ARITH_CODER_ROOT)/bitio.c \
+	$(ARITH_CODER_ROOT)/arith.c
 
 SRC_FILES += \
 	TestStructMemory.c \
@@ -47,7 +49,6 @@ download: .downloaded-unity
 	touch .downloaded-unity
 
 default: download
-	$(CPP) $(CPPFLAGS) -c $(SOURCE_ROOT)/arcd/arcd.c
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
 	mkdir -p tmp
 	- ./$(TARGET) -v

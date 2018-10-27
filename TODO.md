@@ -12,13 +12,13 @@ Implementation and possible text todo list for this thesis
 * rank support - done
 * select support - done
 * de Bruijn graph operations - done
-* compression of given text
-* arithmetic coding output of compression
+* compression of given text - done
+* arithmetic coding output of compression - done
 
 * write more and better tests
 * add tests for P array - done
 
-* decompression of compressed text
+* decompression of compressed text - done
 * extensive tests for compression and decompression
 
 * code refactoring and nicening

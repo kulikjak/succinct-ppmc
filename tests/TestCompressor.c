@@ -9,7 +9,7 @@ TEST_GROUP(compressor);
 #define compressor_PRINT_SEQUENCE false
 
 #define compressor_RANDOM_TEST_VERBOSE false
-#define compressor_RANDOM_TEST_MAX_SEQ_SIZE 1000
+#define compressor_RANDOM_TEST_MAX_SEQ_SIZE 10000
 #define compressor_RANDOM_TEST_POOL_SIZE 10
 
 #define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
@@ -125,18 +125,16 @@ TEST(compressor, RandomTest) {
     len = rand() % compressor_RANDOM_TEST_MAX_SEQ_SIZE;
     char* dna = generate_dna_string(len);
 
-    idx = 0;
-    for (i = 0; i < len; i++) {
+    for (idx = 0, i = 0; i < len; i++) {
       idx = Compressor_Compress_symbol(&C, idx, dna[i]);
     }
 
     end_compressor();
     start_decompressor(filename);
 
-    idx = 0;
-    for (i = 0; i < len; i++) {
+    for (idx = 0, i = 0; i < len; i++) {
       idx = Decompressor_Decompress_symbol(&D, idx, &val);
-      TEST_ASSERT_EQUAL_INT32(val, dna[i]);
+      TEST_ASSERT_EQUAL_INT32(dna[i], val);
     }
 
     end_decompressor();

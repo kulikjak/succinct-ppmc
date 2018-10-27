@@ -1,14 +1,10 @@
-CC = gcc
+CXX = gcc
 CFLAGS = -std=c99 -Wall -Wextra -pedantic -g
 CFLAGS += -Wno-error=unused-function -Wno-unused-function
 
-CPP = g++
-CPPFLAGS = -Wall -Wextra -pedantic -g
-
-ARCD_ROOT = arcd-master
-ARCD_ARCHIVE = $(ARCD_ROOT).zip
-
 SOURCE_ROOT = src
+ARITH_CODER_ROOT = $(SOURCE_ROOT)/arith
+
 SRC_FILES += \
 	$(SOURCE_ROOT)/memory.c \
 	$(SOURCE_ROOT)/structure.c \
@@ -16,22 +12,16 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/select.c \
 	$(SOURCE_ROOT)/deBruijn.c \
 	$(SOURCE_ROOT)/compressor.c \
-	$(SOURCE_ROOT)/arcd/arcd.c \
+	$(ARITH_CODER_ROOT)/bitio.c \
+	$(ARITH_CODER_ROOT)/arith.c \
 	$(SOURCE_ROOT)/main.c
 
 INC_DIRS = -I$(SOURCE_ROOT)
 
 all: test
 
-download: .downloaded-arcd
-.downloaded-arcd:
-	wget -O $(ARCD_ARCHIVE) https://github.com/wonder-mice/arcd/archive/master.zip
-	unzip $(ARCD_ARCHIVE)
-	cp $(ARCD_ROOT)/arcd src/arcd
-	touch .downloaded-arcd
-
 compressor: $(SRC_FILES)
-	$(CC) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $@ -lm	
+	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $@ -lm	
 
 test:
 	$(MAKE) default -C tests
@@ -41,12 +31,10 @@ dnagen: dnagen.c
 
 clean:
 	$(MAKE) clean -C tests
-	rm arcd.o compressor
+	rm compressor
 	rm -f dnagen
 
 purge: clean
 	$(MAKE) purge -C tests
-	rm -rf $(ARCD_ARCHIVE) $(ARCD_ROOT) .downloaded-arcd
 
-
-.PHONY: all test clean download
+.PHONY: all test clean
