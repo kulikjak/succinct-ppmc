@@ -31,8 +31,8 @@ arcd_char_t Decompressor_getch_aux_(const arcd_range_t v, const arcd_range_t ran
 
   deBruijn_Get_symbol_frequency(&(((decompressor*)model)->dB_), ((decompressor*)model)->state_, &freq);
 
-  printf("%d - ", ((compressor*)model)->state_);
-  printf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
+  //xxprintf("%d - ", ((compressor*)model)->state_);
+  //xprintf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
 
   // in case there is no other transition, probability of escape is 100%
   if (freq.total_ == 0) {
@@ -98,8 +98,8 @@ void Compressor_getprob_aux_(arcd_char_t ch, arcd_prob *prob, void *model) {
   memset(prob, 0, sizeof(*prob));
   deBruijn_Get_symbol_frequency(&(((compressor*)model)->dB_), ((compressor*)model)->state_, &freq);
 
-  printf("%d - ", ((compressor*)model)->state_);
-  printf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
+  //xxprintf("%d - ", ((compressor*)model)->state_);
+  //xxprintf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
 
   // in case there is no other transition, probability of escape is 100%
   if (freq.total_ == 0) {
@@ -238,7 +238,7 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
     return deBruijn_Forward_(&(C__->dB_), idx__);
   }
 
-  printf("a %d %d\n", idx__, gval__);
+  //xxprintf("a %d %d\n", idx__, gval__);
   // check what symbol is in W
   GLine_Get(&(C__->dB_.Graph_), (uint32_t)idx__, &line);
   if (line.W_ == VALUE_$) {
@@ -308,8 +308,6 @@ int32_t Decompressor_Decompress_symbol(decompressor *D__, int32_t idx__, Graph_v
 
   backup = idx__;
 
-  UNUSED(gval__);
-
   if (D__->depth_ >= CONTEXT_LENGTH) {
     // optimize this!
     ctx_len = deBruijn_get_context_len_(&(D__->dB_), idx__);
@@ -317,8 +315,7 @@ int32_t Decompressor_Decompress_symbol(decompressor *D__, int32_t idx__, Graph_v
     //printf("idx %d\n", idx__);
   }
 
-  Graph_value val;
-  res = Decompressor_Decompress_symbol_aux(D__, idx__, &val);
+  res = Decompressor_Decompress_symbol_aux(D__, idx__, gval__);
 
   // increase context depth if shorter than CONTEXT_LENGTH
   if (D__->depth_ < CONTEXT_LENGTH)
@@ -408,7 +405,7 @@ int32_t Decompressor_Decompress_symbol_aux(decompressor *D__, int32_t idx__, Gra
 
   // SAME BELLOW
 
-  printf("a %d %d\n", idx__, symbol);
+  //xxprintf("a %d %d\n", idx__, symbol);
   // check what symbol is in W
   GLine_Get(&(D__->dB_.Graph_), (uint32_t)idx__, &line);
   if (line.W_ == VALUE_$) {

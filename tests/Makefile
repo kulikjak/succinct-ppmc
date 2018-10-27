@@ -26,7 +26,7 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/rank.c \
 	$(SOURCE_ROOT)/select.c \
 	$(SOURCE_ROOT)/deBruijn.c \
-	$(SOURCE_ROOT)/compression.c \
+	$(SOURCE_ROOT)/compressor.c \
 	arcd.o
 
 SRC_FILES += \
@@ -49,6 +49,7 @@ download: .downloaded-unity
 default: download
 	$(CPP) $(CPPFLAGS) -c $(SOURCE_ROOT)/arcd/arcd.c
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
+	mkdir -p tmp
 	- ./$(TARGET) -v
 
 clean:
