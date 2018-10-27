@@ -56,36 +56,35 @@ TEST(deBruijn, BasicStaticTest) {
 TEST(deBruijn, CummulativeFrequencyTest) {
   cfreq freq;
 
-  const Graph_value L[] = {0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1};
-  const Graph_value W[] = {_('A'), _('C'), _('G'), _('T'), _('$'),
-                           _('G'), _('C'), _('G'), _('A'), _('C'),
-                           _('G'), _('A'), _('G'), _('T'), _('A')};
-  const int32_t P[] = {12, 3, 3, 5, 0, 8, 1, 2, 5, 4, 6, 6, 1, 4, 5};
+  const Graph_value L[] = {0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1};
+  const Graph_value W[] = {_('A'), _('C'), _('G'), _('T'), _('$'), _('G'),
+                           _('C'), _('G'), _('A'), _('C'), _('G'), _('A'),
+                           _('G'), _('T'), _('A'), _('C')};
+  const int32_t P[] = {12, 3, 3, 5, 0, 8, 1, 2, 5, 4, 6, 6, 1, 4, 5, 0};
 
   // not important for this test
   const int32_t F[] = {1, 2, 4, 8};
 
-  const int32_t resLower[] = {0, 12, 15, 18, 0, 0, 0, 1, 0, 5, 9, 0, 6, 7, 0};
-  const int32_t resUpper[] = {12, 15, 18, 23, 0, 8, 1, 3, 5, 9, 15, 6, 7, 11, 5};
-  const int32_t resTotal[] = {27, 27, 27, 27, 0, 9, 5, 5, 18, 18, 18, 14, 14, 14, 6};
-
-  const int32_t resEsc[] = {4, 4, 4, 4, 0, 1, 2, 2, 3, 3, 3, 3, 3, 3, 1};
+  // result arrays
+  const int32_t resA[] = {12, 12, 12, 12, 0, 0, 0, 0, 5, 5, 5, 6, 6, 6, 5, 0};
+  const int32_t resC[] = {3, 3, 3, 3, 0, 0, 1, 1, 4, 4, 4, 0, 0, 0, 0, 0};
+  const int32_t resG[] = {3, 3, 3, 3, 0, 8, 2, 2, 6, 6, 6, 1, 1, 1, 0, 0};
+  const int32_t resT[] = {5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0};
+  const int32_t resEsc[] = {4, 4, 4, 4, 0, 1, 2, 2, 3, 3, 3, 3, 3, 3, 1, 1};
+  const int32_t resTotal[] = {27, 27, 27, 27, 0, 9, 5, 5, 18, 18, 18, 14, 14, 14, 6, 1};
 
   deBruijn_Free(&dB);
-  deBruijn_Insert_test_data(&dB, L, W, P, F, 15);
+  deBruijn_Insert_test_data(&dB, L, W, P, F, 16);
 
-  for (int32_t i = 0; i < 15; i++) {
-    deBruijn_Get_cumulative_frequency(&dB, i, W[i], &freq);
+  for (int32_t i = 0; i < 16; i++) {
+    deBruijn_Get_symbol_frequency(&dB, i, &freq);
 
-    TEST_ASSERT_EQUAL_INT32(resLower[i], freq.lower_);
-    TEST_ASSERT_EQUAL_INT32(resUpper[i], freq.upper_);
+    TEST_ASSERT_EQUAL_INT32(resA[i], freq.symbol_[VALUE_A]);
+    TEST_ASSERT_EQUAL_INT32(resC[i], freq.symbol_[VALUE_C]);
+    TEST_ASSERT_EQUAL_INT32(resG[i], freq.symbol_[VALUE_G]);
+    TEST_ASSERT_EQUAL_INT32(resT[i], freq.symbol_[VALUE_T]);
+    TEST_ASSERT_EQUAL_INT32(resEsc[i], freq.symbol_[VALUE_ESC]);
     TEST_ASSERT_EQUAL_INT32(resTotal[i], freq.total_);
-  }
-
-  for (int32_t i = 0; i < 15; i++) {
-    deBruijn_Get_cumulative_frequency(&dB, i, VALUE_ESC, &freq);
-
-    TEST_ASSERT_EQUAL_INT32(resEsc[i], freq.upper_ - freq.lower_);
   }
 }
 
