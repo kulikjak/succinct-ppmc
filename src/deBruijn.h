@@ -43,6 +43,11 @@ typedef struct {
   } tracker_;
 } deBruijn_graph;
 
+typedef struct {
+  uint32_t symbol_[SYMBOL_COUNT+1];
+  uint32_t total_;
+} cfreq;
+
 /*
  * Initialize deBruijn_graph object.
  *
@@ -156,11 +161,9 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  gval__  Symbol (Graph_value) to follow.
  * @param  freq__  [Out] Frequency count structure.
  */
-void deBruijn_Get_cumulative_frequency(deBruijn_graph *dB__, uint32_t idx__,
-                                       Graph_value gval__, cfreq *freq__);
+void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq *freq__);
 
 /*
  * Move to next node pointed to by given edge (line) index.

@@ -331,30 +331,25 @@ int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__) {
   return count;
 }
 
-void deBruijn_Get_cumulative_frequency(deBruijn_graph *dB__, uint32_t idx__, Graph_value gval__, cfreq* freq__) {
-  int32_t idx;
-  Graph_value i ,cnt = 0;
+void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* freq__) {
+  int32_t idx, cnt;
+  Graph_value i;
   Graph_Line line;
 
-  memset(freq__, 0, sizeof(*freq__));
+  freq__->total_ = 0;
 
-  for (i = VALUE_A; i <= VALUE_T; i++) {
+  memset(freq__, 0, sizeof(*freq__));
+  for (cnt = 0, i = VALUE_A; i <= VALUE_T; i++) {
     idx = deBruijn_Find_Edge(dB__, idx__, i);
     if (idx == -1) continue;
 
     cnt++;
 
     GLine_Get(&(dB__->Graph_), (uint32_t)idx, &line);
-    if (line.W_ < gval__) {
-      freq__->lower_ += line.P_;
-      freq__->upper_ += line.P_;
-    } else if (line.W_ == gval__) {
-      freq__->upper_ += line.P_;
-    }
+    freq__->symbol_[i] = line.P_;
     freq__->total_ += line.P_;
   }
 
-  if (gval__ == VALUE_ESC)
-    freq__->upper_ += cnt;
+  freq__->symbol_[VALUE_ESC] = cnt;
   freq__->total_ += cnt;
 }

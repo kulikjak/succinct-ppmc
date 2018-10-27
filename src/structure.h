@@ -74,12 +74,6 @@ typedef struct {
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
 
-typedef struct {
-  uint32_t lower_;
-  uint32_t upper_;
-  uint32_t total_;
-} cfreq;
-
 //#define DISABLE_RED_BLACK_BALANCING
 //#define DISABLE_CLEVER_NODE_SPLIT
 

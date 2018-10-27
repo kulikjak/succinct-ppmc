@@ -29,5 +29,4 @@ static void verbose(const char* m__, const char* e__) {
 
 #define VERBOSE(func) if (VERBOSE_){ func }
 
-
 #endif  // _SHARED_UTILS__

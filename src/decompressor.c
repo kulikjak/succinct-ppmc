@@ -18,8 +18,49 @@
 //typedef unsigned (*arcd_input_t)(arcd_buf_t *buf, void *io);
 
 
-arcd_char_t Decompressor_getch_aux_(arcd_range_t v, arcd_range_t range, arcd_prob *prob, void *model) {
-  return 0;
+
+arcd_char_t adaptive_model_getch(const arcd_range_t v, const arcd_range_t range,
+                 arcd_prob *const prob, void *const model)
+{
+  adaptive_model *const m = (adaptive_model *)model;
+  const unsigned last = m->size - 1;
+  const arcd_freq_t freq = arcd_freq_scale(v, range, m->freq[last]);
+  for (unsigned i = 0; last > i; ++i)
+  {
+    if (m->freq[i] <= freq && freq < m->freq[i + 1])
+    {
+      prob->lower = m->freq[i];
+      prob->upper = m->freq[i + 1];
+      prob->total = m->freq[last];
+      update(m, i);
+      return i;
+    }
+  }
+  assert(!"Bad range");
+  return -1;
+}
+
+
+
+arcd_char_t Decompressor_getch_aux_(const arcd_range_t v, const arcd_range_t range, arcd_prob *prob, void *model) {
+  cfreq freq;
+  Graph_value i;
+
+  deBruijn_Get_symbol_frequency(&(((decompressor*)model)->dB_), ((decompressor*)model)->state_, &freq);
+
+  prob->higher = 0;
+
+  const arcd_freq_t scaled = arcd_freq_scale(v, range, freq->total_);
+  for (i = VALUE_A; i <= VALUE_ESC; i++) {
+    prob->lower = prob->higher;
+    prob->higher += freq->symbol_[i];
+
+    if (prob->lower <= scaled && scaled < prob->higher) {
+      prob->total_ = freq->total_;
+      return (arcd_char_t)i;
+    }
+  }
+  UNREACHABLE;
 }
 
 unsigned Decompressor_input_aux_(arcd_buf_t* buf, void *io) {

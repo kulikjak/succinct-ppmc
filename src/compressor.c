@@ -23,27 +23,108 @@ void compressor_debug(char* info__) {
 }
 
 
-void Compressor_getprob_aux_(arcd_char_t ch, arcd_prob *prob, void *model) {
 
-  deBruijn_Get_cumulative_frequency(&(((compressor*)model)->dB_), ((compressor*)model)->state_,(Graph_value) ch, (cfreq*) prob);
 
-  //printf("%d %d %d\n", prob->lower, prob->upper, prob->total);
-  if (prob->total == 0 && prob->upper == 0 && prob->lower == 0) {
-    prob->total = 1;
-    prob->upper = 1;
+arcd_char_t Decompressor_getch_aux_(const arcd_range_t v, const arcd_range_t range, arcd_prob *prob, void *model) {
+  cfreq freq;
+  Graph_value i;
+
+  deBruijn_Get_symbol_frequency(&(((decompressor*)model)->dB_), ((decompressor*)model)->state_, &freq);
+
+  printf("%d - ", ((compressor*)model)->state_);
+  printf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
+
+  // in case there is no other transition, probability of escape is 100%
+  if (freq.total_ == 0) {
+    prob->total = prob->upper = 1;
+    prob->lower = 0;
+
+    return (arcd_char_t)VALUE_ESC;
   }
-  //printf("%d %d %d\n", prob->lower, prob->upper, prob->total);
+
+  prob->upper = 0;
+
+  const arcd_freq_t scaled = arcd_freq_scale(v, range, freq.total_);
+  for (i = VALUE_A; i <= VALUE_ESC; i++) {
+    prob->lower = prob->upper;
+    prob->upper += freq.symbol_[i];
+
+    if (prob->lower <= scaled && scaled < prob->upper) {
+      prob->total = freq.total_;
+      return (arcd_char_t)i;
+    }
+  }
+  UNREACHABLE;
+}
+
+unsigned Decompressor_input_aux_(arcd_buf_t* buf, void *io) {
+  uint32_t read;
+  FILE* ifp = (FILE*) io;
+
+  read = fread((void*)buf, 1, 1, ifp);
+  //printf("read: %d\n", read);
+  return 8 * read;
+}
+
+void Decompressor_Init(decompressor* D__, FILE* ifp__) {
+  deBruijn_Init(&(D__->dB_));
+
+  D__->depth_ = 0;
+  D__->state_ = 0;
+  D__->tracker_.cnt_ = 0;
+
+  // initialize arythmetic decoder
+  arcd_dec_init(&(D__->decoder_), Decompressor_getch_aux_, (void*)D__, Decompressor_input_aux_, (void*)ifp__);
+}
+
+
+void Decompressor_Finalize(decompressor* D__) {
+  UNUSED(D__);
+}
+
+void Decompressor_Free(decompressor* D__) {
+  deBruijn_Free(&(D__->dB_));
+}
+
+
+
+
+
+
+void Compressor_getprob_aux_(arcd_char_t ch, arcd_prob *prob, void *model) {
+  cfreq freq;
+  Graph_value i, val = (Graph_value)ch;
+
+  memset(prob, 0, sizeof(*prob));
+  deBruijn_Get_symbol_frequency(&(((compressor*)model)->dB_), ((compressor*)model)->state_, &freq);
+
+  printf("%d - ", ((compressor*)model)->state_);
+  printf("%d %d %d %d %d %d\n", freq.symbol_[0], freq.symbol_[1], freq.symbol_[2], freq.symbol_[3], freq.symbol_[4], freq.total_);
+
+  // in case there is no other transition, probability of escape is 100%
+  if (freq.total_ == 0) {
+    prob->total = prob->upper = 1;
+    return;
+  }
+
+  // handle probability if there are some transitions
+  prob->total = freq.total_;
+  for (i = VALUE_A; i < val; i++)
+    prob->lower += freq.symbol_[i];
+  prob->upper = prob->lower + freq.symbol_[i];
 }
 
 void Compressor_output_aux_(arcd_buf_t buf, unsigned buf_bits, void *io) {
-  uint32_t i;
+  //uint32_t i;
+  UNUSED(buf_bits);
+
   FILE* ofp = (FILE*) io;
 
   fwrite(&buf, 1, 1, ofp);
-  for (i = 0; i < buf_bits; i++) {
+  /*for (i = 0; i < buf_bits; i++) {
     printf("%d ", (buf >> (7 - i)) & 0x1);
   }
-  printf("\n");
+  printf("\n");*/
 }
 
 void Compressor_Init(compressor* C__, FILE* ofp__) {
@@ -54,7 +135,8 @@ void Compressor_Init(compressor* C__, FILE* ofp__) {
   C__->tracker_.cnt_ = 0;
 
   // initialize arythmetic encoder
-  arcd_enc_init(&(C__->encoder_), Compressor_getprob_aux_, (void*) C__, Compressor_output_aux_, (void*) ofp__);
+  arcd_enc_init(&(C__->encoder_), Compressor_getprob_aux_, (void*)C__,
+                Compressor_output_aux_, (void*)ofp__);
 }
 
 void Compressor_Finalize(compressor * C__) {
@@ -122,19 +204,21 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
     ctx_len = deBruijn_get_context_len_(&(C__->dB_), idx__);
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len - 1);
 
-    /* this cannot happen because there level one is full
-     that means, that we are never outputting character itself */
+    /* this cannot happen because there level one is full that means, that we
+     * are never outputting character itself */
     assert(ctx_len != 0);
 
-    /*
-     * Output escape every time we are shortening the context except when at CONTEXT_LENGTH limit. This is not the most efficient solution since there are cases when escape is the only thing that can be done (when in node with no transition) however it will stil fast, correct and can be optimized later.
-     */
-    if (C__->depth_ < CONTEXT_LENGTH) {
+    /* Output escape every time we are shortening the context except when at
+     * CONTEXT_LENGTH limit. This is not the most efficient solution since there
+     * are cases when escape is the only thing that can be done (when in node
+     * with no transition) however it will stil fast, correct and can be
+     * optimized later. */
+    //if (C__->depth_ < CONTEXT_LENGTH) {
       C__->state_ = idx__;
       compressor_debug("Escape character output.");
-      //deBruijn_Print(&(C__->dB_), true);
+      // deBruijn_Print(&(C__->dB_), true);
       arcd_enc_put(&(C__->encoder_), VALUE_ESC);
-    }
+    //}
 
     /* save current value of the index and go to the context shorter node */
     variable_Tracker_push(C__, &idx__);
@@ -149,9 +233,12 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
     arcd_enc_put(&(C__->encoder_), gval__);
     Compressor_Increase_frequency_rec_(C__, idx__, gval__);
 
+    //printf("xxxxx %d\n", idx__);
+    //deBruijn_Print(&(C__->dB_), true);
     return deBruijn_Forward_(&(C__->dB_), idx__);
   }
 
+  printf("a %d %d\n", idx__, gval__);
   // check what symbol is in W
   GLine_Get(&(C__->dB_.Graph_), (uint32_t)idx__, &line);
   if (line.W_ == VALUE_$) {
@@ -212,6 +299,169 @@ int32_t Compressor_Compress_symbol_aux(compressor *C__, int32_t idx__, Graph_val
 
   return x;
 }
+
+
+int32_t Decompressor_Decompress_symbol_aux(decompressor *D__, int32_t idx__, Graph_value* gval__);
+
+int32_t Decompressor_Decompress_symbol(decompressor *D__, int32_t idx__, Graph_value* gval__) { //FIXME
+  int32_t res, backup, ctx_len;
+
+  backup = idx__;
+
+  UNUSED(gval__);
+
+  if (D__->depth_ >= CONTEXT_LENGTH) {
+    // optimize this!
+    ctx_len = deBruijn_get_context_len_(&(D__->dB_), idx__);
+    idx__ = deBruijn_Shorten_context(&(D__->dB_), idx__, ctx_len - 1);
+    //printf("idx %d\n", idx__);
+  }
+
+  Graph_value val;
+  res = Decompressor_Decompress_symbol_aux(D__, idx__, &val);
+
+  // increase context depth if shorter than CONTEXT_LENGTH
+  if (D__->depth_ < CONTEXT_LENGTH)
+    D__->depth_++;
+
+  if (res == -1)
+    return backup;
+  return res;
+}
+
+int32_t Decompressor_Decompress_symbol_aux(decompressor *D__, int32_t idx__, Graph_value* gval__) {
+  int32_t i, rank, temp;
+  int32_t prev_node, ctx_len, x;
+  int32_t transition;
+  Graph_Line line;
+
+  // get decompressed symbol
+  D__->state_ = idx__;
+  Graph_value symbol = (Graph_value)arcd_dec_get(&(D__->decoder_));
+
+  if (symbol == VALUE_ESC) {
+    // TODO get this information from the depth D__ variable
+    ctx_len = deBruijn_get_context_len_(&(D__->dB_), idx__);
+    prev_node = deBruijn_Shorten_context(&(D__->dB_), idx__, ctx_len - 1);
+
+    /* this cannot happen because there level one is full that means, that we
+     * are never outputting character itself */
+    assert(ctx_len != 0);
+
+    variable_Tracker_push((compressor*)D__, &idx__);
+    Decompressor_Decompress_symbol_aux(D__, prev_node, &symbol);
+    variable_Tracker_pop((compressor*)D__);
+    *gval__ = symbol;
+  } else {
+
+    //printf("%d\n", symbol);
+
+    transition = deBruijn_Find_Edge(&(D__->dB_), idx__, symbol);
+    if (transition == -1) {
+      printf("Fatal - there is no transition\n");
+      exit(1);
+    }
+
+    *gval__ = symbol;
+    Compressor_Increase_frequency_rec_((compressor*)D__, idx__, symbol);
+    //printf("xxxxx %d\n", idx__);
+    //deBruijn_Print(&(D__->dB_), true);
+    return deBruijn_Forward_(&(D__->dB_), idx__);
+  }
+
+
+  // check if transition exist from this node via given symbol
+  //transition = deBruijn_Find_Edge(&(D__->dB_), idx__, symbol);
+
+  //printf("%d %d\n", ctx_len, C__->depth_);
+
+  // transition does not exist
+  /* if (transition == -1) {
+
+    // TODO get this information from the depth C__ variable
+    ctx_len = deBruijn_get_context_len_(&(C__->dB_), idx__);
+    prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len - 1);
+
+    assert(ctx_len != 0);
+
+    if (C__->depth_ < CONTEXT_LENGTH) {
+      C__->state_ = idx__;
+      compressor_debug("Escape character output.");
+      // deBruijn_Print(&(C__->dB_), true);
+      arcd_enc_put(&(C__->encoder_), VALUE_ESC);
+    }
+
+    variable_Tracker_push((compressor*)D__, &idx__);
+    Decompressor_Decompress_symbol_aux(D__, prev_node, gval__);
+    variable_Tracker_pop((compressor*)D__);
+  } else {
+    // we have transition in this node
+    compressor_debug("Symbol output.");
+
+    // TODO use state for operations and not idx__
+    C__->state_ = idx__;
+    arcd_enc_put(&(C__->encoder_), gval__);
+    Compressor_Increase_frequency_rec_(C__, idx__, gval__);
+
+    return deBruijn_Forward_(&(C__->dB_), idx__);
+  } */
+
+  // SAME BELLOW
+
+  printf("a %d %d\n", idx__, symbol);
+  // check what symbol is in W
+  GLine_Get(&(D__->dB_.Graph_), (uint32_t)idx__, &line);
+  if (line.W_ == VALUE_$) {
+    // current W symbol is $ - we can simply change it to new one
+
+    // change symbol to new one and increase frequency to 1
+    Graph_Change_symbol(&(D__->dB_.Graph_), idx__, symbol);
+    Graph_Increase_frequency(&(D__->dB_.Graph_), idx__);
+
+  } else {
+    // insert new edge into this node
+    GLine_Fill(&line, VALUE_0, symbol, 1);
+    GLine_Insert(&(D__->dB_.Graph_), idx__, &line);
+
+    // update registered variables
+    variable_Tracker_update((compressor*)D__, idx__);
+
+    // update F array according to added node
+    for (i = 0; i < SYMBOL_COUNT; i++) {
+      if (D__->dB_.F_[i] > idx__) D__->dB_.F_[i]++;
+    }
+  }
+
+  // find same transition symbol above this line
+  rank = Graph_Rank(&(D__->dB_.Graph_), idx__, VECTOR_W, symbol);
+
+  if (!rank) {  // there is no symbol above this
+    x = D__->dB_.F_[symbol];
+
+    // update F array
+    for (i = symbol + 1; i < SYMBOL_COUNT; i++) D__->dB_.F_[i]++;
+
+  } else {  // we found another line with this symbol
+    // go forward from this node
+    temp = Graph_Select(&(D__->dB_.Graph_), rank, VECTOR_W, symbol);
+    x = deBruijn_Forward_(&(D__->dB_), temp - 1) + 1;
+
+    // update F array
+    for (i = 0; i < SYMBOL_COUNT; i++) {
+      if (D__->dB_.F_[i] >= x) D__->dB_.F_[i]++;
+    }
+  }
+
+  // insert new leaf node into the graph
+  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
+  GLine_Insert(&(D__->dB_.Graph_), x, &line);
+
+  // update registered variables
+  variable_Tracker_update((compressor*)D__, x);
+
+  return x;
+}
+
 
 
 /*
