@@ -1,4 +1,4 @@
-CC = gcc
+CXX = gcc
 CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -g
 CFLAGS += -Wno-error=unused-function -Wno-unused-function
 #CFLAGS += -Wpointer-arith -Wcast-align -Wwrite-strings
@@ -6,13 +6,9 @@ CFLAGS += -Wno-error=unused-function -Wno-unused-function
 #CFLAGS += -Wmissing-field-initializers -Wno-unknown-pragmas
 #CFLAGS += -Wstrict-prototypes -Wundef -Wold-style-definition
 
-# Arithmetic coding library cannot be compiled with C compiler
-# due to its preprocessor calculations.
-CPP = g++
-CPPFLAGS = -Wall -Wextra -pedantic -g
-
 TARGET = Test
 UNITY_ROOT = Unity-master
+
 SOURCE_ROOT = ../src
 ARITH_CODER_ROOT = $(SOURCE_ROOT)/arith
 
@@ -49,14 +45,15 @@ download: .downloaded-unity
 	touch .downloaded-unity
 
 default: download
-	$(CC) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
+	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
 	mkdir -p tmp
 	- ./$(TARGET) -v
 
 clean:
 	rm -f $(TARGET)
+	rm -rf tmp
 
 purge: clean
 	rm -rf $(UNITY_ROOT) unity.zip .downloaded-unity
 
-.PHONY: all clean default download
+.PHONY: all clean default purge download

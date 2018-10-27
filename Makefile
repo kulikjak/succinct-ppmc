@@ -18,7 +18,7 @@ SRC_FILES += \
 
 INC_DIRS = -I$(SOURCE_ROOT)
 
-all: test
+all: compressor dnagen
 
 compressor: $(SRC_FILES)
 	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $@ -lm	
@@ -37,4 +37,4 @@ clean:
 purge: clean
 	$(MAKE) purge -C tests
 
-.PHONY: all test clean
+.PHONY: all test clean purge
