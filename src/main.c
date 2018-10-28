@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "compressor.h"
 
-int main() {
+int main() { // FIX THIS
 
 	int idx = 0;
 

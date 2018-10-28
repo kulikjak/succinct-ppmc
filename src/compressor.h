@@ -1,6 +1,7 @@
 #ifndef _COMPRESSOR__
 #define _COMPRESSOR__
 
+#include "tracker.h"
 #include "deBruijn.h"
 
 #include "arith/bitio.h"
@@ -12,30 +13,13 @@ typedef struct {
   deBruijn_graph dB_;
   int32_t depth_;
   int32_t state_;
-
-  struct {
-    int32_t cnt_;
-    int32_t *arr_[CONTEXT_LENGTH + 4];
-  } tracker_;
 } compressor;
 
 typedef struct {
   deBruijn_graph dB_;
   int32_t depth_;
   int32_t state_;
-
-  struct {
-    int32_t cnt_;
-    int32_t *arr_[CONTEXT_LENGTH + 4];
-  } tracker_;
 } decompressor;
-
-
-void variable_Tracker_push(compressor* C__, int32_t *a__);
-
-void variable_Tracker_pop(compressor* C__);
-
-void variable_Tracker_update(compressor* C__, int32_t val__);
 
 /*
  * Initialize compressor.
@@ -46,23 +30,17 @@ void variable_Tracker_update(compressor* C__, int32_t val__);
 void Compressor_Init(compressor* C__, FILE* ofp__);
 
 /*
- * Finalize compression.
+ * Finalize compression and free memory associated with the compressor.
  *
  * This function must be called after encoding all characters to output rest of
  * the buffer. It also handles header of compressed file.
- *
- * @param  C__  Reference to compressor.
- */
-void Compressor_Finalize(compressor * C__);
-
-/*
- * Free memory associated with the given compressor.
  *
  * This function doesn't close output file pointer.
  *
  * @param  C__  Reference to compressor.
  */
-void Compressor_Free(compressor* C__);
+void Compressor_Finalize(compressor * C__);
+
 
 /*
  * Initialize decompressor.
@@ -73,21 +51,16 @@ void Compressor_Free(compressor* C__);
 void Decompressor_Init(decompressor* D__, FILE* ifp__);
 
 /*
- * Finalize decompression. (TODO)
+ * Finalize decompression and free memory associated with the decompressor.
  *
- *
- * @param  D__  Reference to decompressor.
- */
-void Decompressor_Finalize(decompressor* D__);
-
-/*
- * Free memory associated with the given decompressor.
+ * This function must be called after decoding all characters to output rest of
+ * the buffer.
  *
  * This function doesn't close input file pointer.
  *
  * @param  D__  Reference to decompressor.
  */
-void Decompressor_Free(decompressor* D__);
+void Decompressor_Finalize(decompressor* D__);
 
 /*
  * Compress symbol.
@@ -100,16 +73,15 @@ void Decompressor_Free(decompressor* D__);
  * @param  idx__  Node index (line) in deBruijn graph.
  * @param  gval__ Additional symbol (Graph_value).
  */
-int32_t Compressor_Compress_symbol(compressor *C__, int32_t idx__, Graph_value gval__);
+void Compressor_Compress_symbol(compressor *C__, Graph_value gval__);
 
 /*
  * Decompress symbol.
  *
  * @param  C__  Reference to compressor object.
- * @param  idx__  Node index (line) in deBruijn graph.
  * @param  gval__ [out] Additional symbol (Graph_value).
  */
-int32_t Decompressor_Decompress_symbol(decompressor *D__, int32_t idx__, Graph_value* gval__);
+void Decompressor_Decompress_symbol(decompressor *D__, Graph_value* gval__);
 
 
 // make hidden function visible to unit testing framework
@@ -122,7 +94,7 @@ int32_t Decompressor_Decompress_symbol(decompressor *D__, int32_t idx__, Graph_v
  * @param  idx__  Node index (line) in deBruijn graph.
  * @param  gval__ Additional symbol (Graph_value).
  */
-void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_value gval__);
+void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_value gval__, int32_t ctx_len__);
 
 #endif  // _UNITY
 

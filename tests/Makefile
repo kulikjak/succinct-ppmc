@@ -1,5 +1,5 @@
 CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -g
+CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -pg
 CFLAGS += -Wno-error=unused-function -Wno-unused-function
 #CFLAGS += -Wpointer-arith -Wcast-align -Wwrite-strings
 #CFLAGS += -Wswitch-default -Wunreachable-code -Winit-self
@@ -19,6 +19,7 @@ SRC_FILES = \
 
 SRC_FILES += \
 	$(SOURCE_ROOT)/memory.c \
+	$(SOURCE_ROOT)/tracker.c \
 	$(SOURCE_ROOT)/structure.c \
 	$(SOURCE_ROOT)/rank.c \
 	$(SOURCE_ROOT)/select.c \
