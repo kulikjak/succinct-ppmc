@@ -147,7 +147,7 @@ void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__) {
   memset(buffer__, '$', CONTEXT_LENGTH);
 #endif
 
-  pos = CONTEXT_LENGTH - 1;
+  pos = CONTEXT_LENGTH + 1;
   do {
     symbol = GET_VALUE_FROM_IDX(idx__, dB__);
 
@@ -171,7 +171,7 @@ int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
 }
 
 void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
-  char label[CONTEXT_LENGTH + 10];
+  char label[CONTEXT_LENGTH + 3];
   int32_t i, j, size;
   int32_t nextPos = 0;
   int32_t next = 0;
@@ -190,7 +190,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
 
   size = Graph_Size(&(dB__->Graph_));
   for (i = 0; i < size; i++) {
-    printf("%3d: ", i);
+    printf("%4d: ", i);
 
     // handle base positions for all symbols
     if (i == nextPos) {
@@ -220,8 +220,8 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
 
     // handle finding of all the labels
     if (labels__) {
-      label[CONTEXT_LENGTH] = 0;
-      //deBruijn_Label(dB__, i, label);
+      label[CONTEXT_LENGTH + 2] = 0;
+      deBruijn_Label(dB__, i, label);
 
       printf("%s  ", label);
       for (j = 0; j < 5 - CONTEXT_LENGTH; j++) {
