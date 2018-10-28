@@ -155,7 +155,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node->rWs_ += (mask & 0x1) && (mask & 0x2) && (mask & 0x4);
 
     uint32_t temp = MEMORY_GET_ANY(Graph__->mem_, node->left_)->p_;
-    if (temp >= pos__) {
+    if (temp > pos__) {
       current = node->left_;
     } else {
       pos__ -= temp;
@@ -192,7 +192,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     int32_t split_mask = 0xFFFF;
     int32_t split_offset = 0;
 
-#ifndef DISABLE_CLEVER_NODE_SPLIT
+#ifdef ENABLE_CLEVER_NODE_SPLIT
     if ((current_ref->vectorL_ >> 16) & 0x1) {
       // do nothing
     } else if ((current_ref->vectorL_ >> 15) & 0x1) {
@@ -205,7 +205,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       split_mask = 0x3FFF;
       split_offset = 2;
     } else {
-      //FATAL("Node split unsuccessful, structure is corrupted.");
+      FATAL("Node split unsuccessful, structure is corrupted.");
     }
 #endif
 
@@ -251,7 +251,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
                (current_ref->vectorWl2_));
 
     // now insert bit into correct leaf
-    if (pos__ <= (uint32_t)(16 + split_offset)) {
+    if (pos__ < (uint32_t)(16 + split_offset)) {
       Graph_Insert_Line_(current_ref, pos__, line__);
     } else {
       Graph_Insert_Line_(right_ref, pos__ - (16 + split_offset), line__);
@@ -268,7 +268,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         parent->right_ = node;
     }
 
-#ifndef DISABLE_RED_BLACK_BALANCING
+#ifdef ENABLE_RED_BLACK_BALANCING
 
     // red black balancing
     node_ref->rb_flag_ = true;
@@ -391,7 +391,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       break;
     } while (true);
 
-#endif  // RED_BLACK_BALANCING
+#endif  // ENABLE_RED_BLACK_BALANCING
 
   }
 }
@@ -559,12 +559,13 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
   leaf_ref->vectorP_[pos__] ++;
 }
 
+#ifdef ENABLE_CLEVER_NODE_SPLIT
 
-/*void Graph_Get_cumulative_frequency(GraphRef Graph__, uint32_t pos__, Graph_value val__, cfreq* freq__) {
-//uint32_t Graph_Get_cumulative_frequency(GraphRef Graph__, uint32_t pos__) {
+void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__) {
   mem_ptr temp;
   mem_ptr current = Graph__->root_;
-  int32_t l_bit, ochar_mask;
+  Graph_value value;
+  int32_t l_bit, ochar_mask, cnt;
 
   NodeRef node_ref;
   LeafRef leaf_ref;
@@ -588,56 +589,41 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
 
   leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
 
-  printf("pos__ %d\n", pos__);
-  l_bit = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
-  while (!l_bit) {
-    if (pos__ == 0)
-      break;
-
-    printf("here\n");
-
-    l_bit = leaf_ref->vectorL_ >> (31 - (pos__)) & 0x1;
-    if (!l_bit) {
-      pos__++;
-      break;
-    }
-    pos__--;
+  // get to the beginning of this node
+  int32_t pos = (int32_t)pos__;
+  pos --;
+  while (pos >= 0) {
+    l_bit = leaf_ref->vectorL_ >> (31 - pos) & 0x1;
+    if (l_bit) break;
+    pos --;
   }
+  pos ++;
 
+  // clear freq structure
+  cnt = 0;
   memset(freq__, 0, sizeof(*freq__));
 
+  // go through all transitions in this node
   do {
-    printf("%d\n", pos__);
-    ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
-          (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
-          (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
+    ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos) & 0x1) |
+          (leaf_ref->vectorWl1_ >> (31 - pos) & 0x1) << 0x1 |
+          (leaf_ref->vectorWl0_ >> (31 - pos) & 0x1) << 0x2;
 
-    Graph_value value = get_graph_value_from_mask_(ochar_mask);
-
-    if (value < val__) {
-      freq__->lower += leaf_ref->vectorP_[pos__];
-      freq__->higher += leaf_ref->vectorP_[pos__];
-    } else if (value == val__) {
-      freq__->higher += leaf_ref->vectorP_[pos__];
+    value = get_graph_value_from_mask_(ochar_mask);
+    if (value == VALUE_$) {
+      return;
     }
+    cnt++;
 
-    freq__->total += leaf_ref->vectorP_[pos__++];
-    l_bit = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
-  } while (!l_bit);
+    freq__->symbol_[value] = leaf_ref->vectorP_[pos];
+    freq__->total_ += leaf_ref->vectorP_[pos];
 
-  printf("%d\n", pos__);
-  ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
-        (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
-        (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
+    l_bit = leaf_ref->vectorL_ >> (31 - pos++) & 0x1;
+    if (l_bit) break;
+  } while (1);
 
-  Graph_value value = get_graph_value_from_mask_(ochar_mask);
+  freq__->symbol_[VALUE_ESC] = cnt;
+  freq__->total_ += cnt;
+}
 
-  if (value < val__) {
-    freq__->lower += leaf_ref->vectorP_[pos__];
-    freq__->higher += leaf_ref->vectorP_[pos__];
-  } else if (value == val__) {
-    freq__->higher += leaf_ref->vectorP_[pos__];
-  }
-
-  freq__->total += leaf_ref->vectorP_[pos__];
-}*/
+#endif  // ENABLE_CLEVER_NODE_SPLIT

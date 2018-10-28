@@ -6,11 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "defines.h"
+
 #define bool uint8_t
 #define true 1
 #define false 0
-
-#define VERBOSE_ false
 
 #define UNREACHABLE assert(0);
 #define UNUSED(var) (void)(var)

@@ -1,5 +1,5 @@
 CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -pg
+CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -g
 CFLAGS += -Wno-error=unused-function -Wno-unused-function
 #CFLAGS += -Wpointer-arith -Wcast-align -Wwrite-strings
 #CFLAGS += -Wswitch-default -Wunreachable-code -Winit-self

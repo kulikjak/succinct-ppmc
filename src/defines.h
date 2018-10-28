@@ -1,0 +1,101 @@
+#ifndef _DEFINES__
+#define _DEFINES__
+
+/* Make whole program verbose. */
+#define VERBOSE_ false
+
+/* Make parts of the program verbose
+ * If VERBOSE_ is set to true, these values are ignored.
+ */ 
+#define MEMORY_VERBOSE_ false
+#define STRUCTURE_VERBOSE_ false
+#define DEBRUIJN_VERBOSE_ false
+#define COMPRESSOR_VERBOSE_ false
+
+/* number of preallocated block pointers */
+#define INITIAL_BLOCK_COUNT_ 2
+/* Number of elements per memory block - must be power of two! */
+#define MEMORY_BLOCK_SIZE_ 4
+/* log2 of MEMORY_BLOCK_SIZE_ */
+#define MEMORY_BLOCK_SIZE_LOG_ 2
+
+/* Length of the PPMC context */
+#define CONTEXT_LENGTH 6
+
+/*
+ * Size of stack used for tree traversal. Stack must be atleast as big as
+ * maximum expected tree depth. If balanding is not enabled, this number should
+ * be much bigger.
+ */
+#define MAX_STACK_SIZE 64
+
+/**************** OPTIMIZATION DEFINES **********************
+ *
+ * Make underlying structure tree balanced with red black tree algorithm.
+ * Without this tree can (in the worst case) become a linear array with greatly
+ * reduced performance */
+#define ENABLE_RED_BLACK_BALANCING
+
+/* When splitting nodes, always keep transitions form one node in the same leaf.
+ * This can increase used memory by a little bit, but can improve performance.
+ * Operations line finding transision in given node or getting frequnecy of
+ * transitions in given node can than find everything in one leaf and doesn't
+ * have to search for each transition separately. */
+#define ENABLE_CLEVER_NODE_SPLIT
+
+
+/**************** ARITHMETIC CODING DEFINES **********************
+ *
+ * from bitio.h:
+ * Normally count input and output bytes so program can report stats.
+ * With FAST_BITIO set, no counting is maintained, which means file sizes
+ * reported with the '-v' option will be meaningless, but should improve
+ * speed slightly.
+ *
+ * This is not useful for anything in this algorithm and therefore FAST_BITIO
+ * can be enabled without any functionality loss.
+ */
+#define FAST_BITIO
+
+/*
+ * from arith.c:
+ * The following arithmetic coding routines contain two different
+ * methods for doing the required arithmetic. The first method uses
+ * multiplication and division, the second simulates it with shifts and adds.
+ *
+ * Shifting method has much bigger output files (bigger than input files) and
+ * should not be used -> this define should be enabled.
+ */
+#define MULT_DIV
+
+/******************* END OF ADJUSTABLE DEFINES *******************/
+
+#ifndef VERBOSE_
+  #define VERBOSE_ false
+#endif
+
+#if VERBOSE_
+  #undef MEMORY_VERBOSE_
+  #define MEMORY_VERBOSE_ true
+  #undef STRUCTURE_VERBOSE_
+  #define STRUCTURE_VERBOSE_ true
+  #undef DEBRUIJN_VERBOSE_
+  #define DEBRUIJN_VERBOSE_ true
+  #undef COMPRESSOR_VERBOSE_
+  #define COMPRESSOR_VERBOSE_ true
+#else
+  #ifndef MEMORY_VERBOSE_
+    #define MEMORY_VERBOSE_ false
+  #endif
+  #ifndef STRUCTURE_VERBOSE_
+    #define STRUCTURE_VERBOSE_ false
+  #endif
+  #ifndef DEBRUIJN_VERBOSE_
+    #define DEBRUIJN_VERBOSE_ false
+  #endif
+  #ifndef COMPRESSOR_VERBOSE_
+    #define COMPRESSOR_VERBOSE_ false
+  #endif  
+#endif
+
+#endif  // _DEFINES__

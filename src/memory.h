@@ -5,17 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
-// this number must be power of two!
-#define MEMORY_BLOCK_SIZE_ 4
-// log2 of above defined variable
-#define MEMORY_BLOCK_SIZE_LOG_ 2
-
-// number of block pointers preallocated
-#define INITIAL_BLOCK_COUNT_ 2
-
-#define MEMORY_VERBOSE_ false
-
-// ------------------------------------------------------------------------- //
+#include "defines.h"
 
 #define MEMORY_VERBOSE(func) \
   if (MEMORY_VERBOSE_) {     \

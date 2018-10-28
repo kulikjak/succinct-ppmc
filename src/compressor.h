@@ -1,13 +1,12 @@
 #ifndef _COMPRESSOR__
 #define _COMPRESSOR__
 
-#include "tracker.h"
+#include "defines.h"
 #include "deBruijn.h"
+#include "tracker.h"
 
 #include "arith/bitio.h"
 #include "arith/arith.h"
-
-#define COMPRESSOR_VERBOSE false
 
 typedef struct {
   deBruijn_graph dB_;

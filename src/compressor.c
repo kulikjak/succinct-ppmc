@@ -1,7 +1,7 @@
 #include "compressor.h"
 
 void compressor_debug(char* info__) {
-  if (COMPRESSOR_VERBOSE)
+  if (COMPRESSOR_VERBOSE_)
     fprintf(stderr, "%s\n", info__);
 }
 
@@ -69,12 +69,13 @@ Graph_value Decompressor_decode_(decompressor* D__, int32_t idx__) {
   int32_t target, lower, upper;
 
   deBruijn_Get_symbol_frequency(&(D__->dB_), idx__, &freq);
-  target = arithmetic_decode_target(freq.total_);
 
   if (freq.total_ == 0) {
+    target = arithmetic_decode_target(1);
     arithmetic_decode(0, 1, 1);
     return VALUE_ESC;
   }  
+  target = arithmetic_decode_target(freq.total_);
 
   for (upper = 0, i = VALUE_A; i <= VALUE_ESC; i++) {
     lower = upper;
@@ -158,8 +159,6 @@ int32_t Compressor_Compress_symbol_aux_(compressor *C__, int32_t idx__, Graph_va
   int32_t prev_node, x;
   int32_t transition;
   Graph_Line line;
-
-  UNUSED(ctx_len__);
 
   // check if transition exist from this node via given symbol
   transition = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__);

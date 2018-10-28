@@ -155,6 +155,7 @@ TEST(StructBinaryVector, CorrectMixedInsertion) {
   _test_binary_vector(&Graph, sequence);
 }
 
+#ifdef ENABLE_CLEVER_NODE_SPLIT
 TEST(StructBinaryVector, CorrectCleverNodeSplit) {
   int8_t bit;
   int32_t i;
@@ -167,6 +168,7 @@ TEST(StructBinaryVector, CorrectCleverNodeSplit) {
   }
   TEST_ASSERT_EQUAL_INT32(test_clever_node_split(&Graph), true);
 }
+#endif
 
 TEST_GROUP_RUNNER(StructBinaryVector) {
   RUN_TEST_CASE(StructBinaryVector, CorrectFrontInsertion);
@@ -174,5 +176,8 @@ TEST_GROUP_RUNNER(StructBinaryVector) {
   RUN_TEST_CASE(StructBinaryVector, CorrectFrontRearInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectRearFrontInsertion);
   RUN_TEST_CASE(StructBinaryVector, CorrectMixedInsertion);
+
+#ifdef ENABLE_CLEVER_NODE_SPLIT
   RUN_TEST_CASE(StructBinaryVector, CorrectCleverNodeSplit);
+#endif
 }

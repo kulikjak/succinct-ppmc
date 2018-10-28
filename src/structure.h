@@ -45,7 +45,6 @@
     r1->rWs_ = r2->rWs_ op r3->rWs_;     \
   }
 
-
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
 
 typedef enum {
@@ -71,11 +70,13 @@ typedef struct {
   uint32_t P_;
 } Graph_Line;
 
+typedef struct {
+  uint32_t symbol_[SYMBOL_COUNT+1];
+  uint32_t total_;
+} cfreq;
+
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
-
-//#define DISABLE_RED_BLACK_BALANCING
-//#define DISABLE_CLEVER_NODE_SPLIT
 
 int32_t get_mask_from_char_(char symb__);
 int32_t get_mask_from_graph_value_(Graph_value val__);
@@ -188,7 +189,9 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__);
  */
 void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
 
-//void Graph_Get_cumulative_frequency(GraphRef Graph__, uint32_t pos__, Graph_value val__, cfreq* freq__);
+#ifdef ENABLE_CLEVER_NODE_SPLIT
+  void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__);
+#endif
 
 #ifdef _UNITY
 

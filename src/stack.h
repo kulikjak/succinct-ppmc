@@ -8,9 +8,6 @@
 
 #include "utils.h"
 
-// used for tree traversal
-#define MAX_STACK_SIZE 64
-
 // global stack
 typedef struct stack_32b {
   int32_t stack_[MAX_STACK_SIZE];

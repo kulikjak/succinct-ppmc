@@ -221,7 +221,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
     // handle finding of all the labels
     if (labels__) {
       label[CONTEXT_LENGTH] = 0;
-      deBruijn_Label(dB__, i, label);
+      //deBruijn_Label(dB__, i, label);
 
       printf("%s  ", label);
       for (j = 0; j < 5 - CONTEXT_LENGTH; j++) {
@@ -332,6 +332,9 @@ int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__) {
 }
 
 void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* freq__) {
+#ifdef ENABLE_CLEVER_NODE_SPLIT
+  Graph_Get_symbol_frequency(&(dB__->Graph_), idx__, freq__);
+#else
   int32_t idx, cnt;
   Graph_value i;
   Graph_Line line;
@@ -352,4 +355,5 @@ void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* 
 
   freq__->symbol_[VALUE_ESC] = cnt;
   freq__->total_ += cnt;
+#endif
 }

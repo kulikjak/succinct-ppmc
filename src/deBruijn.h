@@ -7,9 +7,6 @@
 #include "structure.h"
 #include "utils.h"
 
-// Length of the PPMC context (not used yet)
-#define CONTEXT_LENGTH 4
-
 // Define to hide leading $ signs in Label print and function
 #define OMIT_EXCESSIVE_DOLLAR_SIGNS_
 
@@ -42,11 +39,6 @@ typedef struct {
     int32_t *arr_[CONTEXT_LENGTH + 4];
   } tracker_;
 } deBruijn_graph;
-
-typedef struct {
-  uint32_t symbol_[SYMBOL_COUNT+1];
-  uint32_t total_;
-} cfreq;
 
 /*
  * Initialize deBruijn_graph object.
