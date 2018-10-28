@@ -191,6 +191,7 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
   void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__);
+  int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 #endif
 
 #ifdef _UNITY

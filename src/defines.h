@@ -20,7 +20,7 @@
 #define MEMORY_BLOCK_SIZE_LOG_ 2
 
 /* Length of the PPMC context */
-#define CONTEXT_LENGTH 6
+#define CONTEXT_LENGTH 4
 
 /*
  * Size of stack used for tree traversal. Stack must be atleast as big as
@@ -38,11 +38,20 @@
 
 /* When splitting nodes, always keep transitions form one node in the same leaf.
  * This can increase used memory by a little bit, but can improve performance.
- * Operations line finding transision in given node or getting frequnecy of
- * transitions in given node can than find everything in one leaf and doesn't
- * have to search for each transition separately. */
+ * Operations line finding transition in given node or getting frequency of
+ * transitions in given node can find everything in one leaf and doesn't have
+ * to search for each transition separately. */
 #define ENABLE_CLEVER_NODE_SPLIT
 
+/* These define the way of how context shortening is handled.
+ * EXPLICIT_CONTEXT_SHORTENING calculates context each time shortening occurs.
+ * INTEGER_CONTEXT_SHORTENING saves context sizes in integer variables.
+ * RAS_CONTEXT_SHORTENING builds RaS structure above integer sizes.
+ *
+ * Exacly one of those must be specified */
+#define EXPLICIT_CONTEXT_SHORTENING
+//#define INTEGER_CONTEXT_SHORTENING
+//#define RAS_CONTEXT_SHORTENING
 
 /**************** ARITHMETIC CODING DEFINES **********************
  *
@@ -96,6 +105,29 @@
   #ifndef COMPRESSOR_VERBOSE_
     #define COMPRESSOR_VERBOSE_ false
   #endif  
+#endif
+
+#ifdef EXPLICIT_CONTEXT_SHORTENING
+  #ifdef INTEGER_CONTEXT_SHORTENING
+    #error "Exacly one context shortening algorithm must be specified."
+  #endif
+  #ifdef RAS_CONTEXT_SHORTENING
+    #error "Exacly one context shortening algorithm must be specified."
+  #endif
+#endif
+
+#ifdef INTEGER_CONTEXT_SHORTENING
+  #ifdef RAS_CONTEXT_SHORTENING
+    #error "Exacly one context shortening algorithm must be specified."
+  #endif
+#endif
+
+#ifndef EXPLICIT_CONTEXT_SHORTENING
+  #ifndef INTEGER_CONTEXT_SHORTENING
+    #ifndef RAS_CONTEXT_SHORTENING
+      #error "Exacly one context shortening algorithm must be specified."
+    #endif
+  #endif
 #endif
 
 #endif  // _DEFINES__

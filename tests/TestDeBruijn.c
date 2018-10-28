@@ -30,8 +30,6 @@ TEST(deBruijn, BasicStaticTest) {
   const int32_t resShorten1[] = {-1, -1, -1, -1, 3,  3,  3, -1, 7,  7,  -1, 10, 10, 10, 10};
   const int32_t resShorten2[] = {-1, -1, -1, -1, -1, -1, 5, -1, -1, 8,  -1, -1, -1, -1, 13};
 
-  const int32_t resContextLen[] = {0, 0, 0, 1, 1, 2, 3, 1, 2, 3, 1, 1, 2, 2, 3};
-
   deBruijn_Free(&dB);
   deBruijn_Insert_test_data(&dB, L, W, P, F, 15);
 
@@ -48,8 +46,6 @@ TEST(deBruijn, BasicStaticTest) {
 
     TEST_ASSERT_EQUAL_INT32(resShorten1[i], deBruijn_Shorten_context(&dB, i, 1));
     TEST_ASSERT_EQUAL_INT32(resShorten2[i], deBruijn_Shorten_context(&dB, i, 2));
-
-    TEST_ASSERT_EQUAL_INT32(resContextLen[i], deBruijn_get_context_len_(&dB, i));
   }
 }
 

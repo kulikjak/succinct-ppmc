@@ -33,11 +33,6 @@ typedef struct {
   Graph_Struct Graph_;
 
   int32_t depth;
-
-  struct {
-    int32_t cnt_;
-    int32_t *arr_[CONTEXT_LENGTH + 4];
-  } tracker_;
 } deBruijn_graph;
 
 /*
@@ -214,10 +209,6 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
 void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
                                const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
                                const int32_t size__);
-
-
-
-int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__);
 
 
 // make hidden function visible to unit testing framework

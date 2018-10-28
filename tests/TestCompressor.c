@@ -10,7 +10,7 @@ TEST_GROUP(compressor);
 
 #define compressor_RANDOM_TEST_VERBOSE false
 #define compressor_RANDOM_TEST_MAX_SEQ_SIZE 300
-#define compressor_RANDOM_TEST_POOL_SIZE 1
+#define compressor_RANDOM_TEST_POOL_SIZE 300
 
 #define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
 
@@ -123,7 +123,7 @@ TEST(compressor, RandomTest) {
       Compressor_Compress_symbol(&C, dna[i]);
     }
 
-    deBruijn_Print(&(C.dB_), true);
+    //deBruijn_Print(&(C.dB_), true);
 
     end_compressor();
     start_decompressor(filename);

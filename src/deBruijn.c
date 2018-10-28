@@ -106,6 +106,9 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__) {
 }
 
 int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
+#ifdef ENABLE_CLEVER_NODE_SPLIT
+  return Graph_Find_Edge(&(dB__->Graph_), idx__, gval__);
+#else
   int32_t node_id, last_pos, range, select, temp;
 
   // get last edge index for this node
@@ -122,6 +125,7 @@ int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
   // check if this position is in the range (transition exist)
   if (last_pos - range <= select) return select;
   return -1;
+#endif
 }
 
 int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
@@ -241,9 +245,6 @@ void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, con
 
   Graph_Init(&(dB__->Graph_));
 
-  // initialize variable tracker
-  dB__->tracker_.cnt_ = 0;
-
   // insert test data
   for (i = 0; i < size__; i++) {
     GLine_Fill(&line, L__[i], W__[i], P__[i]);
@@ -291,6 +292,15 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__,
 }
 
 int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__) {
+#ifdef RAS_CONTEXT_SHORTENING
+
+#endif
+
+#ifdef INTEGER_CONTEXT_SHORTENING
+
+#endif
+
+#ifdef EXPLICIT_CONTEXT_SHORTENING
   // if this is root node it is not possible to shorten context
   if (idx__ < dB__->F_[0]) return -1;
 
@@ -314,21 +324,7 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 
   UNREACHABLE
   return 0;
-}
-
-int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__) {
-  int8_t symbol;
-  int32_t count = 0;
-
-  do {
-    symbol = GET_VALUE_FROM_IDX(idx__, dB__);
-    if (symbol == 4) break;
-
-    count++;
-    idx__ = deBruijn_Backward_(dB__, idx__);
-  } while (idx__ != -1);
-
-  return count;
+#endif
 }
 
 void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* freq__) {
@@ -357,3 +353,18 @@ void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* 
   freq__->total_ += cnt;
 #endif
 }
+
+/*int32_t deBruijn_get_context_len_(deBruijn_graph *dB__, int32_t idx__) {
+  int8_t symbol;
+  int32_t count = 0;
+
+  do {
+    symbol = GET_VALUE_FROM_IDX(idx__, dB__);
+    if (symbol == 4) break;
+
+    count++;
+    idx__ = deBruijn_Backward_(dB__, idx__);
+  } while (idx__ != -1);
+
+  return count;
+}*/

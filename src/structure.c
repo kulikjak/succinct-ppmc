@@ -205,7 +205,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       split_mask = 0x3FFF;
       split_offset = 2;
     } else {
-      FATAL("Node split unsuccessful, structure is corrupted.");
+      //FATAL("Node split unsuccessful, structure is corrupted.");
     }
 #endif
 
@@ -624,6 +624,63 @@ void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__)
 
   freq__->symbol_[VALUE_ESC] = cnt;
   freq__->total_ += cnt;
+}
+
+int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
+  mem_ptr temp;
+  mem_ptr current = Graph__->root_;
+  Graph_value value;
+  int32_t l_bit, ochar_mask;
+
+  NodeRef node_ref;
+  LeafRef leaf_ref;
+
+  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
+  int32_t backup = (int32_t)pos__;
+  assert(pos__ < node_ref->p_);
+
+  // traverse the tree and enter correct leaf
+  while (!IS_LEAF(current)) {
+    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
+
+    // get p_ counter of left child and act accordingly
+    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
+    if ((uint32_t)temp > pos__) {
+      current = node_ref->left_;
+    } else {
+      pos__ -= temp;
+      current = node_ref->right_;
+    }
+  }
+
+  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+
+  // get to the beginning of this node
+  int32_t pos = (int32_t)pos__;
+  pos --;
+  while (pos >= 0) {
+    l_bit = leaf_ref->vectorL_ >> (31 - pos) & 0x1;
+    if (l_bit) break;
+    pos --;
+  }
+  pos ++;
+
+  // go through all transitions in this node
+  do {
+    ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos) & 0x1) |
+          (leaf_ref->vectorWl1_ >> (31 - pos) & 0x1) << 0x1 |
+          (leaf_ref->vectorWl0_ >> (31 - pos) & 0x1) << 0x2;
+
+    value = get_graph_value_from_mask_(ochar_mask);
+    if (value == val__) {
+      return backup + (pos - (int32_t)pos__);
+    }
+
+    l_bit = leaf_ref->vectorL_ >> (31 - pos++) & 0x1;
+    if (l_bit) break;
+  } while (1);
+
+  return -1;
 }
 
 #endif  // ENABLE_CLEVER_NODE_SPLIT

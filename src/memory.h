@@ -70,6 +70,11 @@ typedef struct {
   uint32_t vectorWl1_;
   uint32_t vectorWl2_;
   uint32_t vectorP_[32];
+
+#ifdef INTEGER_CONTEXT_SHORTENING
+  uint32_t context_[32];
+#endif
+
 } leaf_32e;
 
 #define NodeRef node_32e*
