@@ -1,39 +1,5 @@
 #include "structure.h"
 
-int32_t get_mask_from_graph_value_(Graph_value val__) {
-  switch (val__) {
-    case VALUE_A:
-      return 0;
-    case VALUE_C:
-      return 2;
-    case VALUE_G:
-      return 4;
-    case VALUE_T:
-      return 6;
-    case VALUE_$:
-      return 7;
-  }
-  FATAL("Unexpected symbol");
-  return 0;
-}
-
-char get_graph_value_from_mask_(int32_t mask__) {
-  switch (mask__) {
-    case 0:
-      return VALUE_A;
-    case 2:
-      return VALUE_C;
-    case 4:
-      return VALUE_G;
-    case 6:
-      return VALUE_T;
-    case 7:
-      return VALUE_$;
-  }
-  FATAL("Unexpected mask");
-  return 0;
-}
-
 void Graph_Init(GraphRef Graph__) {
   Graph__->mem_ = Memory_init();
   Graph__->root_ = Memory_new_leaf(Graph__->mem_);
@@ -47,46 +13,6 @@ void Graph_Init(GraphRef Graph__) {
 void Graph_Free(GraphRef Graph__) {
   Graph__->root_ = -1;
   Memory_free(&(Graph__->mem_));
-}
-
-void print_graph_aux_(GraphRef Graph__, mem_ptr ptr__) {
-  NodeRef any = MEMORY_GET_ANY(Graph__->mem_, ptr__);
-  printf("ptr: %d counters: %d %d %d %d %d %d ", ptr__, any->p_, any->rL_, any->rW_, any->rWl_, any->rWh_, any->rWs_);
-
-  if (IS_LEAF(ptr__)) {
-    printf("leaf B\n");
-  } else {
-    printf("node %c\n children: %d %d\n", ((any->rb_flag_) ? 'R' : 'B'), any->left_, any->right_);
-
-    print_graph_aux_(Graph__, any->left_);
-    print_graph_aux_(Graph__, any->right_);
-  }
-}
-
-void print_graph(GraphRef Graph__) {
-  print_graph_aux_(Graph__, Graph__->root_);
-}
-
-bool test_clever_node_split_aux(GraphRef Graph__, mem_ptr ptr__) {
-  LeafRef leaf;
-  NodeRef node;
-
-  if (IS_LEAF(ptr__)) {
-    leaf = MEMORY_GET_LEAF(Graph__->mem_, ptr__);
-    if (!(leaf->vectorL_ >> (32 - leaf->p_) & 0x1))
-      return false;
-
-  } else {
-    node = MEMORY_GET_NODE(Graph__->mem_, ptr__);
-    if (!test_clever_node_split_aux(Graph__, node->left_))
-      return false;
-    return test_clever_node_split_aux(Graph__, node->right_);
-  }
-  return true;
-}
-
-bool test_clever_node_split(GraphRef Graph__) {
-  return test_clever_node_split_aux(Graph__, Graph__->root_);
 }
 
 void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
@@ -139,7 +65,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   VERBOSE(fprintf(stderr, "Inserting new line on position %u\n", pos__);)
 
   // traverse the tree and enter correct leaf
-  int32_t mask = get_mask_from_graph_value_(line__->W_);
+  int32_t mask = GET_MASK_FROM_VALUE(line__->W_);
   int32_t current = Graph__->root_;
 
   while (!IS_LEAF(current)) {
@@ -446,7 +372,7 @@ void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
                  (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
 
   line__->L_ = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
-  line__->W_ = get_graph_value_from_mask_(wavelet_mask);
+  line__->W_ = GET_VALUE_FROM_MASK(wavelet_mask);
   line__->P_ = leaf_ref->vectorP_[pos__];
 }
 
@@ -502,7 +428,7 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
 
   // get masks for both characters
-  nchar_mask = get_mask_from_graph_value_(val__);
+  nchar_mask = GET_MASK_FROM_VALUE(val__);
   ochar_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
                (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
                (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
@@ -609,7 +535,7 @@ void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__)
           (leaf_ref->vectorWl1_ >> (31 - pos) & 0x1) << 0x1 |
           (leaf_ref->vectorWl0_ >> (31 - pos) & 0x1) << 0x2;
 
-    value = get_graph_value_from_mask_(ochar_mask);
+    value = GET_VALUE_FROM_MASK(ochar_mask);
     if (value == VALUE_$) {
       return;
     }
@@ -671,7 +597,7 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
           (leaf_ref->vectorWl1_ >> (31 - pos) & 0x1) << 0x1 |
           (leaf_ref->vectorWl0_ >> (31 - pos) & 0x1) << 0x2;
 
-    value = get_graph_value_from_mask_(ochar_mask);
+    value = GET_VALUE_FROM_MASK(ochar_mask);
     if (value == val__) {
       return backup + (pos - (int32_t)pos__);
     }
@@ -684,3 +610,44 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 }
 
 #endif  // ENABLE_CLEVER_NODE_SPLIT
+
+
+void print_graph_aux_(GraphRef Graph__, mem_ptr ptr__) {
+  NodeRef any = MEMORY_GET_ANY(Graph__->mem_, ptr__);
+  printf("ptr: %d counters: %d %d %d %d %d %d ", ptr__, any->p_, any->rL_, any->rW_, any->rWl_, any->rWh_, any->rWs_);
+
+  if (IS_LEAF(ptr__)) {
+    printf("leaf B\n");
+  } else {
+    printf("node %c\n children: %d %d\n", ((any->rb_flag_) ? 'R' : 'B'), any->left_, any->right_);
+
+    print_graph_aux_(Graph__, any->left_);
+    print_graph_aux_(Graph__, any->right_);
+  }
+}
+
+void print_graph(GraphRef Graph__) {
+  print_graph_aux_(Graph__, Graph__->root_);
+}
+
+bool test_clever_node_split_aux(GraphRef Graph__, mem_ptr ptr__) {
+  LeafRef leaf;
+  NodeRef node;
+
+  if (IS_LEAF(ptr__)) {
+    leaf = MEMORY_GET_LEAF(Graph__->mem_, ptr__);
+    if (!(leaf->vectorL_ >> (32 - leaf->p_) & 0x1))
+      return false;
+
+  } else {
+    node = MEMORY_GET_NODE(Graph__->mem_, ptr__);
+    if (!test_clever_node_split_aux(Graph__, node->left_))
+      return false;
+    return test_clever_node_split_aux(Graph__, node->right_);
+  }
+  return true;
+}
+
+bool test_clever_node_split(GraphRef Graph__) {
+  return test_clever_node_split_aux(Graph__, Graph__->root_);
+}

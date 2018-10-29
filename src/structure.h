@@ -4,8 +4,26 @@
 #include "memory.h"
 #include "stack.h"
 #include "utils.h"
+#include "defines.h"
+
+#define STRUCTURE_VERBOSE(func) \
+  if (STRUCTURE_VERBOSE_) {     \
+    func                        \
+  }
 
 #define SYMBOL_COUNT 4
+
+#define GET_MASK_FROM_VALUE(symb__)  \
+      (((symb__) == VALUE_A) ? 0     \
+    : ((symb__) == VALUE_C) ? 2      \
+    : ((symb__) == VALUE_G) ? 4      \
+    : ((symb__) == VALUE_T) ? 6 : 7)
+
+#define GET_VALUE_FROM_MASK(mask__)        \
+      (((mask__) == 0) ? VALUE_A           \
+    : ((mask__) == 2) ? VALUE_C            \
+    : ((mask__) == 4) ? VALUE_G            \
+    : ((mask__) == 6) ? VALUE_T : VALUE_$)
 
 #define INSERT_BIT(vector, counter, pos, value)                          \
   {                                                                      \
