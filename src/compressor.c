@@ -6,10 +6,20 @@ void Process_Init(compressor* C__) {
 
   C__->depth_ = 0;
   C__->state_ = 0;
+
+#if defined(ENABLE_LOOKUP_CACHE) \
+  && defined(ENABLE_CACHE_STATS)
+  cache_stats_prep();
+#endif
 }
 
 void Process_Free(compressor * C__) {
   deBruijn_Free(&(C__->dB_));
+
+#if defined(ENABLE_LOOKUP_CACHE) \
+  && defined(ENABLE_CACHE_STATS)
+    cache_stats_print();
+#endif
 }
 
 void Compressor_encode_(compressor* C__, int32_t pos__, Graph_value gval__) {  

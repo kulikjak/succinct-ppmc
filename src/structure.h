@@ -3,6 +3,7 @@
 
 #include "memory.h"
 #include "stack.h"
+#include "cache.h"
 #include "utils.h"
 #include "defines.h"
 
@@ -116,24 +117,28 @@ typedef struct {
   if (with_stack) STACK_CLEAN();                                         \
   mem_ptr Xtemp;                                                         \
   current = Graph__->root_;                                              \
-  NodeRef Xnode_ref = MEMORY_GET_ANY(Graph__->mem_, current);            \
-  assert(pos__ < Xnode_ref->p_);                                         \
+  uint32_t backup = pos__;                                               \
+  if (with_stack || !lookup_cache(&pos__, &leaf_ref)) {                  \
+    NodeRef Xnode_ref = MEMORY_GET_ANY(Graph__->mem_, current);          \
+    assert(pos__ < Xnode_ref->p_);                                       \
                                                                          \
-  /* traverse the tree and enter correct leaf */                         \
-  while (!IS_LEAF(current)) {                                            \
-    if (with_stack) STACK_PUSH(current);                                 \
-    Xnode_ref = MEMORY_GET_NODE(Graph__->mem_, current);                 \
+    /* traverse the tree and enter correct leaf */                       \
+    while (!IS_LEAF(current)) {                                          \
+      if (with_stack) STACK_PUSH(current);                               \
+      Xnode_ref = MEMORY_GET_NODE(Graph__->mem_, current);               \
                                                                          \
-    /* get p_ counter of left child and act accordingly */               \
-    Xtemp = MEMORY_GET_ANY(Graph__->mem_, Xnode_ref->left_)->p_;         \
-    if ((uint32_t)Xtemp > pos__) {                                       \
-      current = Xnode_ref->left_;                                        \
-    } else {                                                             \
-      pos__ -= Xtemp;                                                    \
-      current = Xnode_ref->right_;                                       \
+      /* get p_ counter of left child and act accordingly */             \
+      Xtemp = MEMORY_GET_ANY(Graph__->mem_, Xnode_ref->left_)->p_;       \
+      if ((uint32_t)Xtemp > pos__) {                                     \
+        current = Xnode_ref->left_;                                      \
+      } else {                                                           \
+        pos__ -= Xtemp;                                                  \
+        current = Xnode_ref->right_;                                     \
+      }                                                                  \
     }                                                                    \
+    leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);                  \
+    add_to_cache(backup, pos__, leaf_ref);                               \
   }                                                                      \
-  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);                    \
 }
 
 #define WITH_STACK true

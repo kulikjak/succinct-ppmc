@@ -8,6 +8,10 @@ void Graph_Init(GraphRef Graph__) {
 
   // memset each leaf variable to zero
   memset(&(leaf_ref->p_), 0, sizeof(leaf_32e));
+
+#ifdef ENABLE_LOOKUP_CACHE
+  reset_cache();
+#endif
 }
 
 void Graph_Free(GraphRef Graph__) {
@@ -64,6 +68,10 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   bool parent_left, grandparent_left;
 
   assert(pos__ <= MEMORY_GET_ANY(Graph__->mem_, Graph__->root_)->p_);
+
+#ifdef ENABLE_LOOKUP_CACHE
+  reset_cache();
+#endif
 
   STACK_CLEAN();
 

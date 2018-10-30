@@ -47,9 +47,11 @@
 
 /* Use cache for leaf lookup when performing rank, select and other tree
  * related operations */
-#define ENABLE_LOOKUP_CACHE
+//#define ENABLE_LOOKUP_CACHE
 /* Size of the lookup cache */
 #define CACHE_SIZE 1
+/* Calculate number of cache hits and misses */
+#define ENABLE_CACHE_STATS
 
 /* These define the way of how context shortening is handled.
  * EXPLICIT_CONTEXT_SHORTENING calculates context each time shortening occurs.
