@@ -15,7 +15,6 @@ TEST_GROUP(compressor);
 #define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
 
 compressor C;
-decompressor D;
 
 FILE *ofp, *ifp;
 
@@ -25,7 +24,8 @@ void start_compressor(const char* filename__) {
     fprintf(stderr, "Can't open file %s!\n", filename__);
     exit(1);
   }
-  Compressor_Init(&C, ofp);
+  Process_Init(&C);
+  Compression_Start(ofp);
 }
 void start_decompressor(const char* filename__) {
   ifp = fopen(filename__, "rb");
@@ -33,15 +33,18 @@ void start_decompressor(const char* filename__) {
     fprintf(stderr, "Can't open file %s!\n", filename__);
     exit(1);
   }
-  Decompressor_Init(&D, ifp);
+  Process_Init(&C);
+  Decompression_Start(ifp);
 }
 
 void end_compressor() {
-  Compressor_Finalize(&C);
+  Process_Free(&C);
+  Compression_Finalize();
   fclose(ofp);
 }
 void end_decompressor() {
-  Decompressor_Finalize(&D);
+  Process_Free(&C);
+  Decompression_Finalize();
   fclose(ifp);
 }
 
@@ -76,23 +79,23 @@ TEST(compressor, StaticTest) {
   start_decompressor("tmp/static_test.bin");
 
   Graph_value val;
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_C);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_C);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_C);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_G);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_T);
-  Decompressor_Decompress_symbol(&D, &val);
+  Decompressor_Decompress_symbol(&C, &val);
   TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
 
   end_decompressor();
@@ -129,7 +132,7 @@ TEST(compressor, RandomTest) {
     start_decompressor(filename);
 
     for (i = 0; i < len; i++) {
-      Decompressor_Decompress_symbol(&D, &val);
+      Decompressor_Decompress_symbol(&C, &val);
       TEST_ASSERT_EQUAL_INT32(dna[i], val);
     }
 
