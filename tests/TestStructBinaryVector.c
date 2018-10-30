@@ -156,6 +156,22 @@ TEST(StructBinaryVector, CorrectMixedInsertion) {
 }
 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
+
+void test_node_split_(mem_ptr ptr__) {
+  LeafRef leaf;
+  NodeRef node;
+
+  if (IS_LEAF(ptr__)) {
+    leaf = MEMORY_GET_LEAF(Graph.mem_, ptr__);
+    TEST_ASSERT_TRUE((leaf->vectorL_ >> (32 - leaf->p_) & 0x1))
+
+  } else {
+    node = MEMORY_GET_NODE(Graph.mem_, ptr__);
+    test_node_split_(node->left_);
+    test_node_split_(node->right_);
+  }
+}
+
 TEST(StructBinaryVector, CorrectCleverNodeSplit) {
   int8_t bit;
   int32_t i;
@@ -166,7 +182,8 @@ TEST(StructBinaryVector, CorrectCleverNodeSplit) {
     GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
     GLine_Insert(&Graph, 0, &line);
   }
-  TEST_ASSERT_EQUAL_INT32(test_clever_node_split(&Graph), true);
+
+  test_node_split_(Graph.root_);
 }
 #endif
 

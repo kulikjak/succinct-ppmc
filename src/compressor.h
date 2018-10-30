@@ -40,7 +40,6 @@ void Compressor_Init(compressor* C__, FILE* ofp__);
  */
 void Compressor_Finalize(compressor * C__);
 
-
 /*
  * Initialize decompressor.
  *
@@ -77,7 +76,7 @@ void Compressor_Compress_symbol(compressor *C__, Graph_value gval__);
 /*
  * Decompress symbol.
  *
- * @param  C__  Reference to compressor object.
+ * @param  D__  Reference to compressor object.
  * @param  gval__ [out] Additional symbol (Graph_value).
  */
 void Decompressor_Decompress_symbol(decompressor *D__, Graph_value* gval__);

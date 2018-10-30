@@ -96,9 +96,48 @@ typedef struct {
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
 
-int32_t get_mask_from_char_(char symb__);
-int32_t get_mask_from_graph_value_(Graph_value val__);
-char get_char_from_mask_(int32_t mask__);
+/* Defines for rank and select macro expansion */
+#define EXPAND_L 0
+#define EXPAND_WTOP 1
+#define EXPAND_WLEFT 2
+#define EXPAND_WRIGHT 3
+#define EXPAND_WBOTTOM 4
+
+/*
+ * Macro that contains whole tree search loop.
+ *
+ * @param  Graph__  [In] Reference to graph structure.
+ * @param  pos__  [In/Out] Query position -> position within the leaf.
+ * @param  current  [Out] mem_ptr set to correct leaf.
+ * @param  leaf_ref  [Out] Actual LeafRef set to correct leaf.
+ * @param  with_stack  If stack should be used (filled) during the query
+ */
+#define GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, with_stack) { \
+  if (with_stack) STACK_CLEAN();                                         \
+  mem_ptr Xtemp;                                                         \
+  current = Graph__->root_;                                              \
+  NodeRef Xnode_ref = MEMORY_GET_ANY(Graph__->mem_, current);            \
+  assert(pos__ < Xnode_ref->p_);                                         \
+                                                                         \
+  /* traverse the tree and enter correct leaf */                         \
+  while (!IS_LEAF(current)) {                                            \
+    if (with_stack) STACK_PUSH(current);                                 \
+    Xnode_ref = MEMORY_GET_NODE(Graph__->mem_, current);                 \
+                                                                         \
+    /* get p_ counter of left child and act accordingly */               \
+    Xtemp = MEMORY_GET_ANY(Graph__->mem_, Xnode_ref->left_)->p_;         \
+    if ((uint32_t)Xtemp > pos__) {                                       \
+      current = Xnode_ref->left_;                                        \
+    } else {                                                             \
+      pos__ -= Xtemp;                                                    \
+      current = Xnode_ref->right_;                                       \
+    }                                                                    \
+  }                                                                      \
+  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);                    \
+}
+
+#define WITH_STACK true
+#define WITHOUT_STACK false
 
 /*
  * Initialize Graph_Struct object given as argument.
@@ -171,29 +210,93 @@ void Graph_Print(GraphRef Graph__);
 /*
  * Rank Graph_struct.
  *
- * @param  Graph__  Reference to graph structure object.
+ * VECTOR_L operations are optimized for values known during the compilation
+ * (eliminating unnecessary function call) because code only uses those.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
  * @param  pos__  Query position.
  * @param  type__  Sub structure that should be queried [enum: Graph_vector].
  * @param  val__  Query value [enum: Graph_value].
  */
-int32_t Graph_Rank(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
-                   Graph_value val__);
+#define Graph_Rank(Graph__, pos__, type__, val__) \
+  ((type__ == VECTOR_L)                           \
+    ? (val__ == VALUE_0)                          \
+      ? (pos__ - graph_Lrank_(*Graph__, pos__))   \
+      : (graph_Lrank_(*Graph__, pos__))           \
+    : Graph_Rank_W(Graph__, pos__, val__))
+
+int32_t graph_Lrank_(Graph_Struct Graph__, uint32_t pos__);
+
+/*
+ * Rank L vector of given Graph_struct.
+ *
+ * Consider using Graph_Rank macro instead. Macro completely eliminates
+ * this function call if val__ is known during the compilation.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Query position.
+ * @param  val__  Query value [enum: Graph_value].
+ */
+int32_t Graph_Rank_L(GraphRef Graph__, uint32_t pos__, Graph_value val__);
+
+/*
+ * Rank W vector of given Graph_struct.
+ *
+ * Consider using Graph_Rank macro instead.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Query position.
+ * @param  val__  Query value [enum: Graph_value].
+ */
+int32_t Graph_Rank_W(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 
 /*
  * Select Graph_struct.
  *
- * @param  Graph__  Reference to graph structure object.
+ * VECTOR_L operations are optimized for values known during the compilation
+ * (eliminating unnecessary function call) because code only uses those.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
  * @param  pos__  Query position.
  * @param  type__  Sub structure that should be queried [enum: Graph_vector].
  * @param  val__  Query value [enum: Graph_value].
  */
-int32_t Graph_Select(GraphRef Graph__, uint32_t pos__, Graph_vector type__,
-                     Graph_value val__);
+#define Graph_Select(Graph__, pos__, type__, val__) \
+  ((type__ == VECTOR_L)                             \
+    ? (val__ == VALUE_0)                            \
+      ? (graph_Lselect_(*Graph__, pos__, true))     \
+      : (graph_Lselect_(*Graph__, pos__, false))    \
+    : Graph_Select_W(Graph__, pos__, val__))
+
+int32_t graph_Lselect_(Graph_Struct Graph__, uint32_t num__, bool zero__);
+
+/*
+ * Select L vector of given Graph_struct.
+ *
+ * Consider using Graph_Select macro instead. Macro completely eliminates
+ * this function call if val__ is known during the compilation.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Query position.
+ * @param  val__  Query value [enum: Graph_value].
+ */
+int32_t Graph_Select_L(GraphRef Graph__, uint32_t pos__, Graph_value val__);
+
+/*
+ * Select W vector of given Graph_struct.
+ *
+ * Consider using Graph_Select macro instead.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Query position.
+ * @param  val__  Query value [enum: Graph_value].
+ */
+int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 
 /*
  * Update value in W vector of Graph_struct.
  *
- * @param  Graph__  Reference to WT_Struct object.
+ * @param  Graph__  Reference to Graph_Struct object.
  * @param  pos__  Update position.
  * @param  val__  New symbol [enum: Graph_value].
  */
@@ -202,20 +305,33 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 /*
  * Increase frequency in P vector of Graph_struct.
  *
- * @param  Graph__  Reference to WT_Struct object.
+ * @param  Graph__  Reference to Graph_Struct object.
  * @param  pos__  Update position.
  */
 void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
-  void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__);
-  int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__);
+
+/*
+ * Get symbol frequencies from node pointed to by given index.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Edge index (line) in deBruijn graph.
+ * @param  freq__  [Out] Frequency count structure.
+ */
+void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__);
+
+/*
+ * Get position of given edge symbol in given node.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Edge index (line) in deBruijn graph.
+ * @param  gval__  Symbol (Graph_value) to find.
+ *
+ * @return  Index of edge in given node.
+ */
+int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__);
+
 #endif
-
-#ifdef _UNITY
-
-bool test_clever_node_split(GraphRef Graph__);
-
-#endif  // _UNITY
 
 #endif  // _COMPRESSION_STRUCT__

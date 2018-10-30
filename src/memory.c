@@ -44,18 +44,18 @@ void Memory_free(MemObj* mem__) {
 mem_ptr Memory_new_leaf(MemObj mem__) {
   // Check if all memory was depleated, this is an omezeni TODO in a design and program cannot recover at this point.
   if (mem__->l_last_index_ >= 0x3FFFFFFF)
-    FATAL("Reached maximum possible number of leafs");
+    FATAL("[memory]: Reached maximum possible number of leafs");
 
   // check if we need new memory block
   if (mem__->l_current_block_index_ >= MEMORY_BLOCK_SIZE_) {
     MEMORY_VERBOSE(
-      printf("Creating new leaf memory block\n");
+      printf("[memory]: Creating new leaf memory block\n");
     )
 
     // check if new superblock must be allocated
     if (++mem__->l_current_block_ >= mem__->l_block_count_) {
       MEMORY_VERBOSE(
-        printf("Reallocation of leaf superblock pointer array\n");
+        printf("[memory]: Reallocation of leaf superblock pointer array\n");
       )
 
       // realloc block memory
@@ -78,18 +78,18 @@ mem_ptr Memory_new_leaf(MemObj mem__) {
 mem_ptr Memory_new_node(MemObj mem__) {
   // Check if all memory was depleated, this is an omezeni TODO in a design and program cannot recover at this point.
   if (mem__->n_last_index_ >= 0x3FFFFFFF)
-    FATAL("Reached maximum possible number of nodes");
+    FATAL("[memory]: Reached maximum possible number of nodes");
 
   // check if we need new memory block
   if (mem__->n_current_block_index_ >= MEMORY_BLOCK_SIZE_) {
     MEMORY_VERBOSE(
-      printf("Creating new node memory block\n");
+      printf("[memory]: Creating new node memory block\n");
     )
 
     // check if new superblock must be allocated
     if (++mem__->n_current_block_ >= mem__->n_block_count_) {
       MEMORY_VERBOSE(
-        printf("Reallocation of node superblock pointer array\n");
+        printf("[memory]: Reallocation of node superblock pointer array\n");
       )
 
       // realloc block memory

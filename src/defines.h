@@ -1,6 +1,8 @@
 #ifndef _DEFINES__
 #define _DEFINES__
 
+#include "utils.h"
+
 /* Make whole program verbose. */
 #define VERBOSE_ false
 
@@ -43,6 +45,12 @@
  * to search for each transition separately. */
 #define ENABLE_CLEVER_NODE_SPLIT
 
+/* Use cache for leaf lookup when performing rank, select and other tree
+ * related operations */
+#define ENABLE_LOOKUP_CACHE
+/* Size of the lookup cache */
+#define CACHE_SIZE 1
+
 /* These define the way of how context shortening is handled.
  * EXPLICIT_CONTEXT_SHORTENING calculates context each time shortening occurs.
  * INTEGER_CONTEXT_SHORTENING saves context sizes in integer variables.
@@ -52,6 +60,9 @@
 #define EXPLICIT_CONTEXT_SHORTENING
 //#define INTEGER_CONTEXT_SHORTENING
 //#define RAS_CONTEXT_SHORTENING
+
+// Define to hide leading $ signs in Label print and function TODO
+#define OMIT_EXCESSIVE_DOLLAR_SIGNS_
 
 /**************** ARITHMETIC CODING DEFINES **********************
  *
@@ -127,6 +138,12 @@
     #ifndef RAS_CONTEXT_SHORTENING
       #error "Exacly one context shortening algorithm must be specified."
     #endif
+  #endif
+#endif
+
+#ifdef ENABLE_LOOKUP_CACHE
+  #ifndef CACHE_SIZE
+    #define CACHE_SIZE 1
   #endif
 #endif
 

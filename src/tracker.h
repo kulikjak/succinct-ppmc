@@ -9,12 +9,20 @@ int32_t cnt_;
 int32_t *arr_[CONTEXT_LENGTH + 4];
 } tracker_;
 
-void Tracker_reset();
+#define Tracker_reset() \
+  tracker_.cnt_ = 0;
 
-void Tracker_push(int32_t *a__);
+#define Tracker_push(a__)                         \
+  assert(tracker_.cnt_ + 1 < CONTEXT_LENGTH + 4); \
+  tracker_.arr_[tracker_.cnt_++] = a__;
 
-void Tracker_pop();
+#define Tracker_pop()         \
+  assert(tracker_.cnt_ >= 1); \
+  tracker_.cnt_--;
 
-void Tracker_update(int32_t idx__);
+#define Tracker_update(idx__) {                                  \
+  for (int32_t ti = 0; ti < tracker_.cnt_; ti++)                 \
+    if (*(tracker_.arr_[ti]) >= idx__) (*(tracker_.arr_[ti]))++; \
+}
 
 #endif  // _TRACKER__

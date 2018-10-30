@@ -6,14 +6,17 @@
 
 #include "structure.h"
 #include "utils.h"
+#include "defines.h"
 
-// Define to hide leading $ signs in Label print and function
-#define OMIT_EXCESSIVE_DOLLAR_SIGNS_
+#define DEBRUIJN_VERBOSE(func) \
+  if (DEBRUIJN_VERBOSE_) {     \
+    func                       \
+  }
 
-#define GET_SYMBOL_FROM_VALUE(symb__) \
-      (((symb__) == VALUE_A) ? 'A'          \
-    : ((symb__) == VALUE_C) ? 'C'           \
-    : ((symb__) == VALUE_G) ? 'G'           \
+#define GET_SYMBOL_FROM_VALUE(symb__)    \
+      (((symb__) == VALUE_A) ? 'A'       \
+    : ((symb__) == VALUE_C) ? 'C'        \
+    : ((symb__) == VALUE_G) ? 'G'        \
     : ((symb__) == VALUE_T) ? 'T' : '$')
 
 #define GET_VALUE_FROM_SYMBOL(symb__)        \
@@ -82,20 +85,6 @@ int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
 int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
 
 /*
- * Get label of a node corresponding to given line.
- *
- * Output buffer MUST have a size of at least CONTEXT_LENGTH otherwise buffer
- * overflow can occur. Output buffer doesn't have terminating null byte after
- * the last character and therefore it cannot be automatically printed out as a
- * string.
- *
- * @param  dB__  Reference to deBruijn_graph object.
- * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  buffer__  [out] Output buffer with label in symbols.
- */
-void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__);
-
-/*
  * Get number of edges that point to current node.
  *
  * This function is not universal and works only for trees. Therefore it returns
@@ -116,6 +105,20 @@ int32_t deBruijn_Indegree(deBruijn_graph *dB__, int32_t idx__);
  * it is not implemented.
  */
 int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
+
+/*
+ * Get label of a node corresponding to given line.
+ *
+ * Output buffer MUST have a size of at least CONTEXT_LENGTH + 1 otherwise buffer
+ * overflow can occur. Output buffer doesn't have terminating null byte after
+ * the last character and therefore it cannot be automatically printed out as a
+ * string.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  buffer__  [out] Output buffer with label in symbols.
+ */
+void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__);
 
 /*
  * Print whole deBruijn graph struct.
@@ -144,7 +147,7 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
                                  int32_t ctx_len__);
 
 /*
- * Get cumulative frequency from node pointed to by given index.
+ * Get symbol frequencies from node pointed to by given index.
  *
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  idx__  Edge index (line) in deBruijn graph.
@@ -209,11 +212,5 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
 void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
                                const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
                                const int32_t size__);
-
-
-// make hidden function visible to unit testing framework
-#ifdef _UNITY
-
-#endif  // _UNITY
 
 #endif  // _DEBRUIJN_GRAPH__

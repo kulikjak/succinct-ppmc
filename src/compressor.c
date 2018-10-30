@@ -41,7 +41,6 @@ void Decompressor_Finalize(decompressor* D__) {
   deBruijn_Free(&(D__->dB_));
 }
 
-
 void Compressor_encode_(compressor* C__, int32_t pos__, Graph_value gval__) {  
   int32_t lower, upper;
   Graph_value i;
@@ -97,12 +96,6 @@ void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_va
 
   Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
 
-  // recursively increase frequency in higher nodes
-  /*{ // TESTING ONLY
-    int32_t ctx_len = deBruijn_get_context_len_(&(C__->dB_), idx__) - 1;
-    assert(ctx_len__ == ctx_len);
-  }*/
-
   int32_t next = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__);
   if (next == -1) return;
 
@@ -111,11 +104,6 @@ void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_va
 
 void Compressor_Compress_symbol(compressor *C__, Graph_value gval__) {
   int32_t res, shorter;
-
-  /*{ // TEST ONLY
-    int32_t ctx_len = deBruijn_get_context_len_(&(C__->dB_), C__->state_);
-    assert(C__->depth_ == ctx_len);
-  }*/
 
   if (C__->depth_ >= CONTEXT_LENGTH) {
     shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1);
@@ -133,11 +121,6 @@ void Compressor_Compress_symbol(compressor *C__, Graph_value gval__) {
 
 void Decompressor_Decompress_symbol(decompressor *D__, Graph_value* gval__) { //FIXME
   int32_t res, shorter;
-
-  /*{ // TEST ONLY
-    int32_t ctx_len = deBruijn_get_context_len_(&(D__->dB_), D__->state_);
-    assert(D__->depth_ == ctx_len);
-  }*/
 
   if (D__->depth_ >= CONTEXT_LENGTH) {
     shorter = deBruijn_Shorten_context(&(D__->dB_), D__->state_, D__->depth_ - 1);
@@ -166,11 +149,6 @@ int32_t Compressor_Compress_symbol_aux_(compressor *C__, int32_t idx__, Graph_va
   // transition does not exist
   if (transition == -1) {
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1);
-
-    /*{ // TEST ONLY
-      int32_t ctx_len = deBruijn_get_context_len_(&(C__->dB_), idx__);
-      assert(ctx_len__ == ctx_len);
-    }*/
 
     /* this cannot happen because there level one is full that means, that we
      * are never outputting character itself */
@@ -259,11 +237,6 @@ int32_t Decompressor_Decompress_symbol_aux_(decompressor *D__, int32_t idx__, Gr
   if (symbol == VALUE_ESC) {
     compressor_debug("Escape character output.");
     prev_node = deBruijn_Shorten_context(&(D__->dB_), idx__, ctx_len__ - 1);
-
-    /*{ // TEST ONLY
-      int32_t ctx_len = deBruijn_get_context_len_(&(D__->dB_), idx__);
-      assert(ctx_len__ == ctx_len);
-    }*/
 
     /* this cannot happen because there level one is full that means, that we
      * are never outputting character itself */

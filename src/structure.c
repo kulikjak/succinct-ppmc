@@ -58,15 +58,22 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
 }
 
 void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
+  int32_t split_mask, split_offset;
+  int32_t mask, current;
+  uint32_t temp;
+  bool parent_left, grandparent_left;
+
   assert(pos__ <= MEMORY_GET_ANY(Graph__->mem_, Graph__->root_)->p_);
 
   STACK_CLEAN();
 
-  VERBOSE(fprintf(stderr, "Inserting new line on position %u\n", pos__);)
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Inserting new line on position %u\n", pos__);
+  )
 
   // traverse the tree and enter correct leaf
-  int32_t mask = GET_MASK_FROM_VALUE(line__->W_);
-  int32_t current = Graph__->root_;
+  mask = GET_MASK_FROM_VALUE(line__->W_);
+  current = Graph__->root_;
 
   while (!IS_LEAF(current)) {
     STACK_PUSH(current);
@@ -80,7 +87,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node->rWh_ += (mask & 0x2) && (mask & 0x4);
     node->rWs_ += (mask & 0x1) && (mask & 0x2) && (mask & 0x4);
 
-    uint32_t temp = MEMORY_GET_ANY(Graph__->mem_, node->left_)->p_;
+    temp = MEMORY_GET_ANY(Graph__->mem_, node->left_)->p_;
     if (temp > pos__) {
       current = node->left_;
     } else {
@@ -95,7 +102,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     Graph_Insert_Line_(current_ref, pos__, line__);
 
   } else {  // current leaf is full and we have to split it
-    VERBOSE(fprintf(stderr, "Splitting full node\n");)
+    STRUCTURE_VERBOSE(
+      printf("[structure]: Leaf is and will be split\n");
+    )
 
     mem_ptr node = Memory_new_node(Graph__->mem_);
     NodeRef node_ref = MEMORY_GET_NODE(Graph__->mem_, node);
@@ -105,8 +114,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node_ref->rW_ = current_ref->rW_ + ((mask & 0x4) >> 0x2);
     node_ref->rWl_ = current_ref->rWl_ + ((mask & 0x2) && ((~mask) & 0x4));
     node_ref->rWh_ = current_ref->rWh_ + ((mask & 0x2) && (mask & 0x4));
-    node_ref->rWs_ =
-        current_ref->rWs_ + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4));
+    node_ref->rWs_ = current_ref->rWs_ + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4));
 
     // allocate new right leaf and reuse current as left leaf
     node_ref->right_ = Memory_new_leaf(Graph__->mem_);
@@ -115,8 +123,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     STACK_PUSH(node);
 
     // find a position for clever splitting
-    int32_t split_mask = 0xFFFF;
-    int32_t split_offset = 0;
+    split_mask = 0xFFFF;
+    split_offset = 0;
 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
     if ((current_ref->vectorL_ >> 16) & 0x1) {
@@ -196,6 +204,10 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
 #ifdef ENABLE_RED_BLACK_BALANCING
 
+    STRUCTURE_VERBOSE(
+      printf("[structure]: Rebalancing the tree\n");
+    )
+
     // red black balancing
     node_ref->rb_flag_ = true;
 
@@ -218,7 +230,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
       // get uncle
       mem_ptr uncle_idx = grandparent->left_;
-      bool grandparent_left = false;
+      grandparent_left = false;
       if (grandparent->left_ == STACK_GET_PARENT()) {
         uncle_idx = grandparent->right_;
         grandparent_left = true;
@@ -240,7 +252,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       }
 
       // uncle is black - time for rotations
-      bool parent_left = true;
+      parent_left = true;
       if (node == parent->right_) {
         parent_left = false;
       }
@@ -336,51 +348,6 @@ void GLine_Explode(GLineRef line__, Graph_value* L__, Graph_value* W__, uint32_t
   *P__ = line__->P_;
 }
 
-void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
-  int32_t wavelet_mask;
-  mem_ptr temp;
-  mem_ptr current = Graph__->root_;
-
-  NodeRef node_ref;
-  LeafRef leaf_ref;
-
-  // check correct boundaries
-  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
-
-  assert(pos__ < node_ref->p_);
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
-
-    // get p_ counter of left child and act accordingly
-    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
-    if ((uint32_t)temp > pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      current = node_ref->right_;
-    }
-  }
-
-  assert(line__ != NULL);
-
-  // fill in the line struct
-  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
-  wavelet_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
-                 (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
-                 (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
-
-  line__->L_ = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
-  line__->W_ = GET_VALUE_FROM_MASK(wavelet_mask);
-  line__->P_ = leaf_ref->vectorP_[pos__];
-}
-
-int32_t Graph_Size(GraphRef Graph__) {
-  NodeRef node_ref = MEMORY_GET_ANY(Graph__->mem_, Graph__->root_);
-  return node_ref->p_;
-}
-
 void Graph_Print(GraphRef Graph__) {
   int32_t i, size;
 
@@ -397,35 +364,43 @@ void Graph_Print(GraphRef Graph__) {
   }
 }
 
+void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
+  int32_t wavelet_mask;
+  mem_ptr current;
+  LeafRef leaf_ref;
+
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Getting line at position %u\n", pos__);
+  )
+
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK);
+
+  wavelet_mask = (leaf_ref->vectorWl2_ >> (31 - pos__) & 0x1) |
+                 (leaf_ref->vectorWl1_ >> (31 - pos__) & 0x1) << 0x1 |
+                 (leaf_ref->vectorWl0_ >> (31 - pos__) & 0x1) << 0x2;
+
+  line__->L_ = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
+  line__->W_ = GET_VALUE_FROM_MASK(wavelet_mask);
+  line__->P_ = leaf_ref->vectorP_[pos__];
+}
+
+int32_t Graph_Size(GraphRef Graph__) {
+  NodeRef node_ref = MEMORY_GET_ANY(Graph__->mem_, Graph__->root_);
+  return node_ref->p_;
+}
+
 void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   int32_t nchar_mask, ochar_mask;
-  mem_ptr temp;
-  mem_ptr current = Graph__->root_;
+  mem_ptr current;
 
   NodeRef node_ref;
   LeafRef leaf_ref;
 
-  STACK_CLEAN();
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Changing symbol at position %u to %d\n", pos__, val__);
+  )
 
-  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
-  assert(pos__ < node_ref->p_);
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    STACK_PUSH(current);
-    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
-
-    // get p_ counter of left child and act accordingly
-    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
-    if ((uint32_t)temp > pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      current = node_ref->right_;
-    }
-  }
-
-  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITH_STACK);
 
   // get masks for both characters
   nchar_mask = GET_MASK_FROM_VALUE(val__);
@@ -458,62 +433,32 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 }
 
 void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
-  mem_ptr temp;
-  mem_ptr current = Graph__->root_;
-
-  NodeRef node_ref;
+  mem_ptr current;
   LeafRef leaf_ref;
 
-  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
-  assert(pos__ < node_ref->p_);
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Increasing frequency of transition at position %u\n", pos__);
+  )
 
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
 
-    // get p_ counter of left child and act accordingly
-    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
-    if ((uint32_t)temp > pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      current = node_ref->right_;
-    }
-  }
-
-  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
   leaf_ref->vectorP_[pos__] ++;
 }
+
 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
 
 void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__) {
-  mem_ptr temp;
-  mem_ptr current = Graph__->root_;
+  mem_ptr current;
   Graph_value value;
+  LeafRef leaf_ref;
   int32_t l_bit, ochar_mask, cnt;
 
-  NodeRef node_ref;
-  LeafRef leaf_ref;
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Getting symbol frequency at position %u\n", pos__);
+  )
 
-  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
-  assert(pos__ < node_ref->p_);
-
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
-
-    // get p_ counter of left child and act accordingly
-    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
-    if ((uint32_t)temp > pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      current = node_ref->right_;
-    }
-  }
-
-  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
 
   // get to the beginning of this node
   int32_t pos = (int32_t)pos__;
@@ -553,33 +498,16 @@ void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__)
 }
 
 int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
-  mem_ptr temp;
-  mem_ptr current = Graph__->root_;
+  mem_ptr current;
   Graph_value value;
-  int32_t l_bit, ochar_mask;
-
-  NodeRef node_ref;
   LeafRef leaf_ref;
+  int32_t l_bit, ochar_mask, backup = (int32_t)pos__;
 
-  node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
-  int32_t backup = (int32_t)pos__;
-  assert(pos__ < node_ref->p_);
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Looking for transition for symbol %d at position %u\n", val__, pos__);
+  )
 
-  // traverse the tree and enter correct leaf
-  while (!IS_LEAF(current)) {
-    node_ref = MEMORY_GET_NODE(Graph__->mem_, current);
-
-    // get p_ counter of left child and act accordingly
-    temp = MEMORY_GET_ANY(Graph__->mem_, node_ref->left_)->p_;
-    if ((uint32_t)temp > pos__) {
-      current = node_ref->left_;
-    } else {
-      pos__ -= temp;
-      current = node_ref->right_;
-    }
-  }
-
-  leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, current);
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
 
   // get to the beginning of this node
   int32_t pos = (int32_t)pos__;
@@ -610,44 +538,3 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 }
 
 #endif  // ENABLE_CLEVER_NODE_SPLIT
-
-
-void print_graph_aux_(GraphRef Graph__, mem_ptr ptr__) {
-  NodeRef any = MEMORY_GET_ANY(Graph__->mem_, ptr__);
-  printf("ptr: %d counters: %d %d %d %d %d %d ", ptr__, any->p_, any->rL_, any->rW_, any->rWl_, any->rWh_, any->rWs_);
-
-  if (IS_LEAF(ptr__)) {
-    printf("leaf B\n");
-  } else {
-    printf("node %c\n children: %d %d\n", ((any->rb_flag_) ? 'R' : 'B'), any->left_, any->right_);
-
-    print_graph_aux_(Graph__, any->left_);
-    print_graph_aux_(Graph__, any->right_);
-  }
-}
-
-void print_graph(GraphRef Graph__) {
-  print_graph_aux_(Graph__, Graph__->root_);
-}
-
-bool test_clever_node_split_aux(GraphRef Graph__, mem_ptr ptr__) {
-  LeafRef leaf;
-  NodeRef node;
-
-  if (IS_LEAF(ptr__)) {
-    leaf = MEMORY_GET_LEAF(Graph__->mem_, ptr__);
-    if (!(leaf->vectorL_ >> (32 - leaf->p_) & 0x1))
-      return false;
-
-  } else {
-    node = MEMORY_GET_NODE(Graph__->mem_, ptr__);
-    if (!test_clever_node_split_aux(Graph__, node->left_))
-      return false;
-    return test_clever_node_split_aux(Graph__, node->right_);
-  }
-  return true;
-}
-
-bool test_clever_node_split(GraphRef Graph__) {
-  return test_clever_node_split_aux(Graph__, Graph__->root_);
-}

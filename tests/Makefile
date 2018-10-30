@@ -19,7 +19,6 @@ SRC_FILES = \
 
 SRC_FILES += \
 	$(SOURCE_ROOT)/memory.c \
-	$(SOURCE_ROOT)/tracker.c \
 	$(SOURCE_ROOT)/structure.c \
 	$(SOURCE_ROOT)/rank.c \
 	$(SOURCE_ROOT)/select.c \
