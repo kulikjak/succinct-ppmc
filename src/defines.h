@@ -9,6 +9,7 @@
 /* Make parts of the program verbose
  * If VERBOSE_ is set to true, these values are ignored.
  */ 
+#define MAIN_VERBOSE_ false
 #define MEMORY_VERBOSE_ false
 #define STRUCTURE_VERBOSE_ false
 #define DEBRUIJN_VERBOSE_ false
@@ -97,6 +98,8 @@
 #endif
 
 #if VERBOSE_
+  #undef MAIN_VERBOSE_
+  #define MAIN_VERBOSE_ true
   #undef MEMORY_VERBOSE_
   #define MEMORY_VERBOSE_ true
   #undef STRUCTURE_VERBOSE_
@@ -106,6 +109,9 @@
   #undef COMPRESSOR_VERBOSE_
   #define COMPRESSOR_VERBOSE_ true
 #else
+  #ifndef MAIN_VERBOSE_
+    #define MAIN_VERBOSE_ false
+  #endif
   #ifndef MEMORY_VERBOSE_
     #define MEMORY_VERBOSE_ false
   #endif
