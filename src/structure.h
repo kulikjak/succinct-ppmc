@@ -339,4 +339,27 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 
 #endif
 
+#ifdef INTEGER_CONTEXT_SHORTENING
+
+/*
+ * Set common suffix length with the upper neighbour.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Edge index (line) in deBruijn graph.
+ * @param  csl__  Size of the csl (integer to save).
+ */
+void Graph_Set_csl(GraphRef Graph__, uint32_t pos__, int32_t csl__);
+
+/*
+ * Get common suffix length with the upper neighbour.
+ *
+ * @param  Graph__  Reference to Graph_Struct object.
+ * @param  pos__  Edge index (line) in deBruijn graph.
+ *
+ * @return  Common suffix length.
+ */
+int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__);
+
+#endif
+
 #endif  // _COMPRESSION_STRUCT__

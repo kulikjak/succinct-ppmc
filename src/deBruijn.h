@@ -133,6 +133,16 @@ void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__);
 void deBruijn_Print(deBruijn_graph *dB__, bool labels__);
 
 /*
+ * Update longest common suffix length with its neighbours.
+ *
+ * This function updates cls both with higher and lower neighbour.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  target__  Edge index (line) in deBruijn graph.
+ */
+void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__);
+
+/*
  * Shorten current context.
  *
  * This function effectively follows suffix links of PPM tree.

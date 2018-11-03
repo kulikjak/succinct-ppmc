@@ -55,6 +55,10 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
   if (pos__ < leaf__->p_) {
     memmove(&(leaf__->vectorP_[pos__ + 1]), &(leaf__->vectorP_[pos__]),
             (leaf__->p_ - pos__) * sizeof(int32_t));
+#ifdef INTEGER_CONTEXT_SHORTENING
+    memmove(&(leaf__->context_[pos__ + 1]), &(leaf__->context_[pos__]),
+            (leaf__->p_ - pos__) * sizeof(int32_t));
+#endif
   }
   leaf__->vectorP_[pos__] = line__->P_;
 
@@ -160,6 +164,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     right_ref->vectorWl2_ = 0x0 | ((current_ref->vectorWl2_ & (split_mask)) << (16 + split_offset));
 
     memcpy(right_ref->vectorP_, current_ref->vectorP_ + 16 + split_offset, (16 - split_offset) * sizeof(uint32_t));
+#ifdef INTEGER_CONTEXT_SHORTENING
+    memcpy(right_ref->context_, current_ref->context_ + 16 + split_offset, (16 - split_offset) * sizeof(uint32_t));
+#endif
 
     right_ref->p_ = 16 - split_offset;
 
@@ -544,5 +551,33 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 
   return -1;
 }
+
+#ifdef INTEGER_CONTEXT_SHORTENING
+
+void Graph_Set_csl(GraphRef Graph__, uint32_t pos__, int32_t csl__) {
+  mem_ptr current;
+  LeafRef leaf_ref;
+
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Setting common suffix len at position %u\n", pos__);
+  )
+
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
+  leaf_ref->context_[pos__] = csl__;
+}
+
+int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__) {
+  mem_ptr current;
+  LeafRef leaf_ref;
+
+  STRUCTURE_VERBOSE(
+    printf("[structure]: Getting common suffix len at position %u\n", pos__);
+  )
+
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
+  return leaf_ref->context_[pos__];
+}
+
+#endif
 
 #endif  // ENABLE_CLEVER_NODE_SPLIT

@@ -86,55 +86,59 @@ int32_t finish_symbol_insertion_(compressor *C__, int32_t idx__, Graph_value gva
   int32_t i, rank, temp, x;
   Graph_Line line;
 
-  // check what symbol is in W
+  /* check what symbol is in W */
   GLine_Get(&(C__->dB_.Graph_), (uint32_t)idx__, &line);
   if (line.W_ == VALUE_$) {
-    // current W symbol is $ - we can simply change it to new one
 
-    // change symbol to new one and increase frequency to 1
+    /* change symbol to new one and increase frequency to 1 */
+    /* These is no need to upgrade the csl as we are not changing suffix */
     Graph_Change_symbol(&(C__->dB_.Graph_), idx__, gval__);
     Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
 
   } else {
-    // insert new edge into this node
+    /* insert new edge into this node */
+    /* csl must be updated but only after both nodes are inserted */
     GLine_Fill(&line, VALUE_0, gval__, 1);
     GLine_Insert(&(C__->dB_.Graph_), idx__, &line);
 
-    // update registered variables
+    /* update registered variables */
     Tracker_update(idx__);
 
-    // update F array according to added node
+    /* update the F array */
     for (i = 0; i < SYMBOL_COUNT; i++) {
       if (C__->dB_.F_[i] > idx__) C__->dB_.F_[i]++;
     }
   }
 
-  // find same transition symbol above this line
+  /* find same transition symbol above this line */
   rank = Graph_Rank(&(C__->dB_.Graph_), idx__, VECTOR_W, gval__);
 
-  if (!rank) {  // there is no symbol above this
+  if (!rank) {  /* there is no symbol above this */
     x = C__->dB_.F_[gval__];
 
-    // update F array
+    /* update the F array */
     for (i = gval__ + 1; i < SYMBOL_COUNT; i++) C__->dB_.F_[i]++;
 
-  } else {  // we found another line with this symbol
-    // go forward from this node
+  } else {
+    /* go forward from this node */
     temp = Graph_Select(&(C__->dB_.Graph_), rank, VECTOR_W, gval__);
     x = deBruijn_Forward_(&(C__->dB_), temp - 1) + 1;
 
-    // update F array
+    /* update the F array */
     for (i = 0; i < SYMBOL_COUNT; i++) {
       if (C__->dB_.F_[i] >= x) C__->dB_.F_[i]++;
     }
   }
 
-  // insert new leaf node into the graph
+  /* insert new leaf (dollar) node into the graph */
   GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(C__->dB_.Graph_), x, &line);
 
-  // update registered variables
+  /* update registered variables */
   Tracker_update(x);
+
+  deBruijn_update_csl(&(C__->dB_), (x > idx__) ? idx__ : idx__ + 1);
+  deBruijn_update_csl(&(C__->dB_), x);
 
   return x;
 }

@@ -59,8 +59,8 @@
  * RAS_CONTEXT_SHORTENING builds RaS structure above integer sizes.
  *
  * Exacly one of those must be specified */
-#define EXPLICIT_CONTEXT_SHORTENING
-//#define INTEGER_CONTEXT_SHORTENING
+//#define EXPLICIT_CONTEXT_SHORTENING
+#define INTEGER_CONTEXT_SHORTENING
 //#define RAS_CONTEXT_SHORTENING
 
 // Define to hide leading $ signs in Label print and function TODO

@@ -30,6 +30,12 @@ void deBruijn_Init(deBruijn_graph *dB__) {
   dB__->F_[1] = 5;
   dB__->F_[2] = 6;
   dB__->F_[3] = 7;
+
+  /* calculate csl for all inserted lines */
+  deBruijn_update_csl(dB__, 1);
+  deBruijn_update_csl(dB__, 3);
+  deBruijn_update_csl(dB__, 5);
+  deBruijn_update_csl(dB__, 7);
 }
 
 void deBruijn_Free(deBruijn_graph *dB__) {
@@ -252,8 +258,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
   }
 }
 
-int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__,
-                                        int32_t limit__) {
+int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int32_t limit__) {
   int32_t common, idx1, idx2;
   int32_t symbol1, symbol2;
 
@@ -293,6 +298,33 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__,
   return common;
 }
 
+void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
+
+#if defined(INTEGER_CONTEXT_SHORTENING)
+  int32_t graph_size;
+
+  graph_size = Graph_Size(&(dB__->Graph_));
+  assert(target__ <= graph_size);
+
+  /* there is nothing to update for the root node */
+  if (target__ == 0) return;
+
+  Graph_Set_csl(&(dB__->Graph_), target__, 
+      deBruijn_Get_common_suffix_len_(dB__, target__, CONTEXT_LENGTH));
+
+  /* target is at the bottom of the list - only one csl to update */
+  if (target__ == graph_size - 1) return;
+
+  Graph_Set_csl(&(dB__->Graph_), target__ + 1,
+      deBruijn_Get_common_suffix_len_(dB__, target__ + 1, CONTEXT_LENGTH));
+
+#elif defined(EXPLICIT_CONTEXT_SHORTENING)
+  UNUSED(dB__);
+  UNUSED(target__);
+
+#endif
+}
+
 int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__) {
 
   DEBRUIJN_VERBOSE(
@@ -303,35 +335,38 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
   // TODO
 #endif
 
-#ifdef INTEGER_CONTEXT_SHORTENING
-  // TODO
-#endif
-
-#ifdef EXPLICIT_CONTEXT_SHORTENING
-  // if this is root node it is not possible to shorten context
+  /* if this is root node it is not possible to shorten context */
   if (idx__ < dB__->F_[0]) return -1;
 
-  // we cannot shorten context at all
+#if defined(EXPLICIT_CONTEXT_SHORTENING)
   if (deBruijn_Get_common_suffix_len_(dB__, idx__--, ctx_len__) < ctx_len__)
     return -1;
+#elif defined(INTEGER_CONTEXT_SHORTENING)
+  if (Graph_Get_csl(&(dB__->Graph_), idx__--) < ctx_len__)
+    return -1;
+#endif
 
-  // context can be surely shortened beyond this point
+  /* context can be surely shortened beyond this point */
 
-  // context of len 0 points surely to root node
+  /* context of len 0 points surely to root node */
   if (ctx_len__ == 0) return dB__->F_[0] - 1;
 
   while (idx__) {
-    // check for length of common suffix
+    /* check for length of common suffix */
+#if defined(EXPLICIT_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
       return idx__;
+#elif defined(INTEGER_CONTEXT_SHORTENING)
+    if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
+      return idx__;
+#endif
 
-    // move one line higher
+    /* move one line higher */
     idx__--;
   }
 
   UNREACHABLE
   return 0;
-#endif
 }
 
 void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* freq__) {
@@ -378,11 +413,16 @@ void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, con
 
   Graph_Init(&(dB__->Graph_));
 
-  // insert test data
+  memcpy(dB__->F_, F__, sizeof(dB__->F_));
+
+  /* insert test data */
   for (i = 0; i < size__; i++) {
     GLine_Fill(&line, L__[i], W__[i], P__[i]);
     GLine_Insert(&(dB__->Graph_), i, &line);
   }
 
-  memcpy(dB__->F_, F__, sizeof(dB__->F_));
+  /* updated common suffix lengths after insertion is done */
+  for (i = 1; i < size__; i += 2)
+    deBruijn_update_csl(dB__, i);
+  deBruijn_update_csl(dB__, size__ - 1);
 }
