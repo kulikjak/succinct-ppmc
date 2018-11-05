@@ -61,8 +61,8 @@
  *
  * Exacly one of those must be specified */
 //#define EXPLICIT_CONTEXT_SHORTENING
-#define INTEGER_CONTEXT_SHORTENING
-//#define RAS_CONTEXT_SHORTENING
+//#define INTEGER_CONTEXT_SHORTENING
+#define RAS_CONTEXT_SHORTENING
 
 // Define to hide leading $ signs in Label print and function TODO
 #define OMIT_EXCESSIVE_DOLLAR_SIGNS_

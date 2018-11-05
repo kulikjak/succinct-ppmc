@@ -43,6 +43,14 @@ typedef struct {
   uint32_t rWh_;  // for higher second level
   uint32_t rWs_;  // for special last level
 
+#ifdef RAS_CONTEXT_SHORTENING
+  uint32_t rSl0_;
+  uint32_t rSl1_;
+  uint32_t rSl2_;
+  uint32_t rSl3_;
+  uint32_t rSl4_;
+#endif
+
   // pointers (index) to child nodes/leaves
   mem_ptr left_;
   mem_ptr right_;
@@ -64,6 +72,14 @@ typedef struct {
   uint32_t rWh_;  // for higher second level
   uint32_t rWs_;  // for special last level
 
+#ifdef RAS_CONTEXT_SHORTENING
+  uint32_t rSl0_;
+  uint32_t rSl1_;
+  uint32_t rSl2_;
+  uint32_t rSl3_;
+  uint32_t rSl4_;
+#endif
+
   // all graph data vectors
   uint32_t vectorL_;
   uint32_t vectorWl0_;
@@ -71,8 +87,14 @@ typedef struct {
   uint32_t vectorWl2_;
   uint32_t vectorP_[32];
 
-#ifdef INTEGER_CONTEXT_SHORTENING
+#if defined(INTEGER_CONTEXT_SHORTENING)
   uint32_t context_[32];
+#elif defined(RAS_CONTEXT_SHORTENING)
+  uint32_t vectorSl0_;
+  uint32_t vectorSl1_;
+  uint32_t vectorSl2_;
+  uint32_t vectorSl3_;
+  uint32_t vectorSl4_;
 #endif
 
 } leaf_32e;

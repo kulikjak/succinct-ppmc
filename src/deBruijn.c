@@ -300,7 +300,9 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
 
 void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
 
-#if defined(INTEGER_CONTEXT_SHORTENING)
+#if defined(INTEGER_CONTEXT_SHORTENING) \
+  || defined(RAS_CONTEXT_SHORTENING)
+
   int32_t graph_size;
 
   graph_size = Graph_Size(&(dB__->Graph_));
@@ -331,17 +333,13 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
     printf("[deBruijn]: Calling Shorten_context on index %d (ctx len: %d)\n", idx__, ctx_len__);
   )
 
-#ifdef RAS_CONTEXT_SHORTENING
-  // TODO
-#endif
-
   /* if this is root node it is not possible to shorten context */
   if (idx__ < dB__->F_[0]) return -1;
 
 #if defined(EXPLICIT_CONTEXT_SHORTENING)
   if (deBruijn_Get_common_suffix_len_(dB__, idx__--, ctx_len__) < ctx_len__)
     return -1;
-#elif defined(INTEGER_CONTEXT_SHORTENING)
+#elif defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
   if (Graph_Get_csl(&(dB__->Graph_), idx__--) < ctx_len__)
     return -1;
 #endif
@@ -356,7 +354,7 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 #if defined(EXPLICIT_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
       return idx__;
-#elif defined(INTEGER_CONTEXT_SHORTENING)
+#elif defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
     if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
       return idx__;
 #endif

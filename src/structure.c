@@ -55,9 +55,17 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
   if (pos__ < leaf__->p_) {
     memmove(&(leaf__->vectorP_[pos__ + 1]), &(leaf__->vectorP_[pos__]),
             (leaf__->p_ - pos__) * sizeof(int32_t));
-#ifdef INTEGER_CONTEXT_SHORTENING
+#if defined(INTEGER_CONTEXT_SHORTENING)
     memmove(&(leaf__->context_[pos__ + 1]), &(leaf__->context_[pos__]),
             (leaf__->p_ - pos__) * sizeof(int32_t));
+#elif defined(RAS_CONTEXT_SHORTENING)
+    int32_t dummy;
+    INSERT_BIT(&(leaf__->vectorSl0_), &(dummy), pos__, 0);
+    INSERT_BIT(&(leaf__->vectorSl1_), &(dummy), pos__, 0);
+    INSERT_BIT(&(leaf__->vectorSl2_), &(dummy), pos__, 0);
+    INSERT_BIT(&(leaf__->vectorSl3_), &(dummy), pos__, 0);
+    INSERT_BIT(&(leaf__->vectorSl4_), &(dummy), pos__, 0);
+    (void)dummy;
 #endif
   }
   leaf__->vectorP_[pos__] = line__->P_;
@@ -164,8 +172,14 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     right_ref->vectorWl2_ = 0x0 | ((current_ref->vectorWl2_ & (split_mask)) << (16 + split_offset));
 
     memcpy(right_ref->vectorP_, current_ref->vectorP_ + 16 + split_offset, (16 - split_offset) * sizeof(uint32_t));
-#ifdef INTEGER_CONTEXT_SHORTENING
+#if defined(INTEGER_CONTEXT_SHORTENING)
     memcpy(right_ref->context_, current_ref->context_ + 16 + split_offset, (16 - split_offset) * sizeof(uint32_t));
+#elif defined(RAS_CONTEXT_SHORTENING)
+    right_ref->vectorSl0_ = 0x0 | ((current_ref->vectorSl0_ & (split_mask)) << (16 + split_offset));
+    right_ref->vectorSl1_ = 0x0 | ((current_ref->vectorSl1_ & (split_mask)) << (16 + split_offset));
+    right_ref->vectorSl2_ = 0x0 | ((current_ref->vectorSl2_ & (split_mask)) << (16 + split_offset));
+    right_ref->vectorSl3_ = 0x0 | ((current_ref->vectorSl3_ & (split_mask)) << (16 + split_offset));
+    right_ref->vectorSl4_ = 0x0 | ((current_ref->vectorSl4_ & (split_mask)) << (16 + split_offset));
 #endif
 
     right_ref->p_ = 16 - split_offset;
@@ -185,6 +199,14 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     current_ref->vectorWl0_ = current_ref->vectorWl0_ & (~split_mask);
     current_ref->vectorWl1_ = current_ref->vectorWl1_ & (~split_mask);
     current_ref->vectorWl2_ = current_ref->vectorWl2_ & (~split_mask);
+
+#if defined(RAS_CONTEXT_SHORTENING)
+    current_ref->vectorSl0_ = current_ref->vectorSl0_ & (~split_mask);
+    current_ref->vectorSl1_ = current_ref->vectorSl1_ & (~split_mask);
+    current_ref->vectorSl2_ = current_ref->vectorSl2_ & (~split_mask);
+    current_ref->vectorSl3_ = current_ref->vectorSl3_ & (~split_mask);
+    current_ref->vectorSl4_ = current_ref->vectorSl4_ & (~split_mask);
+#endif
 
     current_ref->p_ = 16 + split_offset;
 
@@ -552,7 +574,33 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   return -1;
 }
 
-#ifdef INTEGER_CONTEXT_SHORTENING
+#if defined(INTEGER_CONTEXT_SHORTENING) \
+  || defined(RAS_CONTEXT_SHORTENING)
+
+#define CSL_ADJUST_COUNTERS(var__, op__) {   \
+  /* this can be optimized */                \
+  switch (var__) {                           \
+    case 0:                                  \
+      /* nothing to do */                    \
+      break;                                 \
+    case 1:                                  \
+      node_ref->rSl4_ op__ 1;                \
+      break;                                 \
+    case 2:                                  \
+      node_ref->rSl3_ op__ 1;                \
+      break;                                 \
+    case 3:                                  \
+      node_ref->rSl3_ op__ 1;                \
+      node_ref->rSl4_ op__ 1;                \
+      break;                                 \
+    case 4:                                  \
+      node_ref->rSl2_ op__ 1;                \
+      break;                                 \
+    default:                                 \
+      FATAL("Graph_Set_csl: Not ready yet"); \
+      UNREACHABLE;                           \
+  }                                          \
+}
 
 void Graph_Set_csl(GraphRef Graph__, uint32_t pos__, int32_t csl__) {
   mem_ptr current;
@@ -562,8 +610,49 @@ void Graph_Set_csl(GraphRef Graph__, uint32_t pos__, int32_t csl__) {
     printf("[structure]: Setting common suffix len at position %u\n", pos__);
   )
 
+#if defined(INTEGER_CONTEXT_SHORTENING)
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
   leaf_ref->context_[pos__] = csl__;
+
+#else
+  int32_t nchar_mask, ochar_mask;
+  NodeRef node_ref;
+
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITH_STACK);
+
+  /* get masks for both values */
+  nchar_mask = csl__;
+  ochar_mask = (leaf_ref->vectorSl4_ >> (31 - pos__) & 0x1) |
+               (leaf_ref->vectorSl3_ >> (31 - pos__) & 0x1) << 0x1 |
+               (leaf_ref->vectorSl2_ >> (31 - pos__) & 0x1) << 0x2 |
+               (leaf_ref->vectorSl1_ >> (31 - pos__) & 0x1) << 0x3 |
+               (leaf_ref->vectorSl0_ >> (31 - pos__) & 0x1) << 0x4;
+
+  // change old character to the new one
+  leaf_ref->vectorSl0_ ^= (-(unsigned)(!!(nchar_mask & 0x10)) ^ leaf_ref->vectorSl0_) & (0x1 << (31 - pos__));
+  leaf_ref->vectorSl1_ ^= (-(unsigned)(!!(nchar_mask & 0x8)) ^ leaf_ref->vectorSl1_) & (0x1 << (31 - pos__));
+  leaf_ref->vectorSl2_ ^= (-(unsigned)(!!(nchar_mask & 0x4)) ^ leaf_ref->vectorSl2_) & (0x1 << (31 - pos__));
+  leaf_ref->vectorSl3_ ^= (-(unsigned)(!!(nchar_mask & 0x2)) ^ leaf_ref->vectorSl3_) & (0x1 << (31 - pos__));
+  leaf_ref->vectorSl4_ ^= (-(unsigned)(!!(nchar_mask & 0x1)) ^ leaf_ref->vectorSl4_) & (0x1 << (31 - pos__));
+
+  assert(nchar_mask ==
+         (int32_t)((leaf_ref->vectorSl4_ >> (31 - pos__) & 0x1) |
+                   (leaf_ref->vectorSl3_ >> (31 - pos__) & 0x1) << 0x1 |
+                   (leaf_ref->vectorSl2_ >> (31 - pos__) & 0x1) << 0x2 |
+                   (leaf_ref->vectorSl1_ >> (31 - pos__) & 0x1) << 0x3 |
+                   (leaf_ref->vectorSl0_ >> (31 - pos__) & 0x1) << 0x4));
+
+  do {
+    node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
+
+    /* increatse and decrease counters based on the values */
+    CSL_ADJUST_COUNTERS(ochar_mask, -=);
+    CSL_ADJUST_COUNTERS(nchar_mask, +=);
+
+    current = STACK_POP();
+  } while (current != -1);
+
+#endif
 }
 
 int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__) {
@@ -575,9 +664,20 @@ int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__) {
   )
 
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
+
+#if defined(INTEGER_CONTEXT_SHORTENING)
   return leaf_ref->context_[pos__];
-}
+
+#else
+  return (leaf_ref->vectorSl4_ >> (31 - pos__) & 0x1) |
+         (leaf_ref->vectorSl3_ >> (31 - pos__) & 0x1) << 0x1 |
+         (leaf_ref->vectorSl2_ >> (31 - pos__) & 0x1) << 0x2 |
+         (leaf_ref->vectorSl1_ >> (31 - pos__) & 0x1) << 0x3 |
+         (leaf_ref->vectorSl0_ >> (31 - pos__) & 0x1) << 0x4;
 
 #endif
+}
+
+#endif  // INTEGER_CONTEXT_SHORTENING || RAS_CONTEXT_SHORTENING
 
 #endif  // ENABLE_CLEVER_NODE_SPLIT
