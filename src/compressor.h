@@ -17,7 +17,11 @@
 typedef struct {
   deBruijn_graph dB_;
   int32_t depth_;
+
   int32_t state_;
+#ifdef CLEVER_CONTEXT_SHORTENING
+  char label_[CONTEXT_LENGTH]; /* label of the current state_ */
+#endif
 } compressor;
 
 #define Compression_Start(ofp__) { \

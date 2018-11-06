@@ -57,12 +57,18 @@
 /* These define the way of how context shortening is handled.
  * EXPLICIT_CONTEXT_SHORTENING calculates context each time shortening occurs.
  * INTEGER_CONTEXT_SHORTENING saves context sizes in integer variables.
- * RAS_CONTEXT_SHORTENING builds RaS structure above integer sizes.
+ * CLEVER_CONTEXT_SHORTENING uses no additional memory by traversing the tree
+ *   from the root all the way to node with shorter context. Since the context
+ *   is always small and not dependent on the size of the input, this is fast.
+ *
+ * RAS_CONTEXT_SHORTENING was removed due to its incredible memory overhead.
+ * While it would probably be pretty fast, it would go against the memory
+ * efficiency targeted by this program.
  *
  * Exacly one of those must be specified */
-//#define EXPLICIT_CONTEXT_SHORTENING
+#define EXPLICIT_CONTEXT_SHORTENING
 //#define INTEGER_CONTEXT_SHORTENING
-#define RAS_CONTEXT_SHORTENING
+//#define CLEVER_CONTEXT_SHORTENING
 
 // Define to hide leading $ signs in Label print and function TODO
 #define OMIT_EXCESSIVE_DOLLAR_SIGNS_
@@ -130,20 +136,20 @@
   #ifdef INTEGER_CONTEXT_SHORTENING
     #error "Exacly one context shortening algorithm must be specified."
   #endif
-  #ifdef RAS_CONTEXT_SHORTENING
+  /*#ifdef RAS_CONTEXT_SHORTENING
     #error "Exacly one context shortening algorithm must be specified."
-  #endif
+  #endif*/
 #endif
 
-#ifdef INTEGER_CONTEXT_SHORTENING
+/*#ifdef INTEGER_CONTEXT_SHORTENING
   #ifdef RAS_CONTEXT_SHORTENING
     #error "Exacly one context shortening algorithm must be specified."
   #endif
-#endif
+#endif */
 
 #ifndef EXPLICIT_CONTEXT_SHORTENING
   #ifndef INTEGER_CONTEXT_SHORTENING
-    #ifndef RAS_CONTEXT_SHORTENING
+    #ifndef CLEVER_CONTEXT_SHORTENING
       #error "Exacly one context shortening algorithm must be specified."
     #endif
   #endif

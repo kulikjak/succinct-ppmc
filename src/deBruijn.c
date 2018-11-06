@@ -300,8 +300,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
 
 void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
 
-#if defined(INTEGER_CONTEXT_SHORTENING) \
-  || defined(RAS_CONTEXT_SHORTENING)
+#if defined(INTEGER_CONTEXT_SHORTENING)
 
   int32_t graph_size;
 
@@ -336,25 +335,36 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
   /* if this is root node it is not possible to shorten context */
   if (idx__ < dB__->F_[0]) return -1;
 
+  /* context of len 0 points surely to root node */
+  if (ctx_len__ == 0) return dB__->F_[0] - 1;
+
+
+#if defined(CLEVER_CONTEXT_SHORTENING)
+  /* get current label (optimize this) */
+  /*char buff[CONTEXT_LENGTH + 1];
+  deBruijn_Label(dB__, idx__, buff);
+  buff[CONTEXT_LENGTH] = 0;*/
+
+  //printf("%d %s\n", ctx_len__, buff);
+
+#endif
+
 #if defined(EXPLICIT_CONTEXT_SHORTENING)
   if (deBruijn_Get_common_suffix_len_(dB__, idx__--, ctx_len__) < ctx_len__)
     return -1;
-#elif defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
+#elif defined(INTEGER_CONTEXT_SHORTENING)
   if (Graph_Get_csl(&(dB__->Graph_), idx__--) < ctx_len__)
     return -1;
 #endif
 
   /* context can be surely shortened beyond this point */
 
-  /* context of len 0 points surely to root node */
-  if (ctx_len__ == 0) return dB__->F_[0] - 1;
-
   while (idx__) {
     /* check for length of common suffix */
 #if defined(EXPLICIT_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
       return idx__;
-#elif defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
+#elif defined(INTEGER_CONTEXT_SHORTENING)
     if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
       return idx__;
 #endif
