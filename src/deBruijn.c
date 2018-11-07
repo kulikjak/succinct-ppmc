@@ -319,7 +319,8 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
   Graph_Set_csl(&(dB__->Graph_), target__ + 1,
       deBruijn_Get_common_suffix_len_(dB__, target__ + 1, CONTEXT_LENGTH));
 
-#elif defined(EXPLICIT_CONTEXT_SHORTENING)
+#elif defined(LABEL_CONTEXT_SHORTENING) \
+    || defined(TREE_CONTEXT_SHORTENING)
   UNUSED(dB__);
   UNUSED(target__);
 
@@ -338,30 +339,28 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
   /* context of len 0 points surely to root node */
   if (ctx_len__ == 0) return dB__->F_[0] - 1;
 
-
-#if defined(CLEVER_CONTEXT_SHORTENING)
-  /* get current label (optimize this) */
-  /*char buff[CONTEXT_LENGTH + 1];
-  deBruijn_Label(dB__, idx__, buff);
-  buff[CONTEXT_LENGTH] = 0;*/
-
-  //printf("%d %s\n", ctx_len__, buff);
-
-#endif
-
-#if defined(EXPLICIT_CONTEXT_SHORTENING)
-  if (deBruijn_Get_common_suffix_len_(dB__, idx__--, ctx_len__) < ctx_len__)
-    return -1;
-#elif defined(INTEGER_CONTEXT_SHORTENING)
-  if (Graph_Get_csl(&(dB__->Graph_), idx__--) < ctx_len__)
-    return -1;
-#endif
-
   /* context can be surely shortened beyond this point */
+
+#if defined(TREE_CONTEXT_SHORTENING)
+  int32_t i, temp, current;
+  char buff[CONTEXT_LENGTH + 1];
+
+  /* get current label (TODO: optimize this) */
+  deBruijn_Label(dB__, idx__, buff);
+
+  current = 0;
+  for (i = CONTEXT_LENGTH + 1 - ctx_len__; i <= CONTEXT_LENGTH; i++) {
+
+    temp = deBruijn_Find_Edge(dB__, current, GET_VALUE_FROM_SYMBOL(buff[i]));
+    current = deBruijn_Forward_(dB__, temp);
+  }
+  return current;
+
+#endif
 
   while (idx__) {
     /* check for length of common suffix */
-#if defined(EXPLICIT_CONTEXT_SHORTENING)
+#if defined(LABEL_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
       return idx__;
 #elif defined(INTEGER_CONTEXT_SHORTENING)

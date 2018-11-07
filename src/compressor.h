@@ -19,7 +19,7 @@ typedef struct {
   int32_t depth_;
 
   int32_t state_;
-#ifdef CLEVER_CONTEXT_SHORTENING
+#ifdef TREE_CONTEXT_SHORTENING
   char label_[CONTEXT_LENGTH]; /* label of the current state_ */
 #endif
 } compressor;
