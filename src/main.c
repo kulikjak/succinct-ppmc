@@ -152,6 +152,10 @@ static void main_decode(FILE* ifp__, FILE* ofp__) {
     }
   }
 
+  /* output rest of the buffer */
+  if (idx)
+    fwrite(obuffer, sizeof(char), idx, ofp__);
+
   Decompression_Finalize();
   Process_Free(&C);
 
