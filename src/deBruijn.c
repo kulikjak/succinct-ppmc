@@ -327,9 +327,9 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
 #endif
 }
 
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__,
+int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__
 #if defined(TREE_CONTEXT_SHORTENING)
-                                 Graph_value *label__, int32_t lptr__
+                                ,Graph_value *label__, int32_t lptr__
 #endif
   ) {
 
