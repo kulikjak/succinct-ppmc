@@ -15,6 +15,7 @@ TEST_SETUP(deBruijn) { deBruijn_Init(&dB); }
 TEST_TEAR_DOWN(deBruijn) { deBruijn_Free(&dB); }
 
 TEST(deBruijn, BasicStaticTest) {
+
   const Graph_value L[] = {0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1};
   const Graph_value W[] = {_('A'), _('C'), _('G'), _('C'), _('G'), _('C'), _('$'), _('$'), _('$'), _('$'), _('A'), _('G'), _('G'), _('A'), _('$')};
   const int32_t P[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -27,8 +28,8 @@ TEST(deBruijn, BasicStaticTest) {
 
   const int32_t resIndegree[] = {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-  const int32_t resShorten1[] = {-1, -1, -1, -1, 3,  3,  3, -1, 7,  7,  -1, 10, 10, 10, 10};
-  const int32_t resShorten2[] = {-1, -1, -1, -1, -1, -1, 5, -1, -1, 8,  -1, -1, -1, -1, 13};
+  const int32_t resShorten1[] = {-1, -1, -1, 3, 3, 3, 3, 7, 7, 7, 10, 10, 10, 10, 10};
+  const int32_t resShorten2[] = {-1, -1, -1, 3, 4, 5, 5, 7, 8, 8, 10, 11, 12, 13, 13};
 
   deBruijn_Free(&dB);
   deBruijn_Insert_test_data(&dB, L, W, P, F, 15);
@@ -44,8 +45,13 @@ TEST(deBruijn, BasicStaticTest) {
 
     TEST_ASSERT_EQUAL_INT32(resIndegree[i], deBruijn_Indegree(&dB, i));
 
+#ifndef TREE_CONTEXT_SHORTENING
     TEST_ASSERT_EQUAL_INT32(resShorten1[i], deBruijn_Shorten_context(&dB, i, 1));
     TEST_ASSERT_EQUAL_INT32(resShorten2[i], deBruijn_Shorten_context(&dB, i, 2));
+#else
+    UNUSED(resShorten1);
+    UNUSED(resShorten2);
+#endif
   }
 }
 
