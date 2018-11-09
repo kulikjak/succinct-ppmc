@@ -9,6 +9,7 @@ SRC_FILES += \
 	$(SOURCE_ROOT)/memory.c \
 	$(SOURCE_ROOT)/structure.c \
 	$(SOURCE_ROOT)/rank.c \
+	$(SOURCE_ROOT)/cache.c \
 	$(SOURCE_ROOT)/select.c \
 	$(SOURCE_ROOT)/deBruijn.c \
 	$(SOURCE_ROOT)/compressor.c \

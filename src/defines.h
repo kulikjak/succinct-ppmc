@@ -132,27 +132,16 @@
   #endif  
 #endif
 
-#ifdef LABEL_CONTEXT_SHORTENING
-  #ifdef INTEGER_CONTEXT_SHORTENING
-    #error "Exacly one context shortening algorithm must be specified."
-  #endif
-  #ifdef TREE_CONTEXT_SHORTENING
-    #error "Exacly one context shortening algorithm must be specified."
-  #endif
+#if (defined(LABEL_CONTEXT_SHORTENING) && defined(INTEGER_CONTEXT_SHORTENING)) \
+ || (defined(LABEL_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))    \
+ || (defined(INTEGER_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))
+ #error "Exacly one context shortening algorithm must be specified."
 #endif
 
-#ifdef INTEGER_CONTEXT_SHORTENING
-  #ifdef TREE_CONTEXT_SHORTENING
-    #error "Exacly one context shortening algorithm must be specified."
-  #endif
-#endif
-
-#ifndef LABEL_CONTEXT_SHORTENING
-  #ifndef INTEGER_CONTEXT_SHORTENING
-    #ifndef TREE_CONTEXT_SHORTENING
-      #error "Exacly one context shortening algorithm must be specified."
-    #endif
-  #endif
+#if (! defined(INTEGER_CONTEXT_SHORTENING)) && \
+    (! defined(LABEL_CONTEXT_SHORTENING)) && \
+    (! defined(TREE_CONTEXT_SHORTENING))
+  #error "Exacly one context shortening algorithm must be specified."
 #endif
 
 #ifdef ENABLE_LOOKUP_CACHE
