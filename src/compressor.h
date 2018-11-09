@@ -20,7 +20,8 @@ typedef struct {
 
   int32_t state_;
 #ifdef TREE_CONTEXT_SHORTENING
-  char label_[CONTEXT_LENGTH]; /* label of the current state_ */
+  int32_t lptr_;  /* pointer into the rolling label_ buffer */
+  Graph_value label_[CONTEXT_LENGTH];  /* label of the current state_ */
 #endif
 } compressor;
 

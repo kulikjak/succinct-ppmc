@@ -142,6 +142,23 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__);
  */
 void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__);
 
+#if defined(TREE_CONTEXT_SHORTENING)
+/*
+ * Shorten current context.
+ *
+ * This function effectively follows suffix links of PPM tree.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  ctx_len__ Desired new context length.
+ * @param  label__ Rolling buffer with current context label.
+ * @param  lptr__ Pointer into the rolling buffer.
+ *
+ * @return  Node with shorter context or -1 if one doesn't exist
+ */
+int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__, Graph_value *label__, int32_t lptr__);
+
+#else
 /*
  * Shorten current context.
  *
@@ -153,8 +170,11 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__);
  *
  * @return  Node with shorter context or -1 if one doesn't exist
  */
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
-                                 int32_t ctx_len__);
+int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__);
+#endif
+
+//int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
+//                                 int32_t ctx_len__);
 
 /*
  * Get symbol frequencies from node pointed to by given index.

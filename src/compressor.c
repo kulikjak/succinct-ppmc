@@ -7,6 +7,10 @@ void Process_Init(compressor* C__) {
   C__->depth_ = 0;
   C__->state_ = 0;
 
+#if defined(TREE_CONTEXT_SHORTENING)
+  C__->lptr_ = 0;
+#endif
+
 #if defined(ENABLE_LOOKUP_CACHE) \
   && defined(ENABLE_CACHE_STATS)
   cache_stats_prep();
@@ -68,6 +72,8 @@ Graph_value Decompressor_decode_(compressor* C__, int32_t idx__) {
 }
 
 void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_value gval__, int32_t ctx_len__) {
+  int32_t next;
+
   COMPRESSOR_VERBOSE(
     printf("[compressor] Increasing frequency at index %d (symbol %c)\n",
      idx__, GET_SYMBOL_FROM_VALUE(gval__));
@@ -76,7 +82,11 @@ void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_va
 
   Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
 
-  int32_t next = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__);
+#if defined(TREE_CONTEXT_SHORTENING)
+  next = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__, C__->label_, C__->lptr_);
+#else
+  next = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__);
+#endif
   if (next == -1) return;
 
   Compressor_Increase_frequency_rec_(C__, next, gval__, ctx_len__ - 1);
@@ -154,7 +164,11 @@ int32_t Compressor_Compress_symbol_aux_(compressor *C__, int32_t idx__, Graph_va
       printf("[compressor] Escape character output\n");
     )
 
+#if defined(TREE_CONTEXT_SHORTENING)
+    prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1, C__->label_, C__->lptr_);
+#else
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1);
+#endif
 
     /* this cannot happen because there level one is full that means, that we
      * are never outputting character itself */
@@ -190,7 +204,12 @@ int32_t Decompressor_Decompress_symbol_aux_(compressor *C__, int32_t idx__, Grap
     COMPRESSOR_VERBOSE(
       printf("[compressor] Escape character output\n");
     )
+
+#if defined(TREE_CONTEXT_SHORTENING)
+    prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1, C__->label_, C__->lptr_);
+#else
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1);
+#endif
 
     /* this cannot happen because there level one is full that means, that we
      * are never outputting character itself */
@@ -219,25 +238,48 @@ int32_t Decompressor_Decompress_symbol_aux_(compressor *C__, int32_t idx__, Grap
   return finish_symbol_insertion_(C__, idx__, symbol);
 }
 
-#define EXPAND_SYMBOL_COMPRESSION(func__) {                                        \
-  int32_t res, shorter;                                                            \
-                                                                                   \
-  if (C__->depth_ >= CONTEXT_LENGTH) {                                             \
-    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1); \
-    res = func__(C__, shorter, gval__, C__->depth_ - 1);                           \
-  } else {                                                                         \
-    res = func__(C__, C__->state_, gval__, C__->depth_);                           \
-  }                                                                                \
-  C__->state_ = (res == -1) ? C__->state_ : res;                                   \
-                                                                                   \
-  /* increase context depth if shorter than CONTEXT_LENGTH */                      \
-  if (C__->depth_ < CONTEXT_LENGTH) C__->depth_++;                                 \
-}
-
 void Compressor_Compress_symbol(compressor *C__, Graph_value gval__) {
-  EXPAND_SYMBOL_COMPRESSION(Compressor_Compress_symbol_aux_);
+  int32_t res, shorter;
+
+  if (C__->depth_ >= CONTEXT_LENGTH) {
+#if defined(TREE_CONTEXT_SHORTENING)
+    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1, C__->label_, C__->lptr_);
+#else
+    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1);
+#endif
+    res = Compressor_Compress_symbol_aux_(C__, shorter, gval__, C__->depth_ - 1);
+  } else {
+    res = Compressor_Compress_symbol_aux_(C__, C__->state_, gval__, C__->depth_);
+  }
+  C__->state_ = (res == -1) ? C__->state_ : res;
+
+#if defined(TREE_CONTEXT_SHORTENING)
+  C__->label_[C__->lptr_++] = gval__;
+  if (C__->lptr_ >= CONTEXT_LENGTH) C__->lptr_ -= CONTEXT_LENGTH;
+#endif
+  /* increase context depth if shorter than CONTEXT_LENGTH */
+  if (C__->depth_ < CONTEXT_LENGTH) C__->depth_++;
 }
 
-void Decompressor_Decompress_symbol(compressor *C__, Graph_value* gval__) {
-  EXPAND_SYMBOL_COMPRESSION(Decompressor_Decompress_symbol_aux_);
+void Decompressor_Decompress_symbol(compressor *C__, Graph_value *gval__) {
+  int32_t res, shorter;
+
+  if (C__->depth_ >= CONTEXT_LENGTH) {
+#if defined(TREE_CONTEXT_SHORTENING)
+    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1, C__->label_, C__->lptr_);
+#else
+    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1);
+#endif
+    res = Decompressor_Decompress_symbol_aux_(C__, shorter, gval__, C__->depth_ - 1);
+  } else {
+    res = Decompressor_Decompress_symbol_aux_(C__, C__->state_, gval__, C__->depth_);
+  }
+  C__->state_ = (res == -1) ? C__->state_ : res;
+
+#if defined(TREE_CONTEXT_SHORTENING)
+  C__->label_[C__->lptr_++] = *gval__;
+  if (C__->lptr_ >= CONTEXT_LENGTH) C__->lptr_ -= CONTEXT_LENGTH;
+#endif
+  /* increase context depth if shorter than CONTEXT_LENGTH */
+  if (C__->depth_ < CONTEXT_LENGTH) C__->depth_++;
 }

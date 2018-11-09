@@ -327,7 +327,11 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
 #endif
 }
 
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__) {
+int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__,
+#if defined(TREE_CONTEXT_SHORTENING)
+                                 Graph_value *label__, int32_t lptr__
+#endif
+  ) {
 
   DEBRUIJN_VERBOSE(
     printf("[deBruijn]: Calling Shorten_context on index %d (ctx len: %d)\n", idx__, ctx_len__);
@@ -342,21 +346,21 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
   /* context can be surely shortened beyond this point */
 
 #if defined(TREE_CONTEXT_SHORTENING)
-  int32_t i, temp, current;
-  char buff[CONTEXT_LENGTH + 1];
+  int32_t i, j, temp, current;
 
-  /* get current label (TODO: optimize this) */
-  deBruijn_Label(dB__, idx__, buff);
+  /* get starting position for current context length */
+  i = lptr__ - ctx_len__;
+  if (i < 0) i += CONTEXT_LENGTH;
 
+  /* find the target node */
   current = 0;
-  for (i = CONTEXT_LENGTH + 1 - ctx_len__; i <= CONTEXT_LENGTH; i++) {
-
-    temp = deBruijn_Find_Edge(dB__, current, GET_VALUE_FROM_SYMBOL(buff[i]));
+  for (j = 0; j < ctx_len__; j++, i = (i + 1) % CONTEXT_LENGTH) {
+    temp = deBruijn_Find_Edge(dB__, current, label__[i]);
     current = deBruijn_Forward_(dB__, temp);
   }
   return current;
 
-#endif
+#else
 
   while (idx__) {
     /* check for length of common suffix */
@@ -374,6 +378,8 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 
   UNREACHABLE
   return 0;
+
+#endif  /* endif defined(TREE_CONTEXT_SHORTENING) */
 }
 
 void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* freq__) {
