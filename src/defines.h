@@ -4,33 +4,55 @@
 #include "utils.h"
 
 /* Make whole program verbose. */
-#define VERBOSE_ false
+#ifndef VERBOSE_
+  #define VERBOSE_ false
+#endif
 
 /* Make parts of the program verbose
  * If VERBOSE_ is set to true, these values are ignored.
  */ 
-#define MAIN_VERBOSE_ false
-#define MEMORY_VERBOSE_ false
-#define STRUCTURE_VERBOSE_ false
-#define DEBRUIJN_VERBOSE_ false
-#define COMPRESSOR_VERBOSE_ false
+#ifndef MAIN_VERBOSE_
+  #define MAIN_VERBOSE_ false
+#endif
+#ifndef MEMORY_VERBOSE_
+  #define MEMORY_VERBOSE_ false
+#endif
+#ifndef STRUCTURE_VERBOSE_
+  #define STRUCTURE_VERBOSE_ false
+#endif
+#ifndef DEBRUIJN_VERBOSE_
+  #define DEBRUIJN_VERBOSE_ false
+#endif
+#ifndef COMPRESSOR_VERBOSE_
+  #define COMPRESSOR_VERBOSE_ false
+#endif
 
 /* number of preallocated block pointers */
-#define INITIAL_BLOCK_COUNT_ 2
+#ifndef INITIAL_BLOCK_COUNT_
+  #define INITIAL_BLOCK_COUNT_ 2
+#endif
 /* Number of elements per memory block - must be power of two! */
-#define MEMORY_BLOCK_SIZE_ 4
+#ifndef MEMORY_BLOCK_SIZE_
+  #define MEMORY_BLOCK_SIZE_ 4
+#endif
 /* log2 of MEMORY_BLOCK_SIZE_ */
-#define MEMORY_BLOCK_SIZE_LOG_ 2
+#ifndef MEMORY_BLOCK_SIZE_LOG_
+  #define MEMORY_BLOCK_SIZE_LOG_ 2
+#endif
 
 /* Length of the PPMC context */
-#define CONTEXT_LENGTH 4
+#ifndef CONTEXT_LENGTH
+  #define CONTEXT_LENGTH 4
+#endif
 
 /*
  * Size of stack used for tree traversal. Stack must be atleast as big as
  * maximum expected tree depth. If balanding is not enabled, this number should
  * be much bigger.
  */
-#define MAX_STACK_SIZE 64
+#ifndef MAX_STACK_SIZE
+  #define MAX_STACK_SIZE 64
+#endif
 
 /**************** OPTIMIZATION DEFINES **********************
  *
