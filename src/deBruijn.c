@@ -354,7 +354,7 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 
   /* find the target node */
   current = 0;
-  for (j = 0; j < ctx_len__; j++, i = (i + 1) % CONTEXT_LENGTH) {
+  for (j = 0; j < ctx_len__; j++, i = (i + 1 == CONTEXT_LENGTH) ? 0 : i + 1) {
     temp = deBruijn_Find_Edge(dB__, current, label__[i]);
     current = deBruijn_Forward_(dB__, temp);
   }

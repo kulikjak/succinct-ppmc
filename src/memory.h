@@ -12,15 +12,15 @@
     func                     \
   }
 
-#define MEMORY_GET_ANY(mem, arg)                              \
+#define MEMORY_GET_ANY(mem, arg)                            \
   ((NodeRef)((arg & 0x1) ? (void*)MEMORY_GET_LEAF(mem, arg) \
-                           : (void*)MEMORY_GET_NODE(mem, arg)))
-#define MEMORY_GET_NODE(mem, arg)                                \
+                         : (void*)MEMORY_GET_NODE(mem, arg)))
+#define MEMORY_GET_NODE(mem, arg)                              \
   (NodeRef)(&(mem->nodes_[arg >> (MEMORY_BLOCK_SIZE_LOG_ + 1)] \
-                           [(arg >> 1) & (MEMORY_BLOCK_SIZE_ - 1)]))
-#define MEMORY_GET_LEAF(mem, arg)                                \
+                         [(arg >> 1) & (MEMORY_BLOCK_SIZE_ - 1)]))
+#define MEMORY_GET_LEAF(mem, arg)                              \
   (LeafRef)(&(mem->leafs_[arg >> (MEMORY_BLOCK_SIZE_LOG_ + 1)] \
-                           [(arg >> 1) & (MEMORY_BLOCK_SIZE_ - 1)]))
+                         [(arg >> 1) & (MEMORY_BLOCK_SIZE_ - 1)]))
 
 #define IS_LEAF(arg) (arg & 0x1)
 
@@ -29,7 +29,6 @@
 // big for better memory layout
 #define bool32 int32_t
 
-//#pragma pack(4)
 typedef struct {
   // shared counter for total number of elements
   uint32_t p_;
