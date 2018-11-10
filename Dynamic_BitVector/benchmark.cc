@@ -3,17 +3,17 @@
 #include <iostream>
 
 #include "memory.h"
-#include "structure.h"
+#include "dbv.h"
 
 void benchmark(uint64_t size, double p = 0.5) {
   using std::chrono::high_resolution_clock;
   using std::chrono::duration_cast;
   using std::chrono::duration;
 
-  RAS_Struct RaS;
+  DBV_Struct DBV;
 
   // initialize memory structure
-  RAS_Init(&RaS);
+  DBV_Init(&DBV);
 
   srand(time(NULL));
 
@@ -23,7 +23,7 @@ void benchmark(uint64_t size, double p = 0.5) {
   std::cout << "insert ... " << std::flush;
   for (uint64_t i = 0; i < size; i++) {
     int8_t bit = double(rand()) / RAND_MAX < p ? 1 : 0;
-    RAS_Insert(&RaS, rand() % (i + 1), bit);
+    DBV_Insert(&DBV, rand() % (i + 1), bit);
   }
   std::cout << "done." << std::endl;
 
@@ -32,7 +32,7 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   std::cout << "access ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RAS_Get(RaS, rand() % size);
+    DBV_Get(&DBV, rand() % size);
   }
   std::cout << "done." << std::endl;
 
@@ -41,7 +41,7 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   std::cout << "rank 0 ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RAS_Rank0(RaS, rand() % (size + 1));
+    DBV_Rank0(&DBV, rand() % (size + 1));
   }
   std::cout << "done." << std::endl;
 
@@ -49,20 +49,20 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   std::cout << "rank 1 ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RAS_Rank(RaS, rand() % (size + 1));
+    DBV_Rank(&DBV, rand() % (size + 1));
   }
   std::cout << "done." << std::endl;
 
   auto t5 = high_resolution_clock::now();
 
-  uint64_t nr_1 = RAS_Rank(RaS, size + 1) + 1;
+  uint64_t nr_1 = DBV_Rank(&DBV, size + 1) + 1;
 
   // measure select 1 duration
   auto t6 = high_resolution_clock::now();
 
   std::cout << "select 0 ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RAS_Select0(RaS, rand() % nr_1);
+    DBV_Select0(&DBV, rand() % nr_1);
   }
   std::cout << "done." << std::endl;
 
@@ -70,7 +70,7 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   std::cout << "select 1 ... " << std::flush;
   for (uint64_t i = 0; i < size; ++i) {
-    RAS_Select(RaS, rand() % nr_1);
+    DBV_Select(&DBV, rand() % nr_1);
   }
   std::cout << "done." << std::endl;
 
@@ -96,7 +96,7 @@ void benchmark(uint64_t size, double p = 0.5) {
   std::cout << (double)sec_sel0 / size << " microseconds/select0" << std::endl;
   std::cout << (double)sec_sel1 / size << " microseconds/select1" << std::endl;
 
-  RAS_Free(&RaS);
+  DBV_Free(&DBV);
 }
 
 int main(int argc, char* argv[]) {
