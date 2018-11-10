@@ -4,8 +4,7 @@ Implementation and possible text todo list for this thesis
 
 ## Simple version:
 * red black tree support
-* more optimal indel array ?
-
+* implement comparable structures up to the deBruijn graph
 
 ## Compact version:
 * red black tree support - done
@@ -15,25 +14,34 @@ Implementation and possible text todo list for this thesis
 * compression of given text - done
 * arithmetic coding output of compression - done
 
-* write more and better tests
+* write more and better tests - done
 * add tests for P array - done
 
 * decompression of compressed text - done
-* extensive tests for compression and decompression
+* extensive tests for compression and decompression - done
+
+* move code tracker from compressor/decompressor - done
+* change several functions to macros - done
+* code deduplication - done
+
+---
+
+three different memory managers:
+* indexed memory - done
+* preallocated pointed memory
+
+* implement PPMD for testing purposes with 7zip
+	- Image and Text Compression (Storer)
+
+* implement RaS based context shortening
+
+* memory should be global and not associated with stucture (?)
 
 * code refactoring and nicening
 * optimizations of algorithms
 
 * benchmarks for all versions
 
-* fix rank and select correct values when pos is bigger than size of the vector
-* implement PPMD for testing purposes with 7zip
-	- Image and Text Compression (Storer)
-
-* move code tracker from compressor/decompressor
-* memory should be global and not associated with stucture
-* change several functions to macros
-* code deduplication
 
 ## Text (among all other):
 
