@@ -1,7 +1,7 @@
 #ifndef _DBV_MAIN__
 #define _DBV_MAIN__
 
-#include "../other/shared/utils.h"
+#include "utils.h"
 
 #include "memory.h"
 
@@ -118,7 +118,7 @@ void DBV_Delete(DBVStructRef DBV__, uint32_t pos__);
  * Insert new bit into the given position.
  *
  * @param  DBV__  DBV structure reference.
- * @param  pos__  Insert position number.
+ * @param  pos__  Insert position.
  * @param  val__  Value of inserted bit.
  */
 void DBV_Insert(DBVStructRef DBV__, uint32_t pos__, bool val__);

@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-int8_t* int_sequence_generate_random(int32_t ssize__, int32_t dsize__) {
-  int8_t* sequence = (int8_t*)malloc(ssize__ * sizeof(int8_t));
+uint8_t* int_sequence_generate_random(int32_t ssize__, int32_t dsize__) {
+  uint8_t* sequence = (uint8_t*)malloc(ssize__ * sizeof(uint8_t));
 
   srand(time(NULL));
   for (int32_t i = 0; i < ssize__; i++)
@@ -22,12 +22,12 @@ int8_t* int_sequence_generate_random(int32_t ssize__, int32_t dsize__) {
   return sequence;  
 }
 
-void int_sequence_free(int8_t** seq__) {
+void int_sequence_free(uint8_t** seq__) {
   free(*seq__);
   seq__ = NULL;
 }
 
-void int_sequence_print(int8_t* seq__, int32_t len__) {
+void int_sequence_print(uint8_t* seq__, int32_t len__) {
   for (int32_t i = 0; i < len__; i++)
     printf("%d ", seq__[i]);
   printf("\n");
@@ -40,7 +40,7 @@ void int_sequence_print(int8_t* seq__, int32_t len__) {
  * @param  len__  Length of the sequence.
  * @param  pos__  Query position.
  */
-int32_t int_sequence_get(int8_t* seq__, int32_t len__, int32_t pos__) {
+int32_t int_sequence_get(uint8_t* seq__, int32_t len__, int32_t pos__) {
   if (pos__ < 0 || pos__ >= len__) return -1;
 
   return seq__[pos__];
@@ -54,7 +54,7 @@ int32_t int_sequence_get(int8_t* seq__, int32_t len__, int32_t pos__) {
  * @param  x__  Query position.
  * @param  ch__  Query symbol.
  */
-int32_t int_sequence_rank(int8_t* seq__, int32_t len__, int32_t x__, int8_t ch__) {
+int32_t int_sequence_rank(uint8_t* seq__, int32_t len__, int32_t x__, uint8_t ch__) {
   int32_t rank = 0;
 
   x__ = (x__ > len__) ? len__ : x__;
@@ -71,7 +71,7 @@ int32_t int_sequence_rank(int8_t* seq__, int32_t len__, int32_t x__, int8_t ch__
  * @param  x__  Query position.
  * @param  ch__  Query symbol.
  */
-int32_t int_sequence_select(int8_t* seq__, int32_t len__, int32_t x__, int8_t ch__) {
+int32_t int_sequence_select(uint8_t* seq__, int32_t len__, int32_t x__, uint8_t ch__) {
   if (!x__) return 0;
 
   for (int32_t i = 0; i < len__; i++) {

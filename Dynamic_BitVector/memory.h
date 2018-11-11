@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../other/shared/utils.h"
+#include "utils.h"
 
 /* this number must be power of two! */
 #define DBV_MEMORY_BLOCK_SIZE 1024

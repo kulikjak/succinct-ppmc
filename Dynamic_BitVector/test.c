@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "dbv.h"
 
-#include "../other/misc/bit_sequence.h"
+#include "../misc/bit_sequence.h"
 
 #define SEQENCE_LEN 25000
 #define PRINT_SEQUENCES false

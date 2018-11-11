@@ -17,10 +17,10 @@ INC_DIRS = -I$(DBV_DIR) -I$(SHARED_DIR)
 
 all: test_optimized test_universal
 
-test_optimized: test_optimized.c optimized.c $(DBV_SOURCE_FILES) $(DBV_HEADER_FILES) $(SHARED)
+test_optimized: test_optimized.c optimized.c optimized.h $(DBV_SOURCE_FILES) $(DBV_HEADER_FILES) $(SHARED)
 	$(CXX) $(CFLAGS) $(INC_DIRS) $(DBV_SOURCE_FILES) optimized.c test_optimized.c -lm -o $@
 
-test_universal: test_universal.c universal.c $(DBV_SOURCE_FILES) $(DBV_HEADER_FILES) $(SHARED)
+test_universal: test_universal.c universal.c universal.h $(DBV_SOURCE_FILES) $(DBV_HEADER_FILES) $(SHARED)
 	$(CXX) $(CFLAGS) $(INC_DIRS) $(DBV_SOURCE_FILES) universal.c test_universal.c -lm -o $@
 
 clean:

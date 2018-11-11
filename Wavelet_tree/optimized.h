@@ -1,5 +1,5 @@
-#ifndef _WT_EXT_STRUCTURE__
-#define _WT_EXT_STRUCTURE__
+#ifndef _OPTIMIZED_WAVELET_TREE__
+#define _OPTIMIZED_WAVELET_TREE__
 
 #include <stdio.h>
 

@@ -2,15 +2,13 @@
 #include <stdlib.h>
 
 #include "optimized.h"
-
-#include "../other/shared/utils.h"
+#include "utils.h"
 #include "../misc/int_sequence.h"
 
 #define SEQENCE_LEN 100
 #define PRINT_SEQUENCES true
 
-
-bool _test_wavelet_tree(OWT_Struct* uwt, int8_t* sequence) {
+bool _test_wavelet_tree(OWT_Struct* uwt, uint8_t* sequence) {
   int32_t i;
 
   if (PRINT_SEQUENCES) {
@@ -18,12 +16,10 @@ bool _test_wavelet_tree(OWT_Struct* uwt, int8_t* sequence) {
     OWT_Print_Symbols(uwt);
   }
 
-  // test get (correct insertion)
   for (i = 0; i < SEQENCE_LEN; i++) {
     assert(int_sequence_get(sequence, SEQENCE_LEN, i) == OWT_Get(uwt, i));
   }
 
-  // test rank
   for (i = 0; i <= SEQENCE_LEN; i++) {
     assert(int_sequence_rank(sequence, SEQENCE_LEN, i, 0) ==
            OWT_Rank(uwt, i, 0));
@@ -37,7 +33,6 @@ bool _test_wavelet_tree(OWT_Struct* uwt, int8_t* sequence) {
            OWT_Rank(uwt, i, 4));
   }
 
-  // test select
   for (i = 0; i <= SEQENCE_LEN; i++) {
     assert(int_sequence_select(sequence, SEQENCE_LEN, i, 0) ==
            OWT_Select(uwt, i, 0));
@@ -60,10 +55,10 @@ bool test_front_insert(void) {
   OWT_Struct uwt;
   OWT_Init(&uwt);
 
-  int8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 5);
+  uint8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 5);
 
   for (i = SEQENCE_LEN - 1; i >= 0; i--) {
-    int8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
+    uint8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
     OWT_Insert(&uwt, 0, letter);
   }
 
@@ -81,10 +76,10 @@ bool test_rear_insert(void) {
   OWT_Struct uwt;
   OWT_Init(&uwt);
 
-  int8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 5);
+  uint8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 5);
 
   for (i = 0; i < SEQENCE_LEN; i++) {
-    int8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
+    uint8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
     OWT_Insert(&uwt, i, letter);
   }
 
@@ -102,14 +97,14 @@ bool test_deletion(void) {
   OWT_Struct uwt;
   OWT_Init(&uwt);
 
-  int8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 5);
+  uint8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 5);
 
   int32_t idx = 0;
   int32_t added = 0;
   int32_t pos[SEQENCE_LEN];
 
   for (i = 0; i < SEQENCE_LEN; i++) {
-    int8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
+    uint8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
 
     if (letter == 'A' || letter == 'T') {
       OWT_Insert(&uwt, i + added, letter);
@@ -132,13 +127,13 @@ bool test_deletion(void) {
 
 bool test_symbol_change(void) {
   int32_t i;
-  int8_t letter;
+  uint8_t letter;
 
   OWT_Struct uwt;
   OWT_Init(&uwt);
 
-  int8_t* seq_one = int_sequence_generate_random(SEQENCE_LEN, 5);
-  int8_t* seq_two = int_sequence_generate_random(SEQENCE_LEN, 5);
+  uint8_t* seq_one = int_sequence_generate_random(SEQENCE_LEN, 5);
+  uint8_t* seq_two = int_sequence_generate_random(SEQENCE_LEN, 5);
 
   for (i = 0; i < SEQENCE_LEN; i++) {
     letter = int_sequence_get(seq_one, SEQENCE_LEN, i);
@@ -168,12 +163,10 @@ int main(int argc, char* argv[]) {
   UNUSED(argc);
   UNUSED(argv);
 
-  // seed the random string generator
   srand(time(NULL));
 
   test_front_insert();
   test_rear_insert();
-
   test_deletion();
   test_symbol_change();
 
