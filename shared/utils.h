@@ -22,4 +22,4 @@ static void fatal(const char* m__, const char* e__) {
 
 #define FATAL(msg) (fatal(msg, ""))
 
-#endif  // _SHARED_UTILS__
+#endif
