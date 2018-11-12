@@ -27,7 +27,7 @@ compressor: $(SRC_FILES)
 test:
 	$(MAKE) default -C tests
 
-dnagen: dnagen.c
+dnagen: misc/dnagen.c
 	$(CXX) $(CFLAGS) $^ -o $@
 
 clean:

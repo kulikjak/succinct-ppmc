@@ -3,8 +3,8 @@
 Implementation and possible text todo list for this thesis
 
 ## Simple version:
-* red black tree support
-* implement comparable structures up to the deBruijn graph
+* red black tree support - done
+* implement comparable structures up to the deBruijn graph - done
 
 ## Compact version:
 * red black tree support - done
