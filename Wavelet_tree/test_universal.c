@@ -79,6 +79,42 @@ bool test_rear_insert(void) {
   return true;
 }
 
+bool test_deletion(void) {
+  int32_t i;
+
+  UWT_Struct uwt;
+  UWT_Init(&uwt, 6);
+
+  uint8_t* sequence = int_sequence_generate_random(SEQENCE_LEN, 6);
+
+  int32_t idx = 0;
+  int32_t added = 0;
+  int32_t pos[SEQENCE_LEN];
+
+  for (i = 0; i < SEQENCE_LEN; i++) {
+    uint8_t letter = int_sequence_get(sequence, SEQENCE_LEN, i);
+
+    if (letter % 6) {
+      UWT_Insert(&uwt, i + added, letter);
+      pos[idx++] = i + added++;
+    }
+    UWT_Insert(&uwt, i + added, letter);
+  }
+
+  UWT_Print_Symbols(&uwt);
+
+  /* delete all additional symbols and check the structure */
+  for (i = added - 1; i >= 0; i--)
+    UWT_Delete(&uwt, pos[i]);
+
+  _test_wavelet_tree(&uwt, sequence, 6);
+
+  int_sequence_free(&sequence);
+  UWT_Free(&uwt);
+
+  return true;
+}
+
 bool test_full_ascii(void) {
   int32_t i;
 
@@ -108,6 +144,7 @@ int main(int argc, char* argv[]) {
 
   test_front_insert();
   test_rear_insert();
+  test_deletion();
   test_full_ascii();
 
   printf("All tests successfull\n");

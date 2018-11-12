@@ -28,6 +28,28 @@ void UWT_Free(UWTStructRef UWT__) {
   UWT__->scount_ = 0;
 }
 
+void UWT_Delete(UWTStructRef UWT__, uint32_t pos__) {
+  int32_t curr, level, bit, temp;
+
+  curr = 0;
+  level = 0;
+  do {
+    bit = DBV_Get(&(UWT__->DBV_[curr]), pos__);
+    if (bit == 0) {
+      temp = DBV_Rank0(&(UWT__->DBV_[curr]), pos__);
+      DBV_Delete(&(UWT__->DBV_[curr]), pos__);
+      curr = curr * 2 + 1;
+    } else {
+      temp = DBV_Rank(&(UWT__->DBV_[curr]), pos__);
+      DBV_Delete(&(UWT__->DBV_[curr]), pos__);
+      curr = (curr + 1) * 2;
+    }
+    pos__ = temp;
+    level++;
+
+  } while (curr < UWT__->ncount_);
+}
+
 void UWT_Insert(UWTStructRef UWT__, uint32_t pos__, uint8_t symb__) {
   int32_t curr, level, bit;
 

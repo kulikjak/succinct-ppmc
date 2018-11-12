@@ -31,6 +31,14 @@ void UWT_Init(UWTStructRef UWT__, int32_t scount__);
 void UWT_Free(UWTStructRef UWT__);
 
 /*
+ * Delete symbol from given position.
+ *
+ * @param  UWT__  UWT structure reference.
+ * @param  pos__  Delete position index.
+ */
+void UWT_Delete(UWTStructRef UWT__, uint32_t pos__);
+
+/*
  * Insert new symbol into the given position.
  * 
  * @param  UWT__  UWT structure reference.
