@@ -1,129 +1,104 @@
 /*
- * Implementation of very simple and inefficient Rank & Select structure.
+ * Implementation of very simple and inefficient dynamic Rank & Select structure.
  *
- * Only for testing purposes (RaS complex tree structures).
+ * Only for testing purposes.
  * Time complexity of both rank and select is O(n).
  */
 
 #ifndef _BIT_SEQUENCE__
 #define _BIT_SEQUENCE__
 
-#include <limits.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-/*
- * Generate bit sequence.
- *
- * @param  ssize__  Length of the sequence.
- *
- * @return  Newly created bit sequence (64 bit integer array).
- */
-uint64_t* init_random_bin_sequence(int32_t ssize__) {
-  int32_t i;
+#define BitSeqType uint64_t
+#define BitSeqSize 64
 
-  // allocate space for new bit sequence
-  int32_t limit = (int)ceil(ssize__ / 64.0);
-  uint64_t* sequence = (uint64_t*)calloc(limit, sizeof(uint64_t));
+BitSeqType* bit_sequence_generate_random(int32_t ssize__) {
+  int32_t i, bit;
 
-  // seed random number generator
+  int32_t limit = (int)ceil(ssize__ / (double)BitSeqSize);
+  BitSeqType* sequence = (BitSeqType*)calloc(limit, sizeof(BitSeqType));
+
   srand(time(NULL));
-
-  // fill sequence with random bits
   for (i = 0; i < ssize__; i++) {
     if (rand() % 2) {
-      sequence[i / 64] |= ((uint64_t)0x1) << (63 - (i % 64));
+      bit = ((BitSeqType)0x1) << ((BitSeqSize - 1) - (i % BitSeqSize));
+      sequence[i / BitSeqSize] |= bit;
     }
   }
   return sequence;
 }
 
-void print_bit_sequence32(uint32_t* seq__, int32_t len__) {
+void bit_sequence_print(BitSeqType* seq__, int32_t len__) {
   int32_t i;
 
-  for (i = 0; i < len__; i++) {
-    printf("%d ", (seq__[i / 32] >> (31 - (i % 32))) & 0x1);
-  }
+  for (i = 0; i < len__; i++)
+    printf("%ld ", (seq__[i / BitSeqSize] >> ((BitSeqSize - 1) - (i % BitSeqSize))) & 0x1);
   printf("\n");
 }
 
-void print_bit_sequence64(uint64_t* seq__, int32_t len__) {
-  int32_t i;
-
-  for (i = 0; i < len__; i++) {
-    printf("%ld ", (seq__[i / 64] >> (63 - (i % 64))) & 0x1);
-  }
-  printf("\n");
-}
-
-void print_bit_sequence(uint64_t* seq__, int32_t len__) {
-  print_bit_sequence64(seq__, len__);
-}
-
-void free_bit_sequence(uint64_t** seq__) {
+void bit_sequence_free(BitSeqType** seq__) {
   free(*seq__);
   seq__ = NULL;
 }
 
 /*
- * Rank query bit sequence.
+ * Bit sequence get operation.
  *
- * @param  seq__  Bit sequence.
+ * @param  seq__  Symbol sequence.
+ * @param  len__  Length of the sequence.
+ * @param  pos__  Query position.
+ */
+int32_t bit_sequence_get(BitSeqType* seq__, int32_t len__, int32_t pos__) {
+  if (pos__ < 0 || pos__ >= len__) return -1;
+
+  return (seq__[pos__ / BitSeqSize] >> ((BitSeqSize - 1) - (pos__ % BitSeqSize))) & 0x1;
+}
+
+
+/*
+ * Bit sequence rank operation.
+ *
+ * @param  seq__  Symbol sequence.
  * @param  len__  Length of the sequence.
  * @param  x__  Query position.
- *
- * @return  Result of rank query.
  */
-int32_t rank_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
+int32_t bit_sequence_rank(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, rest;
   int32_t rank = 0;
 
-  // check that x__ is not higheer then len of sequence
   x__ = (x__ > len__) ? len__ : x__;
 
-  // get rank from whole integers
-  limit = x__ / 64;
+  limit = x__ / BitSeqSize;
   for (i = 0; i < limit; i++) {
     rank += __builtin_popcountl(seq__[i]);
   }
 
-  // get rank from smaller integer
-  rest = 63 - (x__ % 64);
-  for (i = 63; i > rest; i--) {
+  rest = (BitSeqSize - 1) - (x__ % BitSeqSize);
+  for (i = BitSeqSize-1; i > rest; i--) {
     rank += (seq__[limit] >> i) & 0x1;
   }
 
   return rank;
 }
 
-/*
- * Rank zero query bit sequence.
- *
- * @param  seq__  Bit sequence.
- * @param  len__  Length of the sequence.
- * @param  x__  Query position.
- *
- * @return  Result of rank zero query.
- */
-int32_t rank0_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
+int32_t bit_sequence_rank0(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, rest;
   int32_t rank = 0;
 
-  // check that x__ is not higheer then len of sequence
   x__ = (x__ > len__) ? len__ : x__;
 
-  // get rank from whole integers
-  limit = x__ / 64;
+  limit = x__ / BitSeqSize;
   for (i = 0; i < limit; i++) {
-    rank += 64 - __builtin_popcountl(seq__[i]);
+    rank += BitSeqSize - __builtin_popcountl(seq__[i]);
   }
 
-  // get rank from smaller integer
-  rest = 63 - (x__ % 64);
-  for (i = 63; i > rest; i--) {
+  rest = (BitSeqSize - 1) - (x__ % BitSeqSize);
+  for (i = (BitSeqSize - 1); i > rest; i--) {
     rank += ((seq__[limit] >> i) & 0x1) ? 0 : 1;
   }
 
@@ -131,81 +106,54 @@ int32_t rank0_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
 }
 
 /*
- * Get bit from given position.
+ * Bit sequence select operation.
  *
  * @param  seq__  Symbol sequence.
  * @param  len__  Length of the sequence.
- * @param  pos__  Query position.
- */
-int32_t get_bit_sequence(uint64_t* seq__, int32_t len__, int32_t pos__) {
-  if (pos__ < 0 || pos__ >= len__) return -1;
-
-  return (seq__[pos__ / 64] >> (63 - (pos__ % 64))) & 0x1;
-}
-
-/*
- * Select query bit sequence.
- *
- * @param  seq__  Bit sequence.
- * @param  len__  Length of the sequence.
  * @param  x__  Query position.
- *
- * @return  Result of select query.
+ * @param  ch__  Query symbol.
  */
-int32_t select_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
+int32_t bit_sequence_select(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, pos;
   int32_t rank = 0;
 
-  limit = (int)((len__ - 1) / 64);
-  // run through whole integers
+  limit = (int)((len__ - 1) / BitSeqSize);
   for (i = 0; i <= limit; i++) {
     rank = __builtin_popcountl(seq__[i]);
     if (rank >= x__) {
-      // find correct position in last integer
       for (pos = 0; x__; pos++) {
-        x__ -= (seq__[i] >> (63 - pos)) & 0x1;
+        x__ -= (seq__[i] >> ((BitSeqSize - 1) - pos)) & 0x1;
       }
-      return i * 64 + pos;
+      return i * BitSeqSize + pos;
     }
     x__ -= rank;
   }
-  // if there is not enough 1s, return -1
+  /* if there is not enough 1s, return -1 */
   return -1;
 }
 
-/*
- * Select zero query bit sequence.
- *
- * @param  seq__  Bit sequence.
- * @param  len__  Length of the sequence.
- * @param  x__  Query position.
- *
- * @return  Result of select zero query.
- */
-int32_t select0_bit_sequence(uint64_t* seq__, int32_t len__, int32_t x__) {
+int32_t bit_sequence_select0(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, pos;
   int32_t rank = 0;
 
-  limit = (int)((len__ - 1) / 64);
-  // run through whole integers
+  limit = (int)((len__ - 1) / BitSeqSize);
   for (i = 0; i <= limit; i++) {
-    rank = 64 - __builtin_popcountl(seq__[i]);
+    rank = BitSeqSize - __builtin_popcountl(seq__[i]);
     if (rank >= x__) {
-      // find correct position in last integer
       if (i < limit)
         limit = INT_MAX;
       else
-        limit = len__ % 64;
+        limit = len__ % BitSeqSize;
       for (pos = 0; x__; pos++) {
-        x__ -= ((seq__[i] >> (63 - pos)) & 0x1) ? 0 : 1;
+        x__ -= ((seq__[i] >> ((BitSeqSize - 1) - pos)) & 0x1) ? 0 : 1;
         if (pos >= limit) return -1;
       }
-      return i * 64 + pos;
+      return i * BitSeqSize + pos;
     }
     x__ -= rank;
   }
-  // if there is not enough 1s, return -1
+  /* if there is not enough 1s, return -1 */
   return -1;
 }
 
-#endif  // _BIT_SEQUENCE__
+#endif
