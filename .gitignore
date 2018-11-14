@@ -1,10 +1,5 @@
 compressor
 dnagen
-ignore/
 
 # Executables from other directories
-Dynamic_BitVector/test
 Dynamic_BitVector/benchmark
-
-Wavelet_tree/test_optimized
-Wavelet_tree/test_universal

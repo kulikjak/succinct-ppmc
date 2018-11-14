@@ -1,41 +1,30 @@
-CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -g
-CFLAGS += -Wno-error=unused-function -Wno-unused-function
+# include all shared rules with correct BASE_ROOT
+BASE_ROOT = .
+include $(BASE_ROOT)/common.mk
 
-SOURCE_ROOT = src
-ARITH_CODER_ROOT = $(SOURCE_ROOT)/arith
-
-SRC_FILES += \
-	$(SOURCE_ROOT)/memory.c \
-	$(SOURCE_ROOT)/structure.c \
-	$(SOURCE_ROOT)/rank.c \
-	$(SOURCE_ROOT)/cache.c \
-	$(SOURCE_ROOT)/select.c \
-	$(SOURCE_ROOT)/deBruijn.c \
-	$(SOURCE_ROOT)/compressor.c \
-	$(ARITH_CODER_ROOT)/bitio.c \
-	$(ARITH_CODER_ROOT)/arith.c \
-	$(SOURCE_ROOT)/main.c
-
-INC_DIRS = -I$(SOURCE_ROOT)
-
+.PHONY: all
 all: compressor dnagen
 
-compressor: $(SRC_FILES)
-	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -o $@ -lm	
+COMPRESSOR_ALL = $(COMPRESSOR_SRC_FILES)
+COMPRESSOR_ALL += $(ARITH_SRC_FILES)
+COMPRESSOR_ALL += $(COMPRESSOR_ROOT)/main.c
 
-test:
-	$(MAKE) default -C tests
+compressor: $(COMPRESSOR_DEPEND)
+	$(CXX) $(CFLAGS) -I$(COMPRESSOR_ROOT) $(COMPRESSOR_ALL) -o $@ -lm
 
-dnagen: misc/dnagen.c
+dnagen: $(MISC_DIR)/dnagen.c
 	$(CXX) $(CFLAGS) $^ -o $@
 
+.PHONY: test
+test:
+	$(MAKE) all -C tests
+
+.PHONY: clean
 clean:
 	$(MAKE) clean -C tests
 	rm compressor
 	rm -f dnagen
 
+.PHONY: purge
 purge: clean
 	$(MAKE) purge -C tests
-
-.PHONY: all test clean purge
