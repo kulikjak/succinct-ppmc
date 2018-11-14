@@ -17,7 +17,7 @@
 #define BitSeqType uint64_t
 #define BitSeqSize 64
 
-BitSeqType* bit_sequence_generate_random(int32_t ssize__) {
+static BitSeqType* bit_sequence_generate_random(int32_t ssize__) {
   int32_t i, bit;
 
   int32_t limit = (int)ceil(ssize__ / (double)BitSeqSize);
@@ -33,7 +33,7 @@ BitSeqType* bit_sequence_generate_random(int32_t ssize__) {
   return sequence;
 }
 
-void bit_sequence_print(BitSeqType* seq__, int32_t len__) {
+static void bit_sequence_print(BitSeqType* seq__, int32_t len__) {
   int32_t i;
 
   for (i = 0; i < len__; i++)
@@ -41,7 +41,7 @@ void bit_sequence_print(BitSeqType* seq__, int32_t len__) {
   printf("\n");
 }
 
-void bit_sequence_free(BitSeqType** seq__) {
+static void bit_sequence_free(BitSeqType** seq__) {
   free(*seq__);
   seq__ = NULL;
 }
@@ -53,7 +53,7 @@ void bit_sequence_free(BitSeqType** seq__) {
  * @param  len__  Length of the sequence.
  * @param  pos__  Query position.
  */
-int32_t bit_sequence_get(BitSeqType* seq__, int32_t len__, int32_t pos__) {
+static int32_t bit_sequence_get(BitSeqType* seq__, int32_t len__, int32_t pos__) {
   if (pos__ < 0 || pos__ >= len__) return -1;
 
   return (seq__[pos__ / BitSeqSize] >> ((BitSeqSize - 1) - (pos__ % BitSeqSize))) & 0x1;
@@ -67,7 +67,7 @@ int32_t bit_sequence_get(BitSeqType* seq__, int32_t len__, int32_t pos__) {
  * @param  len__  Length of the sequence.
  * @param  x__  Query position.
  */
-int32_t bit_sequence_rank(BitSeqType* seq__, int32_t len__, int32_t x__) {
+static int32_t bit_sequence_rank(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, rest;
   int32_t rank = 0;
 
@@ -86,7 +86,7 @@ int32_t bit_sequence_rank(BitSeqType* seq__, int32_t len__, int32_t x__) {
   return rank;
 }
 
-int32_t bit_sequence_rank0(BitSeqType* seq__, int32_t len__, int32_t x__) {
+static int32_t bit_sequence_rank0(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, rest;
   int32_t rank = 0;
 
@@ -113,7 +113,7 @@ int32_t bit_sequence_rank0(BitSeqType* seq__, int32_t len__, int32_t x__) {
  * @param  x__  Query position.
  * @param  ch__  Query symbol.
  */
-int32_t bit_sequence_select(BitSeqType* seq__, int32_t len__, int32_t x__) {
+static int32_t bit_sequence_select(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, pos;
   int32_t rank = 0;
 
@@ -132,7 +132,7 @@ int32_t bit_sequence_select(BitSeqType* seq__, int32_t len__, int32_t x__) {
   return -1;
 }
 
-int32_t bit_sequence_select0(BitSeqType* seq__, int32_t len__, int32_t x__) {
+static int32_t bit_sequence_select0(BitSeqType* seq__, int32_t len__, int32_t x__) {
   int32_t i, limit, pos;
   int32_t rank = 0;
 

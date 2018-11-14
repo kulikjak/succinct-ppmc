@@ -4,11 +4,8 @@
 #include "compressor.h"
 #include "unity_fixture.h"
 
-TEST_GROUP(compressor);
+TEST_GROUP(Compressor_main);
 
-#define compressor_PRINT_SEQUENCE false
-
-#define compressor_RANDOM_TEST_VERBOSE false
 #define compressor_RANDOM_TEST_MAX_SEQ_SIZE 300
 #define compressor_RANDOM_TEST_POOL_SIZE 300
 
@@ -58,11 +55,11 @@ char* generate_dna_string(int64_t length__) {
   return res;
 }
 
-TEST_SETUP(compressor) {}
+TEST_SETUP(Compressor_main) {}
 
-TEST_TEAR_DOWN(compressor) {}
+TEST_TEAR_DOWN(Compressor_main) {}
 
-TEST(compressor, StaticTest) {
+TEST(Compressor_main, StaticTest) {
   start_compressor("tmp/static_test.bin");
 
   Compressor_Compress_symbol(&C, VALUE_A);
@@ -101,7 +98,7 @@ TEST(compressor, StaticTest) {
   end_decompressor();
 }
 
-TEST(compressor, RandomTest) {
+TEST(Compressor_main, RandomTest) {
   char filename[255] = {0};
   int32_t i, run, len;
   Graph_value val;
@@ -126,8 +123,6 @@ TEST(compressor, RandomTest) {
       Compressor_Compress_symbol(&C, dna[i]);
     }
 
-    //deBruijn_Print(&(C.dB_), true);
-
     end_compressor();
     start_decompressor(filename);
 
@@ -141,7 +136,7 @@ TEST(compressor, RandomTest) {
   }
 }
 
-TEST_GROUP_RUNNER(compressor) {
-  RUN_TEST_CASE(compressor, StaticTest);
-  RUN_TEST_CASE(compressor, RandomTest);
+TEST_GROUP_RUNNER(Compressor_main) {
+  RUN_TEST_CASE(Compressor_main, StaticTest);
+  RUN_TEST_CASE(Compressor_main, RandomTest);
 }

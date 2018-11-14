@@ -1,60 +1,58 @@
-CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -g
-CFLAGS += -Wno-error=unused-function -Wno-unused-function
-#CFLAGS += -Wpointer-arith -Wcast-align -Wwrite-strings
-#CFLAGS += -Wswitch-default -Wunreachable-code -Winit-self
-#CFLAGS += -Wmissing-field-initializers -Wno-unknown-pragmas
-#CFLAGS += -Wstrict-prototypes -Wundef -Wold-style-definition
+# include all shared rules with correct BASE_ROOT
+BASE_ROOT = ..
+include $(BASE_ROOT)/common.mk
 
-TARGET = Test
-UNITY_ROOT = Unity-master
+# Variables shared by all tests
+TEST_INC_DIRS = -I$(SHARED_DIR) -I$(MISC_DIR) $(UNITY_INC_DIRS)
+TEST_ARGUMENTS = $(UNITY_SRC_FILES)
 
-SOURCE_ROOT = ../src
-ARITH_CODER_ROOT = $(SOURCE_ROOT)/arith
+all: clean
 
-INC_DIRS = -Isrc -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src -I$(SOURCE_ROOT)
-
-SRC_FILES = \
-	$(UNITY_ROOT)/src/unity.c $(UNITY_ROOT)/extras/fixture/src/unity_fixture.c
-
-SRC_FILES += \
-	$(SOURCE_ROOT)/memory.c \
-	$(SOURCE_ROOT)/cache.c \
-	$(SOURCE_ROOT)/structure.c \
-	$(SOURCE_ROOT)/rank.c \
-	$(SOURCE_ROOT)/select.c \
-	$(SOURCE_ROOT)/deBruijn.c \
-	$(SOURCE_ROOT)/compressor.c \
-	$(ARITH_CODER_ROOT)/bitio.c \
-	$(ARITH_CODER_ROOT)/arith.c
-
-SRC_FILES += \
-	TestStructMemory.c \
-	TestStructBinaryVector.c \
-	TestStructWaveletTree.c \
-	TestStructIntegerVector.c \
-	TestDeBruijn.c \
-	TestCompressor.c \
-	TestAll.c
-
-all: clean default
-
+.PHONY: download
 download: .downloaded-unity
 .downloaded-unity:
 	wget -O unity.zip https://github.com/ThrowTheSwitch/Unity/archive/master.zip
 	unzip unity.zip
 	touch .downloaded-unity
 
-default: download
-	$(CXX) $(CFLAGS) $(INC_DIRS) $(SRC_FILES) -D_UNITY -o $(TARGET) -lm
-	mkdir -p tmp
-	- ./$(TARGET) -v
+all: test_bit_vector
+test_bit_vector: $(DBV_DEPEND)
+test_bit_vector: TEST_INC_DIRS += -I$(DBV_ROOT)
+test_bit_vector: TEST_ARGUMENTS += $(DBV_SRC_FILES) \
+	./Dynamic_BitVector/dbv.c ./Dynamic_BitVector.c
 
+all: test_wavelet_tree
+test_wavelet_tree: $(WT_DEPEND)
+test_wavelet_tree: TEST_INC_DIRS += -I$(WT_ROOT) -I$(DBV_ROOT)
+test_wavelet_tree: TEST_ARGUMENTS += $(DBV_SRC_FILES) $(WT_SRC_FILES) \
+	./Wavelet_tree/optimized.c ./Wavelet_tree/universal.c \
+	./Wavelet_tree.c
+
+all: test_compressor
+test_compressor: $(COMPRESSOR_DEPEND) tmp
+test_compressor: TEST_INC_DIRS += -I$(COMPRESSOR_ROOT) -I$(ARITH_ROOT)
+test_compressor: TEST_ARGUMENTS += $(COMPRESSOR_SRC_FILES) $(ARITH_SRC_FILES) \
+	./Compressor/memory.c \
+	./Compressor/binary_vector.c \
+	./Compressor/wavelet_tree.c \
+	./Compressor/int_vector.c \
+	./Compressor/deBruijn.c \
+	./Compressor/compressor.c \
+	./Compressor.c
+
+.PHONY: test_%
+test_%: download
+	$(CXX) $(CFLAGS) -g $(TEST_INC_DIRS) $(TEST_ARGUMENTS) -D_UNITY -o $@ -lm
+	- ./$@ -v
+
+tmp:
+	mkdir tmp
+
+.PHONY: clean
 clean:
-	rm -f $(TARGET)
+	rm -f test_*
 	rm -rf tmp
 
+.PHONY: purge
 purge: clean
 	rm -rf $(UNITY_ROOT) unity.zip .downloaded-unity
-
-.PHONY: all clean default purge download
