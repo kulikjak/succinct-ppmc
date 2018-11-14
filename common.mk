@@ -47,8 +47,7 @@ COMPRESSOR_HEADER_FILES = \
 	$(COMPRESSOR_ROOT)/memory.h     \
 	$(COMPRESSOR_ROOT)/stack.h      \
 	$(COMPRESSOR_ROOT)/structure.h  \
-	$(COMPRESSOR_ROOT)/tracker.h    \
-	$(COMPRESSOR_ROOT)/utils.h
+	$(COMPRESSOR_ROOT)/tracker.h
 
 ARITH_SRC_FILES = $(ARITH_ROOT)/bitio.c
 ARITH_SRC_FILES += $(ARITH_ROOT)/arith.c

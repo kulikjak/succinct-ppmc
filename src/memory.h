@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "defines.h"
+#include "utils.h"
 
 #define MEMORY_VERBOSE(func) \
   if (MEMORY_VERBOSE_) {     \

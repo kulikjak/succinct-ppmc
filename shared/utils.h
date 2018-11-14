@@ -22,4 +22,9 @@ static void fatal(const char* m__, const char* e__) {
 
 #define FATAL(msg) (fatal(msg, ""))
 
+#define malloc_(a) malloc(a)
+#define calloc_(a, b) calloc(a, b)
+#define realloc_(a, b) realloc(a, b)
+#define free_(a) free(a)
+
 #endif

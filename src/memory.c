@@ -1,15 +1,14 @@
 #include "memory.h"
-#include "utils.h"
 
 MemObj Memory_init(void) {
-  MemObj mem = (memory_32e*)malloc(sizeof(memory_32e));
+  MemObj mem = (memory_32e*)malloc_(sizeof(memory_32e));
 
   // initialize node and leaf blocks and first block
-  mem->nodes_ = (NodeRef*)malloc(INITIAL_BLOCK_COUNT_ * sizeof(NodeRef));
-  mem->leafs_ = (LeafRef*)malloc(INITIAL_BLOCK_COUNT_ * sizeof(LeafRef));
+  mem->nodes_ = (NodeRef*)malloc_(INITIAL_BLOCK_COUNT_ * sizeof(NodeRef));
+  mem->leafs_ = (LeafRef*)malloc_(INITIAL_BLOCK_COUNT_ * sizeof(LeafRef));
 
-  mem->nodes_[0] = (NodeRef)malloc(MEMORY_BLOCK_SIZE_ * sizeof(node_32e));
-  mem->leafs_[0] = (LeafRef)malloc(MEMORY_BLOCK_SIZE_ * sizeof(leaf_32e));
+  mem->nodes_[0] = (NodeRef)malloc_(MEMORY_BLOCK_SIZE_ * sizeof(node_32e));
+  mem->leafs_[0] = (LeafRef)malloc_(MEMORY_BLOCK_SIZE_ * sizeof(leaf_32e));
 
   // initialize all counters
   mem->n_block_count_ = INITIAL_BLOCK_COUNT_;
@@ -60,14 +59,14 @@ mem_ptr Memory_new_leaf(MemObj mem__) {
 
       // realloc block memory
       mem__->l_block_count_ *= 2;
-      mem__->leafs_ = (LeafRef*)realloc(
+      mem__->leafs_ = (LeafRef*)realloc_(
           mem__->leafs_, mem__->l_block_count_ * sizeof(LeafRef));
     }
 
     // allocate new memory block
     mem__->l_current_block_index_ = 0;
     mem__->leafs_[mem__->l_current_block_] =
-        (LeafRef)malloc(MEMORY_BLOCK_SIZE_ * sizeof(leaf_32e));
+        (LeafRef)malloc_(MEMORY_BLOCK_SIZE_ * sizeof(leaf_32e));
   }
 
   // return mem_ptr reference
@@ -99,14 +98,14 @@ mem_ptr Memory_new_node(MemObj mem__) {
 
       // realloc block memory
       mem__->n_block_count_ *= 2;
-      mem__->nodes_ = (NodeRef*)realloc(
+      mem__->nodes_ = (NodeRef*)realloc_(
           mem__->nodes_, mem__->n_block_count_ * sizeof(NodeRef));
     }
 
     // allocate new memory block
     mem__->n_current_block_index_ = 0;
     mem__->nodes_[mem__->n_current_block_] =
-        (NodeRef)malloc(MEMORY_BLOCK_SIZE_ * sizeof(node_32e));
+        (NodeRef)malloc_(MEMORY_BLOCK_SIZE_ * sizeof(node_32e));
   }
 
   // return mem_ptr reference

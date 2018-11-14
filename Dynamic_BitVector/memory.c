@@ -1,14 +1,14 @@
 #include "memory.h"
 
 DBVMemObj DBV_Memory_Init(void) {
-  DBVMemObj mem = (DBVMemObj)malloc(sizeof(DBVMemory_32b));
+  DBVMemObj mem = (DBVMemObj)malloc_(sizeof(DBVMemory_32b));
 
   /* initialize node and leaf blocks and first block */
-  mem->nodes_ = (DBVNodeRef*)malloc(DBV_INITIAL_BLOCK_COUNT * sizeof(DBVNodeRef));
-  mem->leafs_ = (DBVLeafRef*)malloc(DBV_INITIAL_BLOCK_COUNT * sizeof(DBVLeafRef));
+  mem->nodes_ = (DBVNodeRef*)malloc_(DBV_INITIAL_BLOCK_COUNT * sizeof(DBVNodeRef));
+  mem->leafs_ = (DBVLeafRef*)malloc_(DBV_INITIAL_BLOCK_COUNT * sizeof(DBVLeafRef));
 
-  mem->nodes_[0] = (DBVNodeRef)malloc(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVNode_32b));
-  mem->leafs_[0] = (DBVLeafRef)malloc(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVLeaf_32b));
+  mem->nodes_[0] = (DBVNodeRef)malloc_(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVNode_32b));
+  mem->leafs_[0] = (DBVLeafRef)malloc_(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVLeaf_32b));
 
   /* initialize all other counters */
   mem->n_block_count_ = DBV_INITIAL_BLOCK_COUNT;
@@ -58,14 +58,14 @@ DBVMemPtr DBV_Memory_new_leaf(DBVMemObj mem__) {
 
       /* realloc block memory */
       mem__->l_block_count_ *= 2;
-      mem__->leafs_ = (DBVLeafRef*)realloc(
+      mem__->leafs_ = (DBVLeafRef*)realloc_(
           mem__->leafs_, mem__->l_block_count_ * sizeof(DBVLeafRef));
     }
 
     /* allocate block itself */
     mem__->l_current_block_index_ = 0;
     mem__->leafs_[mem__->l_current_block_] =
-        (DBVLeafRef)malloc(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVLeaf_32b));
+        (DBVLeafRef)malloc_(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVLeaf_32b));
   }
 
   /* return int reference */
@@ -91,14 +91,14 @@ DBVMemPtr DBV_Memory_new_node(DBVMemObj mem__) {
 
       /* realloc block memory */
       mem__->n_block_count_ *= 2;
-      mem__->nodes_ = (DBVNodeRef*)realloc(
+      mem__->nodes_ = (DBVNodeRef*)realloc_(
           mem__->nodes_, mem__->n_block_count_ * sizeof(DBVNodeRef));
     }
 
     /* allocate block itself */
     mem__->n_current_block_index_ = 0;
     mem__->nodes_[mem__->n_current_block_] =
-        (DBVNodeRef)malloc(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVNode_32b));
+        (DBVNodeRef)malloc_(DBV_MEMORY_BLOCK_SIZE * sizeof(DBVNode_32b));
   }
 
   /* return int reference */

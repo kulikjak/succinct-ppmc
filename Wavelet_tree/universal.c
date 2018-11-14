@@ -10,7 +10,7 @@ void UWT_Init(UWTStructRef UWT__, int32_t scount__) {
     ncount -= 1;
 
   /* allocate and initialize the structure */
-  UWT__->DBV_ = (DBVStructRef) malloc (ncount * sizeof(DBV_Struct));
+  UWT__->DBV_ = (DBVStructRef)malloc_(ncount * sizeof(DBV_Struct));
   UWT__->ncount_ = ncount;
   UWT__->scount_ = scount__;
 
