@@ -1,28 +1,14 @@
-CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -g
-CFLAGS += -Wno-error=unused-function -Wno-unused-function
+# include all shared rules with correct BASE_ROOT
+BASE_ROOT = ..
+include $(BASE_ROOT)/common.mk
 
 CPPXX = g++
 CPPFLAGS = --std=c++0x -Wall -Wextra -pedantic -Wno-long-long
 CPPFLAGS += -Wno-error=unused-function -Wno-unused-function -Wno-unused-variable
 
-SHARED_DIR = ../shared
-SHARED = $(SHARED_DIR)/utils.h ../misc/bit_sequence.h
+benchmark: benchmark.cc $(DBV_DEPEND) $(SHARED_DIR)
+	$(CPPXX) $(CPPFLAGS) -I$(SHARED_DIR) $(DBV_SRC_FILES) benchmark.cc -o $@
 
-SOURCE_FILES = dbv.c memory.c rankselect.c insert.c delete.c
-HEADER_FILES = dbv.h memory.h
-
-INC_DIRS = -I$(SHARED_DIR)
-
-all: test benchmark
-
-test: test.c $(SOURCE_FILES) $(HEADER_FILES) $(SHARED)
-	$(CXX) $(CFLAGS) $(INC_DIRS) $(SOURCE_FILES) test.c -lm -o $@
-
-benchmark: benchmark.cc $(SOURCE_FILES) $(HEADER_FILES) $(SHARED)
-	$(CPPXX) $(CPPFLAGS) $(INC_DIRS) $(SOURCE_FILES) benchmark.cc -o $@
-
+.PHONY: clean
 clean:
-	rm -f test benchmark
-
-.PHONY: all clean
+	rm -f benchmark
