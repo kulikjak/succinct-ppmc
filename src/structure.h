@@ -115,7 +115,7 @@ typedef struct {
  */
 #define GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, with_stack) { \
   if (with_stack) STACK_CLEAN();                                         \
-  mem_ptr Xtemp;                                                         \
+  uint32_t Xtemp;                                                        \
   current = Graph__->root_;                                              \
   uint32_t backup = pos__;                                               \
   if (with_stack || !lookup_cache(&pos__, &leaf_ref)) {                  \

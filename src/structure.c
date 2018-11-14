@@ -9,13 +9,16 @@ void Graph_Init(GraphRef Graph__) {
   // memset each leaf variable to zero
   memset(&(leaf_ref->p_), 0, sizeof(leaf_32e));
 
+#ifdef DIRECT_MEMORY
+  leaf_ref->is_leaf = true;
+#endif
+
 #ifdef ENABLE_LOOKUP_CACHE
   reset_cache();
 #endif
 }
 
 void Graph_Free(GraphRef Graph__) {
-  Graph__->root_ = -1;
   Memory_free(&(Graph__->mem_));
 }
 
@@ -67,7 +70,8 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
 
 void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   int32_t split_mask, split_offset;
-  int32_t mask, current;
+  int32_t mask;
+  mem_ptr current;
   uint32_t temp;
   bool parent_left, grandparent_left;
 
@@ -208,7 +212,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     }
 
     // finally exchange pointers to new node
-    if (STACK_GET_PARENT() == -1) {
+    if (STACK_GET_PARENT() == STACK_ERROR) {
       Graph__->root_ = node;
     } else {
       NodeRef parent = MEMORY_GET_NODE(Graph__->mem_, STACK_GET_PARENT());
@@ -229,7 +233,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
     do {
       // current node is the root - change it to black and end
-      if (STACK_GET_PARENT() == -1) {
+      if (STACK_GET_PARENT() == STACK_ERROR) {
         node_ref->rb_flag_ = false;
         return;
       }
@@ -333,7 +337,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       }
 
       // finally exchange pointers to new node
-      if (STACK_GET_GRANDGRANDPARENT() == -1) {
+      if (STACK_GET_GRANDGRANDPARENT() == STACK_ERROR) {
         Graph__->root_ = newroot;
       } else {
         NodeRef grandgrandparent = MEMORY_GET_NODE(Graph__->mem_, STACK_GET_GRANDGRANDPARENT());
@@ -445,7 +449,7 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
     if (nchar_mask & 0x4) node_ref->rW_ += 1;
 
     current = STACK_POP();
-  } while (current != -1);
+  } while (current != STACK_ERROR);
 }
 
 void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {

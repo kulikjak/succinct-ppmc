@@ -71,8 +71,13 @@ mem_ptr Memory_new_leaf(MemObj mem__) {
   }
 
   // return mem_ptr reference
+#if defined(INDEXED_MEMORY)
   mem__->l_current_block_index_++;
   return ((++mem__->l_last_index_) << 1) | 0x1;
+#elif defined(DIRECT_MEMORY)
+  mem__->leafs_[mem__->l_current_block_][mem__->l_current_block_index_++].is_leaf = true;
+  return (mem_ptr)(&(mem__->leafs_[mem__->l_current_block_][mem__->l_current_block_index_-1]));
+#endif
 }
 
 mem_ptr Memory_new_node(MemObj mem__) {
@@ -105,6 +110,11 @@ mem_ptr Memory_new_node(MemObj mem__) {
   }
 
   // return mem_ptr reference
+#if defined(INDEXED_MEMORY)
   mem__->n_current_block_index_++;
   return (++mem__->n_last_index_) << 1;
+#elif defined(DIRECT_MEMORY)
+  mem__->nodes_[mem__->n_current_block_][mem__->n_current_block_index_++].is_leaf = false;
+  return &(mem__->nodes_[mem__->n_current_block_][mem__->n_current_block_index_-1]);
+#endif
 }

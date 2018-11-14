@@ -10,16 +10,22 @@
 
 // global stack
 typedef struct stack_32b {
-  int32_t stack_[MAX_STACK_SIZE];
+  mem_ptr stack_[MAX_STACK_SIZE];
   int32_t current_;
 } stack_32b;
 
+#if defined(INDEXED_MEMORY)
+#define STACK_ERROR -1
+#elif defined(DIRECT_MEMORY)
+#define STACK_ERROR NULL
+#endif
+
 #define STACK_GET_PARENT() \
-  ((stack.current_ >= 1) ? stack.stack_[stack.current_ - 1] : -1)
+  ((stack.current_ >= 1) ? stack.stack_[stack.current_ - 1] : STACK_ERROR)
 #define STACK_GET_GRANDPARENT() \
-  ((stack.current_ >= 2) ? stack.stack_[stack.current_ - 2] : -1)
+  ((stack.current_ >= 2) ? stack.stack_[stack.current_ - 2] : STACK_ERROR)
 #define STACK_GET_GRANDGRANDPARENT() \
-  ((stack.current_ >= 3) ? stack.stack_[stack.current_ - 3] : -1)
+  ((stack.current_ >= 3) ? stack.stack_[stack.current_ - 3] : STACK_ERROR)
 
 #define STACK_PUSH(arg)                                                \
   {                                                                    \
@@ -27,8 +33,8 @@ typedef struct stack_32b {
     stack.stack_[++stack.current_] = arg;                              \
   }
 #define STACK_POP() \
-  ((stack.current_ == -1) ? -1 : stack.stack_[stack.current_--])
-#define STACK_TOP() ((stack.current_ == -1) ? -1 : stack.stack_[stack.current_])
+  ((stack.current_ == -1) ? STACK_ERROR : stack.stack_[stack.current_--])
+#define STACK_TOP() ((stack.current_ == -1) ? STACK_ERROR : stack.stack_[stack.current_])
 #define STACK_CLEAN() stack.current_ = -1;
 
 stack_32b stack;

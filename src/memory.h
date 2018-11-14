@@ -12,6 +12,9 @@
     func                     \
   }
 
+/* definitions for indexed memory model */
+#if defined(INDEXED_MEMORY)
+
 #define MEMORY_GET_ANY(mem, arg)                            \
   ((NodeRef)((arg & 0x1) ? (void*)MEMORY_GET_LEAF(mem, arg) \
                          : (void*)MEMORY_GET_NODE(mem, arg)))
@@ -26,10 +29,22 @@
 
 #define mem_ptr int32_t
 
-// big for better memory layout
+/* definitions for direct memory model */
+#elif defined(DIRECT_MEMORY)
+
+#define MEMORY_GET_ANY(mem, arg) ((NodeRef)(arg))
+#define MEMORY_GET_NODE(mem, arg) ((NodeRef)(arg))
+#define MEMORY_GET_LEAF(mem, arg) ((LeafRef)(arg))
+
+#define IS_LEAF(arg) (arg)->is_leaf
+
+#define mem_ptr struct node_32e*
+
+#endif
+
 #define bool32 int32_t
 
-typedef struct {
+typedef struct node_32e {
   // shared counter for total number of elements
   uint32_t p_;
 
@@ -41,6 +56,10 @@ typedef struct {
   uint32_t rWl_;  // for lower second level
   uint32_t rWh_;  // for higher second level
   uint32_t rWs_;  // for special last level
+
+#if defined(DIRECT_MEMORY)
+  bool32 is_leaf;
+#endif
 
   // pointers (index) to child nodes/leaves
   mem_ptr left_;
@@ -62,6 +81,10 @@ typedef struct {
   uint32_t rWl_;  // for lower second level
   uint32_t rWh_;  // for higher second level
   uint32_t rWs_;  // for special last level
+
+#if defined(DIRECT_MEMORY)
+  bool32 is_leaf;
+#endif
 
   // all graph data vectors
   uint32_t vectorL_;
@@ -97,6 +120,7 @@ typedef struct {
 } memory_32e;
 
 #define MemObj memory_32e*
+
 
 /*
  * Initialize and return memory object.

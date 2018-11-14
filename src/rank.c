@@ -8,7 +8,8 @@
  */
 
 #define GRAPH_SIMPLE_RANK_EXPAND(type__) {                      \
-  int32_t i, limit, current, rank;                              \
+  int32_t i, limit, rank;                                       \
+  mem_ptr current;                                              \
                                                                 \
   current = Graph__.root_;                                      \
   rank = 0;                                                     \
@@ -61,10 +62,10 @@
 }
 
 #define GRAPH_MASKED_RANK_EXPAND(type__) {                                  \
-  int32_t i, temp, current, rank;                                           \
+  int32_t i, temp, rank;                                                    \
   int32_t vector, local_p, mask;                                            \
                                                                             \
-  current = Graph__.root_;                                                  \
+  mem_ptr current = Graph__.root_;                                          \
   rank = 0;                                                                 \
                                                                             \
   LeafRef leaf_ref;                                                         \

@@ -92,7 +92,23 @@
 //#define INTEGER_CONTEXT_SHORTENING
 #define TREE_CONTEXT_SHORTENING
 
-// Define to hide leading $ signs in Label print and function TODO
+/* These define the way how memory is allocated and managed.
+ * DIRECT_MEMORY memory is directly referenced.
+ * INDEXED_MEMORY memory is indexed via array indexes.
+ *
+ * Both models use two memory blocks for leaves and nodes.
+ *
+ * Direct memory access has faster access times and lesser overhead. However it
+ * uses pointers which are double the size of 32bit indexes (on intel 64-bit
+ * system). This means that each tree node is bigger by eight bytes.
+ *
+ * Exacly one of those must be specified */
+//#define INDEXED_MEMORY
+#define DIRECT_MEMORY
+
+/* Define to hide leading $ signs in Label print.
+ * This doesn't have any performance drawbacks, because label print functions
+ * are never used in actual code except for debugging. */
 #define OMIT_EXCESSIVE_DOLLAR_SIGNS_
 
 /**************** ARITHMETIC CODING DEFINES **********************
@@ -164,6 +180,11 @@
     (! defined(LABEL_CONTEXT_SHORTENING)) && \
     (! defined(TREE_CONTEXT_SHORTENING))
   #error "Exacly one context shortening algorithm must be specified."
+#endif
+
+#if (defined(DIRECT_MEMORY) && defined(INDEXED_MEMORY)) || \
+    (! defined(DIRECT_MEMORY) && ! defined(INDEXED_MEMORY))
+  #error "You must define exacly one memory model."
 #endif
 
 #ifdef ENABLE_LOOKUP_CACHE

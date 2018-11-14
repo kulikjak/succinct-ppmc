@@ -28,7 +28,7 @@ Implementation and possible text todo list for this thesis
 
 three different memory managers:
 * indexed memory - done
-* preallocated pointed memory
+* preallocated pointed memory - done
 
 * implement PPMD for testing purposes with 7zip
 	- Image and Text Compression (Storer)

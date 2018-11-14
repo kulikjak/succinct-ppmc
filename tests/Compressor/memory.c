@@ -16,19 +16,24 @@ TEST_TEAR_DOWN(Compressor_memory) {
 }
 
 TEST(Compressor_memory, CorrectLeafNodeMapping) {
-  int32_t i, idx;
+  int32_t i;
+  mem_ptr mptr;
 
   for (i = 0; i < MEMORY_SAMPLE_SIZE_; i++) {
-    idx = Memory_new_node(mem);
+    mptr = Memory_new_node(mem);
 
-    TEST_ASSERT_EQUAL(idx, i * 2);
-    TEST_ASSERT_FALSE(IS_LEAF(idx));
+#ifdef INDEXED_MEMORY
+    TEST_ASSERT_EQUAL(mptr, i * 2);
+#endif
+    TEST_ASSERT_FALSE(IS_LEAF(mptr));
   }
   for (i = 0; i < MEMORY_SAMPLE_SIZE_; i++) {
-    idx = Memory_new_leaf(mem);
+    mptr = Memory_new_leaf(mem);
 
-    TEST_ASSERT_EQUAL(idx, (i * 2) + 1);
-    TEST_ASSERT_TRUE(IS_LEAF(idx));
+#ifdef INDEXED_MEMORY
+    TEST_ASSERT_EQUAL(mptr, (i * 2) + 1);
+#endif
+    TEST_ASSERT_TRUE(IS_LEAF(mptr));
   }
 }
 

@@ -8,10 +8,11 @@
  */
 
 #define GRAPH_SIMPLE_SELECT_EXPAND(type__) {                   \
-  int32_t i, temp, tmp_node;                                   \
-  int32_t current = Graph__.root_;                             \
+  int32_t i, temp;                                             \
   int32_t select = 0;                                          \
   uint32_t local_var;                                          \
+  mem_ptr tmp_node;                                            \
+  mem_ptr current = Graph__.root_;                             \
                                                                \
   NodeRef node_ref;                                            \
   LeafRef leaf_ref;                                            \
@@ -73,11 +74,12 @@
 }
 
 #define GRAPH_MASKED_SELECT_EXPAND(type__) {                                       \
-  int32_t i, temp, tmp_node;                                                       \
+  int32_t i, temp;                                                                 \
   int32_t local_p, vector, mask;                                                   \
-  int32_t current = Graph__.root_;                                                 \
   int32_t select = 0;                                                              \
   uint32_t local_var;                                                              \
+  mem_ptr tmp_node;                                                                \
+  mem_ptr current = Graph__.root_;                                                 \
                                                                                    \
   NodeRef node_ref;                                                                \
   LeafRef leaf_ref;                                                                \
