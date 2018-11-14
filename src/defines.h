@@ -106,6 +106,11 @@
 //#define INDEXED_MEMORY
 #define DIRECT_MEMORY
 
+/* Use PPMD algorithm instead of PPMC. This is here mostly for compression
+ * comparison with other implementations and it is not implemented most
+ * efficiently. */
+//#define PPMD
+
 /* Define to hide leading $ signs in Label print.
  * This doesn't have any performance drawbacks, because label print functions
  * are never used in actual code except for debugging. */

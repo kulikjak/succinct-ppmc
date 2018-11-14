@@ -81,6 +81,9 @@ void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_va
   idx__ = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__);
 
   Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
+#if defined(PPMD)
+  Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
+#endif
 
 #if defined(TREE_CONTEXT_SHORTENING)
   next = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__, C__->label_, C__->lptr_);

@@ -30,7 +30,7 @@ three different memory managers:
 * indexed memory - done
 * preallocated pointed memory - done
 
-* implement PPMD for testing purposes with 7zip
+* implement PPMD for testing purposes with 7zip - done
 	- Image and Text Compression (Storer)
 
 * implement RaS based context shortening
