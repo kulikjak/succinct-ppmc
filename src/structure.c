@@ -1,5 +1,11 @@
 #include "structure.h"
 
+#ifdef RAS_CONTEXT_SHORTENING
+#include "universal.h"
+
+UWT_Struct uwt;
+#endif
+
 void Graph_Init(GraphRef Graph__) {
   Graph__->mem_ = Memory_init();
   Graph__->root_ = Memory_new_leaf(Graph__->mem_);
@@ -8,6 +14,10 @@ void Graph_Init(GraphRef Graph__) {
 
   // memset each leaf variable to zero
   memset(&(leaf_ref->p_), 0, sizeof(leaf_32e));
+
+#ifdef RAS_CONTEXT_SHORTENING
+  UWT_Init(&uwt, CONTEXT_LENGTH + 1);
+#endif
 
 #ifdef DIRECT_MEMORY
   leaf_ref->is_leaf = true;
@@ -20,6 +30,10 @@ void Graph_Init(GraphRef Graph__) {
 
 void Graph_Free(GraphRef Graph__) {
   Memory_free(&(Graph__->mem_));
+
+#ifdef RAS_CONTEXT_SHORTENING
+  UWT_Free(&uwt);
+#endif
 }
 
 void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
@@ -62,6 +76,7 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
     memmove(&(leaf__->context_[pos__ + 1]), &(leaf__->context_[pos__]),
             (leaf__->p_ - pos__) * sizeof(int32_t));
 #endif
+
   }
   leaf__->vectorP_[pos__] = line__->P_;
 
@@ -86,6 +101,10 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   STRUCTURE_VERBOSE(
     printf("[structure]: Inserting new line on position %u\n", pos__);
   )
+
+#if defined(RAS_CONTEXT_SHORTENING)
+    UWT_Insert(&uwt, pos__, 0);
+#endif
 
   // traverse the tree and enter correct leaf
   mask = GET_MASK_FROM_VALUE(line__->W_);
@@ -557,32 +576,44 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   return -1;
 }
 
-#if defined(INTEGER_CONTEXT_SHORTENING)
+#if defined(INTEGER_CONTEXT_SHORTENING) \
+ || defined(RAS_CONTEXT_SHORTENING)
 
 void Graph_Set_csl(GraphRef Graph__, uint32_t pos__, int32_t csl__) {
-  mem_ptr current;
-  LeafRef leaf_ref;
-
   STRUCTURE_VERBOSE(
     printf("[structure]: Setting common suffix len at position %u\n", pos__);
   )
 
-  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
-  leaf_ref->context_[pos__] = csl__;
-}
-
-int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__) {
+#if defined(INTEGER_CONTEXT_SHORTENING)
   mem_ptr current;
   LeafRef leaf_ref;
 
+  GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
+  leaf_ref->context_[pos__] = csl__;
+#elif defined(RAS_CONTEXT_SHORTENING)
+  UNUSED(Graph__);
+
+  UWT_Delete(&uwt, pos__);
+  UWT_Insert(&uwt, pos__, csl__);
+#endif
+}
+
+int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__) {
   STRUCTURE_VERBOSE(
     printf("[structure]: Getting common suffix len at position %u\n", pos__);
   )
 
+#if defined(INTEGER_CONTEXT_SHORTENING)
+  mem_ptr current;
+  LeafRef leaf_ref;
+
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
-
   return leaf_ref->context_[pos__];
+#elif defined(RAS_CONTEXT_SHORTENING)
+  UNUSED(Graph__);
 
+  return UWT_Get(&uwt, pos__);
+#endif
 }
 
 #endif  // INTEGER_CONTEXT_SHORTENING

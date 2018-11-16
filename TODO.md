@@ -33,9 +33,7 @@ three different memory managers:
 * implement PPMD for testing purposes with 7zip - done
 	- Image and Text Compression (Storer)
 
-* implement RaS based context shortening
-
-* memory should be global and not associated with stucture (?)
+* implement RaS based context shortening - done
 
 * code refactoring and nicening
 * optimizations of algorithms

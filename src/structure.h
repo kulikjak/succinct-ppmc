@@ -339,7 +339,8 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 
 #endif
 
-#if defined(INTEGER_CONTEXT_SHORTENING)
+#if defined(INTEGER_CONTEXT_SHORTENING) \
+ || defined(RAS_CONTEXT_SHORTENING)
 
 /*
  * Set common suffix length with the upper neighbour.

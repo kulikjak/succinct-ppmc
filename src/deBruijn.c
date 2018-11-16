@@ -300,7 +300,8 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
 
 void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
 
-#if defined(INTEGER_CONTEXT_SHORTENING)
+#if defined(INTEGER_CONTEXT_SHORTENING) \
+  || defined(RAS_CONTEXT_SHORTENING)
 
   int32_t graph_size;
 
@@ -367,7 +368,8 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 #if defined(LABEL_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
       return idx__;
-#elif defined(INTEGER_CONTEXT_SHORTENING)
+#elif defined(INTEGER_CONTEXT_SHORTENING) \
+   || defined(RAS_CONTEXT_SHORTENING)
     if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
       return idx__;
 #endif

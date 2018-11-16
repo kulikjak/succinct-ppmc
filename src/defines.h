@@ -83,14 +83,15 @@
  *   from the root all the way to node with shorter context. Since the context
  *   is always small and not dependent on the size of the input, this is fast.
  *
- * RAS_CONTEXT_SHORTENING was removed due to its incredible memory overhead.
- * While it would probably be pretty fast, it would go against the memory
- * efficiency targeted by this program.
+ * RAS_CONTEXT_SHORTENING uses ranks and selects to move above wavelet tree
+ *   storing context lengths. It has an incredible memory overhead and is not
+ *   as fast as other methods.
  *
  * Exacly one of those must be specified */
 //#define LABEL_CONTEXT_SHORTENING
 //#define INTEGER_CONTEXT_SHORTENING
 #define TREE_CONTEXT_SHORTENING
+//#define RAS_CONTEXT_SHORTENING
 
 /* These define the way how memory is allocated and managed.
  * DIRECT_MEMORY memory is directly referenced.
@@ -177,13 +178,17 @@
 
 #if (defined(LABEL_CONTEXT_SHORTENING) && defined(INTEGER_CONTEXT_SHORTENING)) \
  || (defined(LABEL_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))    \
- || (defined(INTEGER_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))
+ || (defined(LABEL_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))     \
+ || (defined(INTEGER_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))  \
+ || (defined(INTEGER_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))   \
+ || (defined(TREE_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))
  #error "Exacly one context shortening algorithm must be specified."
 #endif
 
 #if (! defined(INTEGER_CONTEXT_SHORTENING)) && \
     (! defined(LABEL_CONTEXT_SHORTENING)) && \
-    (! defined(TREE_CONTEXT_SHORTENING))
+    (! defined(TREE_CONTEXT_SHORTENING)) && \
+    (! defined(RAS_CONTEXT_SHORTENING))
   #error "Exacly one context shortening algorithm must be specified."
 #endif
 
