@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-#include "memory.h"
+#include "dbv_memory.h"
 
 #ifdef __cplusplus
 #define static_ static
@@ -24,30 +24,30 @@ typedef struct {
 #define DBV_ENABLE_RED_BLACK_BALANCING
 
 
-/* global stack */
-typedef struct stack_32b {
+/* global dbv_stack */
+typedef struct dbv_stack_32b {
   int32_t stack_[DBV_MAX_STACK_SIZE];
   int32_t current_;
-} stack_32b;
+} dbv_stack_32b;
 
 #define DBV_STACK_GET_PARENT() \
-  ((stack.current_ >= 1) ? stack.stack_[stack.current_ - 1] : -1)
+  ((dbv_stack.current_ >= 1) ? dbv_stack.stack_[dbv_stack.current_ - 1] : -1)
 #define DBV_STACK_GET_GRANDPARENT() \
-  ((stack.current_ >= 2) ? stack.stack_[stack.current_ - 2] : -1)
+  ((dbv_stack.current_ >= 2) ? dbv_stack.stack_[dbv_stack.current_ - 2] : -1)
 #define DBV_STACK_GET_GRANDGRANDPARENT() \
-  ((stack.current_ >= 3) ? stack.stack_[stack.current_ - 3] : -1)
+  ((dbv_stack.current_ >= 3) ? dbv_stack.stack_[dbv_stack.current_ - 3] : -1)
 #define DBV_STACK_PUSH(arg) {                                            \
-  if (stack.current_ + 1 >= DBV_MAX_STACK_SIZE) FATAL("Stack overflow"); \
-  stack.stack_[++stack.current_] = arg;                                  \
+  if (dbv_stack.current_ + 1 >= DBV_MAX_STACK_SIZE) FATAL("Stack overflow"); \
+  dbv_stack.stack_[++dbv_stack.current_] = arg;                                  \
 }
 #define DBV_STACK_POP() \
-  ((stack.current_ == -1) ? -1 : stack.stack_[stack.current_--])
+  ((dbv_stack.current_ == -1) ? -1 : dbv_stack.stack_[dbv_stack.current_--])
 #define DBV_STACK_TOP() \
-  ((stack.current_ == -1) ? -1 : stack.stack_[stack.current_])
+  ((dbv_stack.current_ == -1) ? -1 : dbv_stack.stack_[dbv_stack.current_])
 #define DBV_STACK_CLEAN() \
-  stack.current_ = -1;
+  dbv_stack.current_ = -1;
 
-static_ stack_32b stack;
+static_ dbv_stack_32b dbv_stack;
 
 /*
  * Initialize DBV_Struct object.

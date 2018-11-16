@@ -1,5 +1,5 @@
 #include "dbv.h"
-#include "memory.h"
+#include "dbv_memory.h"
 
 void DBV_Delete(DBVStructRef DBV__, uint32_t pos__) {
   uint32_t temp, mask, vector;

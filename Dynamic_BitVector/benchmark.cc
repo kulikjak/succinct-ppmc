@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "memory.h"
 #include "dbv.h"
+#include "dbv_memory.h"
 
 void benchmark(uint64_t size, double p = 0.5) {
   using std::chrono::high_resolution_clock;

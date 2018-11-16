@@ -1,5 +1,5 @@
 #include "dbv.h"
-#include "memory.h"
+#include "dbv_memory.h"
 
 /* Insert bit into the given leaf on given position with given value. */
 #define INSERT_BIT(leaf, pos, value)                                     \

@@ -1,4 +1,4 @@
-#include "memory.h"
+#include "dbv_memory.h"
 
 DBVMemObj DBV_Memory_Init(void) {
   DBVMemObj mem = (DBVMemObj)malloc_(sizeof(DBVMemory_32b));

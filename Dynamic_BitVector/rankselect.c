@@ -1,5 +1,5 @@
 #include "dbv.h"
-#include "memory.h"
+#include "dbv_memory.h"
 
 int32_t DBV_Rank(DBVStructRef DBV__, uint32_t pos__) {
   int32_t i, temp, limit, tmp_node;

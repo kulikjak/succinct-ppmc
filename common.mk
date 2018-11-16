@@ -18,9 +18,9 @@ SHARED_DIR = $(BASE_ROOT)/shared
 MISC_DIR = $(BASE_ROOT)/misc
 
 # header and source files
-DBV_SRC_FILES = $(DBV_ROOT)/dbv.c $(DBV_ROOT)/memory.c $(DBV_ROOT)/rankselect.c 
+DBV_SRC_FILES = $(DBV_ROOT)/dbv.c $(DBV_ROOT)/dbv_memory.c $(DBV_ROOT)/rankselect.c
 DBV_SRC_FILES += $(DBV_ROOT)/insert.c $(DBV_ROOT)/delete.c
-DBV_HEADER_FILES = $(DBV_ROOT)/dbv.h $(DBV_ROOT)/memory.h
+DBV_HEADER_FILES = $(DBV_ROOT)/dbv.h $(DBV_ROOT)/dbv_memory.h
 
 OWT_SRC_FILES = $(WT_ROOT)/optimized.c
 OWT_HEADER_FILES = $(WT_ROOT)/optimized.h
