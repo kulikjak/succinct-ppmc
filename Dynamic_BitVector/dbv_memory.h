@@ -40,7 +40,7 @@ typedef struct DBVNode_32b {
   int32_t left_;
   int32_t right_;
 
-  bool32 rb_flag_;
+  Bool32 rb_flag_;
 } DBVNode_32b;
 
 typedef struct DBVLeaf_32b {
