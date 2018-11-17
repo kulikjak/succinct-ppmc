@@ -59,8 +59,8 @@ int32_t deBruijn_Forward_(deBruijnRef dB__, int32_t idx__) {
   /* calculate rank of edge label in the W array */
   rank = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_W, line.W_);
 
-  /* get starting position of edge label TODO CAN BE OPTIMIZED (cannot be $) */
-  spos = dB__->F_[line.W_];
+  /* get starting position of edge label */
+  spos = dB__->F_[line.W_]; 
 
   /* get index of the last edge of the node pointed to by given edge */
   temp = Graph_Rank(&(dB__->Graph_), spos, VECTOR_L, VALUE_1);

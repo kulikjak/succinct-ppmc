@@ -41,10 +41,12 @@ void Memory_free(MemObj* mem__) {
 }
 
 MemPtr Memory_new_leaf(MemObj mem__) {
-  /* Check if all memory was depleated, this is an omezeni TODO in a design and program cannot
-   * recover at this point. */
+#if defined(INDEXED_MEMORY)
+  /* Check if all memory was depleted. This is a limitation in the program design, and it is not
+   * possible to continue if this happens. */
   if (mem__->l_last_index_ >= 0x3FFFFFFF)
     FATAL("[memory]: Reached maximum possible number of leafs");
+#endif
 
   /* check if we need new memory block */
   if (mem__->l_current_block_index_ >= MEMORY_BLOCK_SIZE_) {
@@ -80,10 +82,12 @@ MemPtr Memory_new_leaf(MemObj mem__) {
 }
 
 MemPtr Memory_new_node(MemObj mem__) {
-  /* Check if all memory was depleated, this is an omezeni TODO in a design and program cannot
-   * recover at this point. */
+#if defined(INDEXED_MEMORY)
+  /* Check if all memory was depleted. This is a limitation in the program design, and it is not
+   * possible to continue if this happens. */
   if (mem__->n_last_index_ >= 0x3FFFFFFF)
     FATAL("[memory]: Reached maximum possible number of nodes");
+#endif
 
   /* check if we need new memory block */
   if (mem__->n_current_block_index_ >= MEMORY_BLOCK_SIZE_) {
