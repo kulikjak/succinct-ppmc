@@ -35,10 +35,11 @@ three different memory managers:
 
 * implement RaS based context shortening - done
 
-* code refactoring and nicening
-* optimizations of algorithms
+* code refactoring and nicening - done
+* optimizations of algorithms - done
 
-* benchmarks for all versions
+* write some benchmark tests
+* benchmarks everything
 
 
 ## Text (among all other):
