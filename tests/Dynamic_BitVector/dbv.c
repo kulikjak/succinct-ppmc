@@ -36,17 +36,13 @@ void _test_binary_vector(DBVStructRef DBV, BitSeqType* sequence) {
   }
 
   for (i = 0; i < TEST_SEQENCE_LEN; i++) {
-    TEST_ASSERT_EQUAL_INT32(bit_sequence_get(sequence, TEST_SEQENCE_LEN, i),
-                            DBV_Get(DBV, i));
+    TEST_ASSERT_EQUAL_INT32(bit_sequence_get(sequence, TEST_SEQENCE_LEN, i), DBV_Get(DBV, i));
   }
 
   for (i = 0; i <= TEST_SEQENCE_LEN; i++) {
-    TEST_ASSERT_EQUAL_INT32(bit_sequence_rank(sequence, TEST_SEQENCE_LEN, i),
-                            DBV_Rank(DBV, i));
-    TEST_ASSERT_EQUAL_INT32(bit_sequence_rank0(sequence, TEST_SEQENCE_LEN, i),
-                            DBV_Rank0(DBV, i));
-    TEST_ASSERT_EQUAL_INT32(bit_sequence_select(sequence, TEST_SEQENCE_LEN, i),
-                            DBV_Select(DBV, i));
+    TEST_ASSERT_EQUAL_INT32(bit_sequence_rank(sequence, TEST_SEQENCE_LEN, i), DBV_Rank(DBV, i));
+    TEST_ASSERT_EQUAL_INT32(bit_sequence_rank0(sequence, TEST_SEQENCE_LEN, i), DBV_Rank0(DBV, i));
+    TEST_ASSERT_EQUAL_INT32(bit_sequence_select(sequence, TEST_SEQENCE_LEN, i), DBV_Select(DBV, i));
     TEST_ASSERT_EQUAL_INT32(bit_sequence_select0(sequence, TEST_SEQENCE_LEN, i),
                             DBV_Select0(DBV, i));
   }
@@ -115,7 +111,7 @@ TEST(Dynamic_BitVector, mixed_insertion) {
     DBV_Insert(&DBV, i, bit);
   }
 
-  for (i = TEST_SEQENCE_LEN - 1; i >= (TEST_SEQENCE_LEN / 4 ) * 3; i--) {
+  for (i = TEST_SEQENCE_LEN - 1; i >= (TEST_SEQENCE_LEN / 4) * 3; i--) {
     bit = (sequence[i / BitSeqSize] >> ((BitSeqSize - 1) - (i % BitSeqSize))) & 0x1;
     DBV_Insert(&DBV, (TEST_SEQENCE_LEN / 4), bit);
   }
@@ -125,7 +121,7 @@ TEST(Dynamic_BitVector, mixed_insertion) {
     DBV_Insert(&DBV, (TEST_SEQENCE_LEN / 4), bit);
   }
 
-  for (i = TEST_SEQENCE_LEN / 2; i < (TEST_SEQENCE_LEN / 4 ) * 3; i++) {
+  for (i = TEST_SEQENCE_LEN / 2; i < (TEST_SEQENCE_LEN / 4) * 3; i++) {
     bit = (sequence[i / BitSeqSize] >> ((BitSeqSize - 1) - (i % BitSeqSize))) & 0x1;
     DBV_Insert(&DBV, i, bit);
   }

@@ -1,12 +1,12 @@
 #ifndef _TRACKER__
 #define _TRACKER__
 
-#include "utils.h"
 #include "deBruijn.h"
+#include "utils.h"
 
 struct {
-int32_t cnt_;
-int32_t *arr_[CONTEXT_LENGTH + 4];
+  int32_t cnt_;
+  int32_t *arr_[CONTEXT_LENGTH + 4];
 } tracker_;
 
 #define Tracker_reset() \
@@ -20,9 +20,10 @@ int32_t *arr_[CONTEXT_LENGTH + 4];
   assert(tracker_.cnt_ >= 1); \
   tracker_.cnt_--;
 
-#define Tracker_update(idx__) {                                  \
-  for (int32_t ti = 0; ti < tracker_.cnt_; ti++)                 \
-    if (*(tracker_.arr_[ti]) >= idx__) (*(tracker_.arr_[ti]))++; \
+#define Tracker_update(idx__) {                  \
+  for (int32_t ti = 0; ti < tracker_.cnt_; ti++) \
+    if (*(tracker_.arr_[ti]) >= idx__)           \
+      (*(tracker_.arr_[ti]))++;                  \
 }
 
-#endif  // _TRACKER__
+#endif

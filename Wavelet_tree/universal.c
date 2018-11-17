@@ -10,7 +10,7 @@ void UWT_Init(UWTStructRef UWT__, int32_t scount__) {
     ncount -= 1;
 
   /* allocate and initialize the structure */
-  UWT__->DBV_ = (DBVStructRef)malloc_(ncount * sizeof(DBV_Struct));
+  UWT__->DBV_ = (DBVStructRef) malloc_(ncount * sizeof(DBV_Struct));
   UWT__->ncount_ = ncount;
   UWT__->scount_ = scount__;
 
@@ -46,7 +46,6 @@ void UWT_Delete(UWTStructRef UWT__, uint32_t pos__) {
     }
     pos__ = temp;
     level++;
-
   } while (curr < UWT__->ncount_);
 }
 
@@ -69,7 +68,6 @@ void UWT_Insert(UWTStructRef UWT__, uint32_t pos__, uint8_t symb__) {
       curr = (curr + 1) * 2;
     }
     level++;
-
   } while (curr < UWT__->ncount_);
 }
 
@@ -90,7 +88,6 @@ uint8_t UWT_Get(UWTStructRef UWT__, uint32_t pos__) {
       curr = (curr + 1) * 2;
     }
     level++;
-
   } while (curr < UWT__->ncount_);
 
   return universal_map[val];
@@ -130,7 +127,6 @@ int32_t UWT_Rank(UWTStructRef UWT__, uint32_t pos__, uint8_t symb__) {
       curr = (curr + 1) * 2;
     }
     level++;
-
   } while (curr < UWT__->ncount_);
 
   return pos__;
@@ -150,12 +146,10 @@ int32_t UWT_Select(UWTStructRef UWT__, uint32_t num__, uint8_t symb__) {
       temp = (curr + 1) * 2;
     }
     level++;
-
   } while (temp < UWT__->ncount_);
 
   do {
-    level --;
-
+    level--;
     bit = (universal_map[symb__] >> level) & 0x1;
     if (bit == 0) {
       num__ = DBV_Select0(&(UWT__->DBV_[curr]), num__);
@@ -168,4 +162,3 @@ int32_t UWT_Select(UWTStructRef UWT__, uint32_t num__, uint8_t symb__) {
 
   return num__;
 }
-

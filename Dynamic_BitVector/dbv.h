@@ -23,7 +23,6 @@ typedef struct {
 
 #define DBV_ENABLE_RED_BLACK_BALANCING
 
-
 /* global dbv_stack */
 typedef struct dbv_stack_32b {
   int32_t stack_[DBV_MAX_STACK_SIZE];
@@ -36,16 +35,14 @@ typedef struct dbv_stack_32b {
   ((dbv_stack.current_ >= 2) ? dbv_stack.stack_[dbv_stack.current_ - 2] : -1)
 #define DBV_STACK_GET_GRANDGRANDPARENT() \
   ((dbv_stack.current_ >= 3) ? dbv_stack.stack_[dbv_stack.current_ - 3] : -1)
-#define DBV_STACK_PUSH(arg) {                                            \
-  if (dbv_stack.current_ + 1 >= DBV_MAX_STACK_SIZE) FATAL("Stack overflow"); \
-  dbv_stack.stack_[++dbv_stack.current_] = arg;                                  \
+#define DBV_STACK_PUSH(arg)  {                      \
+  if (dbv_stack.current_ + 1 >= DBV_MAX_STACK_SIZE) \
+    FATAL("Stack overflow");                        \
+  dbv_stack.stack_[++dbv_stack.current_] = arg;     \
 }
-#define DBV_STACK_POP() \
-  ((dbv_stack.current_ == -1) ? -1 : dbv_stack.stack_[dbv_stack.current_--])
-#define DBV_STACK_TOP() \
-  ((dbv_stack.current_ == -1) ? -1 : dbv_stack.stack_[dbv_stack.current_])
-#define DBV_STACK_CLEAN() \
-  dbv_stack.current_ = -1;
+#define DBV_STACK_POP() ((dbv_stack.current_ == -1) ? -1 : dbv_stack.stack_[dbv_stack.current_--])
+#define DBV_STACK_TOP() ((dbv_stack.current_ == -1) ? -1 : dbv_stack.stack_[dbv_stack.current_])
+#define DBV_STACK_CLEAN() dbv_stack.current_ = -1;
 
 static_ dbv_stack_32b dbv_stack;
 

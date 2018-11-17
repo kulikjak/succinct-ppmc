@@ -1,5 +1,5 @@
 /**
- * This file contains several algorithms for "higher power of two" 
+ * This file contains several algorithms for "higher power of two"
  * and more code to test their speed.
  */
 
@@ -14,7 +14,6 @@
 #define TEST_NUMBER_ 1025
 
 //#define PRINT_RESULT_
-
 
 int main(int argc, char* argv[]) {
   int32_t i;
@@ -79,7 +78,7 @@ int main(int argc, char* argv[]) {
   tickse = clock();
   printf("OR ASM version: \t%ld\n", tickse - ticks);
 
-  /* More advanced assembly code with bsr instruction. */  
+  /* More advanced assembly code with bsr instruction. */
 
   ticks = clock();
   for (i = 0; i < SIZE_TRESHOLD_; i++) {

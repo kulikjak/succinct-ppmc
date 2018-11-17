@@ -1,5 +1,5 @@
-#ifndef __STRUCTURE_COMMON__
-#define __STRUCTURE_COMMON__
+#ifndef _STRUCTURE_COMMON__
+#define _STRUCTURE_COMMON__
 
 #include <stdint.h>
 #include <stdio.h>
@@ -38,13 +38,15 @@ int32_t secondary_size;
   { res.var__ = ((double)(clock() - start_time)) / CLOCKS_PER_SEC; }
 
 int8_t* gen_dna_vals() {
-  int8_t* res = (int8_t*)malloc(sample_size * sizeof(*res));
+  int8_t* res = (int8_t*) malloc(sample_size * sizeof(*res));
   for (int32_t i = 0; i < sample_size; i++)
     res[i] = rand() % 4;
   return res;
 }
 
-void init_results() { memset(&res, 0, sizeof(res)); }
+void init_results() {
+  memset(&res, 0, sizeof(res));
+}
 
 void show_results() {
   printf("Sequential insertion:\t%lf\n", res.seq_insertion);
@@ -57,4 +59,4 @@ void show_results() {
   printf("Random access:\t\t%lf\n", res.rand_access);
 }
 
-#endif  // __STRUCTURE_COMMON__
+#endif

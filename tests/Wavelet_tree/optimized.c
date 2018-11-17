@@ -40,17 +40,27 @@ static void _test_wavelet_tree(OWT_Struct* owt, uint8_t* sequence) {
   }
 
   for (i = 0; i <= TEST_SEQENCE_LEN; i++) {
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 0), OWT_Rank(owt, i, 0));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 1), OWT_Rank(owt, i, 1));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 2), OWT_Rank(owt, i, 2));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 3), OWT_Rank(owt, i, 3));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 4), OWT_Rank(owt, i, 4));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 0),
+                            OWT_Rank(owt, i, 0));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 1),
+                            OWT_Rank(owt, i, 1));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 2),
+                            OWT_Rank(owt, i, 2));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 3),
+                            OWT_Rank(owt, i, 3));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, 4),
+                            OWT_Rank(owt, i, 4));
 
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 0), OWT_Select(owt, i, 0));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 1), OWT_Select(owt, i, 1));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 2), OWT_Select(owt, i, 2));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 3), OWT_Select(owt, i, 3));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 4), OWT_Select(owt, i, 4));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 0),
+                            OWT_Select(owt, i, 0));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 1),
+                            OWT_Select(owt, i, 1));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 2),
+                            OWT_Select(owt, i, 2));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 3),
+                            OWT_Select(owt, i, 3));
+    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, 4),
+                            OWT_Select(owt, i, 4));
   }
 }
 

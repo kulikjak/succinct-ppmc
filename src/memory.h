@@ -28,7 +28,7 @@
 
 #define IS_LEAF(arg) (arg & 0x1)
 
-#define mem_ptr int32_t
+#define MemPtr int32_t
 
 /* definitions for direct memory model */
 #elif defined(DIRECT_MEMORY)
@@ -39,55 +39,45 @@
 
 #define IS_LEAF(arg) (arg)->is_leaf
 
-#define mem_ptr struct node_32e*
+#define MemPtr struct node_32e*
 
 #endif
-
-#define bool32 int32_t
 
 typedef struct node_32e {
-  // shared counter for total number of elements
-  uint32_t p_;
+  uint32_t p_;  /* shared counter for total number of elements */
+  uint32_t rL_; /* number of set bits in L vector */
 
-  // number of set bits in L vector
-  uint32_t rL_;
-
-  // number of set bits in all W vectors
+  /* number of set bits in all W vectors */
   uint32_t rW_;
-  uint32_t rWl_;  // for lower second level
-  uint32_t rWh_;  // for higher second level
-  uint32_t rWs_;  // for special last level
+  uint32_t rWl_; /* for lower second level */
+  uint32_t rWh_; /* for higher second level */
+  uint32_t rWs_; /* for special last level */
 
 #if defined(DIRECT_MEMORY)
-  bool32 is_leaf;
+  Bool32 is_leaf;
 #endif
 
-  // pointers (index) to child nodes/leaves
-  mem_ptr left_;
-  mem_ptr right_;
+  MemPtr left_;  /* pointer to left child node */
+  MemPtr right_; /* pointer to right child node */
 
-  // red/black node flag (this should be optimised in the future)
-  bool32 rb_flag_;
+  Bool32 rb_flag_; /* red/black node flag (can be optimised in the future) */
 } node_32e;
 
 typedef struct {
-  // shared counter for total number of elements
-  uint32_t p_;
+  uint32_t p_;  /* shared counter for total number of elements */
+  uint32_t rL_; /* number of set bits in L vector */
 
-  // number of set bits in L vector
-  uint32_t rL_;
-
-  // number of set bits in all W vectors
+  /* number of set bits in all W vectors */
   uint32_t rW_;
-  uint32_t rWl_;  // for lower second level
-  uint32_t rWh_;  // for higher second level
-  uint32_t rWs_;  // for special last level
+  uint32_t rWl_; /* for lower second level */
+  uint32_t rWh_; /* for higher second level */
+  uint32_t rWs_; /* for special last level */
 
 #if defined(DIRECT_MEMORY)
-  bool32 is_leaf;
+  Bool32 is_leaf;
 #endif
 
-  // all graph data vectors
+  /* all graph data vectors */
   uint32_t vectorL_;
   uint32_t vectorWl0_;
   uint32_t vectorWl1_;
@@ -107,21 +97,18 @@ typedef struct {
   NodeRef* nodes_;
   LeafRef* leafs_;
 
-  int32_t n_block_count_;          // number of allocated block pointers
-  int32_t n_current_block_;        // index of current block
-  int32_t n_current_block_index_;  // index inside current block (first free if
-                                   // possible)
-  int32_t n_last_index_;           // last global index (without bitshift)
+  int32_t n_block_count_;         /* number of allocated block pointers */
+  int32_t n_current_block_;       /* index of current block */
+  int32_t n_current_block_index_; /* index inside current block (first free if possible) */
+  int32_t n_last_index_;          /* last global index (without bitshift) */
 
-  int32_t l_block_count_;          // number of allocated block pointers
-  int32_t l_current_block_;        // index of current block
-  int32_t l_current_block_index_;  // index inside current block (first free if
-                                   // possible)
-  int32_t l_last_index_;           // last global index (without bitshift)
+  int32_t l_block_count_;         /* number of allocated block pointers */
+  int32_t l_current_block_;       /* index of current block */
+  int32_t l_current_block_index_; /* index inside current block (first free if possible) */
+  int32_t l_last_index_;          /* last global index (without bitshift) */
 } memory_32e;
 
 #define MemObj memory_32e*
-
 
 /*
  * Initialize and return memory object.
@@ -145,14 +132,13 @@ void Memory_free(MemObj* mem__);
  *
  * @param  mem__  Reference to memory object.
  */
-mem_ptr Memory_new_leaf(MemObj mem__);
+MemPtr Memory_new_leaf(MemObj mem__);
 
 /*
  * Create new memory internal node.
  *
  * @param  mem__  Reference to memory object.
  */
-mem_ptr Memory_new_node(MemObj mem__);
+MemPtr Memory_new_node(MemObj mem__);
 
-
-#endif  // _COMPRESSION_MEMORY__
+#endif

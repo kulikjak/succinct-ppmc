@@ -12,7 +12,8 @@ int32_t DBV_Rank(DBVStructRef DBV__, uint32_t pos__) {
   DBVLeafRef leaf_ref;
 
   node_ref = DBV_MEMORY_GET_ANY(mem, current);
-  if (pos__ >= node_ref->p_) return node_ref->r_;
+  if (pos__ >= node_ref->p_)
+    return node_ref->r_;
 
   /* traverse the tree and enter correct leaf */
   while (!DBV_IS_LEAF(current)) {
@@ -21,7 +22,7 @@ int32_t DBV_Rank(DBVStructRef DBV__, uint32_t pos__) {
 
     /* get p_ counter of left child and act accordingly */
     temp = DBV_MEMORY_GET_ANY(mem, tmp_node)->p_;
-    if ((uint32_t)temp >= pos__) {
+    if ((uint32_t) temp >= pos__) {
       current = tmp_node;
     } else {
       pos__ -= temp;
@@ -72,7 +73,7 @@ static int32_t DBV_Select_aux(DBVStructRef DBV__, uint32_t pos__, bool zero__) {
     /* get r_ counter of left child and act accordingly */
     DBVNodeRef temp_ref = DBV_MEMORY_GET_ANY(mem, tmp_node);
     temp = (zero__) ? temp_ref->p_ - temp_ref->r_ : temp_ref->r_;
-    if ((uint32_t)temp >= pos__) {
+    if ((uint32_t) temp >= pos__) {
       current = tmp_node;
     } else {
       pos__ -= temp;

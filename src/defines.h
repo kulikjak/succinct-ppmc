@@ -74,7 +74,7 @@
 /* Size of the lookup cache */
 #define CACHE_SIZE 1
 /* Calculate number of cache hits and misses */
-#define ENABLE_CACHE_STATS
+//#define ENABLE_CACHE_STATS
 
 /* These define the way of how context shortening is handled.
  * LABEL_CONTEXT_SHORTENING calculates context each time shortening occurs.
@@ -173,7 +173,7 @@
   #endif
   #ifndef COMPRESSOR_VERBOSE_
     #define COMPRESSOR_VERBOSE_ false
-  #endif  
+  #endif
 #endif
 
 #if (defined(LABEL_CONTEXT_SHORTENING) && defined(INTEGER_CONTEXT_SHORTENING)) \
@@ -185,16 +185,20 @@
  #error "Exacly one context shortening algorithm must be specified."
 #endif
 
-#if (! defined(INTEGER_CONTEXT_SHORTENING)) && \
-    (! defined(LABEL_CONTEXT_SHORTENING)) && \
-    (! defined(TREE_CONTEXT_SHORTENING)) && \
-    (! defined(RAS_CONTEXT_SHORTENING))
+#if (!defined(INTEGER_CONTEXT_SHORTENING)) && \
+    (!defined(LABEL_CONTEXT_SHORTENING)) && \
+    (!defined(TREE_CONTEXT_SHORTENING)) && \
+    (!defined(RAS_CONTEXT_SHORTENING))
   #error "Exacly one context shortening algorithm must be specified."
 #endif
 
 #if (defined(DIRECT_MEMORY) && defined(INDEXED_MEMORY)) || \
-    (! defined(DIRECT_MEMORY) && ! defined(INDEXED_MEMORY))
-  #error "You must define exacly one memory model."
+    (!defined(DIRECT_MEMORY) && !defined(INDEXED_MEMORY))
+#error "You must define exacly one memory model."
+#endif
+
+#if (!defined(ENABLE_LOOKUP_CACHE) && defined(ENABLE_CACHE_STATS))
+#error "Cache stats cannot be enabled when cache itself is disabled"
 #endif
 
 #ifdef ENABLE_LOOKUP_CACHE
@@ -203,4 +207,4 @@
   #endif
 #endif
 
-#endif  // _DEFINES__
+#endif

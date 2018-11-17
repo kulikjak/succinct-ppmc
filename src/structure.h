@@ -1,11 +1,11 @@
 #ifndef _COMPRESSION_STRUCT__
 #define _COMPRESSION_STRUCT__
 
+#include "cache.h"
+#include "defines.h"
 #include "memory.h"
 #include "stack.h"
-#include "cache.h"
 #include "utils.h"
-#include "defines.h"
 
 #define STRUCTURE_VERBOSE(func) \
   if (STRUCTURE_VERBOSE_) {     \
@@ -26,8 +26,7 @@
     : ((mask__) == 4) ? VALUE_G            \
     : ((mask__) == 6) ? VALUE_T : VALUE_$)
 
-#define INSERT_BIT(vector, counter, pos, value)                          \
-  {                                                                      \
+#define INSERT_BIT(vector, counter, pos, value) {                        \
     assert(pos < 32);                                                    \
     uint32_t mask = ((pos) == 0) ? 0 : (uint32_t)(~(0)) << (32 - (pos)); \
     uint32_t temp = 0;                                                   \
@@ -44,24 +43,22 @@
 
 #define RANK(vector) __builtin_popcount((vector))
 
-#define NODE_OPERATION_2(r1, r2, op) \
-  {                                  \
-    r1->p_ op r2->p_;                \
-    r1->rL_ op r2->rL_;              \
-    r1->rW_ op r2->rW_;              \
-    r1->rWl_ op r2->rWl_;            \
-    r1->rWh_ op r2->rWh_;            \
-    r1->rWs_ op r2->rWs_;            \
+#define NODE_OPERATION_2(r1, r2, op) { \
+    r1->p_ op r2->p_;                  \
+    r1->rL_ op r2->rL_;                \
+    r1->rW_ op r2->rW_;                \
+    r1->rWl_ op r2->rWl_;              \
+    r1->rWh_ op r2->rWh_;              \
+    r1->rWs_ op r2->rWs_;              \
   }
 
-#define NODE_OPERATION_3(r1, r2, r3, op) \
-  {                                      \
-    r1->p_ = r2->p_ op r3->p_;           \
-    r1->rL_ = r2->rL_ op r3->rL_;        \
-    r1->rW_ = r2->rW_ op r3->rW_;        \
-    r1->rWl_ = r2->rWl_ op r3->rWl_;     \
-    r1->rWh_ = r2->rWh_ op r3->rWh_;     \
-    r1->rWs_ = r2->rWs_ op r3->rWs_;     \
+#define NODE_OPERATION_3(r1, r2, r3, op) { \
+    r1->p_ = r2->p_ op r3->p_;             \
+    r1->rL_ = r2->rL_ op r3->rL_;          \
+    r1->rW_ = r2->rW_ op r3->rW_;          \
+    r1->rWl_ = r2->rWl_ op r3->rWl_;       \
+    r1->rWh_ = r2->rWh_ op r3->rWh_;       \
+    r1->rWs_ = r2->rWs_ op r3->rWs_;       \
   }
 
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
@@ -79,7 +76,7 @@ typedef enum {
 } Graph_value;
 
 typedef struct {
-  mem_ptr root_;
+  MemPtr root_;
   MemObj mem_;
 } Graph_Struct;
 
@@ -90,7 +87,7 @@ typedef struct {
 } Graph_Line;
 
 typedef struct {
-  uint32_t symbol_[SYMBOL_COUNT+1];
+  uint32_t symbol_[SYMBOL_COUNT + 1];
   uint32_t total_;
 } cfreq;
 
@@ -109,7 +106,7 @@ typedef struct {
  *
  * @param  Graph__  [In] Reference to graph structure.
  * @param  pos__  [In/Out] Query position -> position within the leaf.
- * @param  current  [Out] mem_ptr set to correct leaf.
+ * @param  current  [Out] MemPtr set to correct leaf.
  * @param  leaf_ref  [Out] Actual LeafRef set to correct leaf.
  * @param  with_stack  If stack should be used (filled) during the query
  */
@@ -339,8 +336,7 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__);
 
 #endif
 
-#if defined(INTEGER_CONTEXT_SHORTENING) \
- || defined(RAS_CONTEXT_SHORTENING)
+#if defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
 
 /*
  * Set common suffix length with the upper neighbour.
@@ -361,6 +357,6 @@ void Graph_Set_csl(GraphRef Graph__, uint32_t pos__, int32_t csl__);
  */
 int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__);
 
-#endif
+#endif  /* defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING) */
 
-#endif  // _COMPRESSION_STRUCT__
+#endif

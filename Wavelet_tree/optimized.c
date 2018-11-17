@@ -46,7 +46,7 @@ void OWT_Delete(OWTStructRef OWT__, uint32_t pos__) {
 }
 
 void OWT_Insert(OWTStructRef OWT__, uint32_t pos__, int8_t symb__) {
-  switch(symb__) {
+  switch (symb__) {
     case 0:
       DBV_Insert(&(OWT__->DBV_[OWT_MEM_WHOLE]), pos__, 0);
       pos__ = DBV_Rank0(&(OWT__->DBV_[OWT_MEM_WHOLE]), pos__);
@@ -158,10 +158,9 @@ int32_t OWT_Select(OWTStructRef OWT__, uint32_t num__, int8_t symb__) {
       return DBV_Select(&(OWT__->DBV_[OWT_MEM_WHOLE]),
                         DBV_Select0(&(OWT__->DBV_[OWT_MEM_HIGHER]), num__));
     case 3:
-      return DBV_Select(
-          &(OWT__->DBV_[OWT_MEM_WHOLE]),
-          DBV_Select(&(OWT__->DBV_[OWT_MEM_HIGHER]),
-                     DBV_Select0(&(OWT__->DBV_[OWT_MEM_EXTRA]), num__)));
+      return DBV_Select(&(OWT__->DBV_[OWT_MEM_WHOLE]),
+                        DBV_Select(&(OWT__->DBV_[OWT_MEM_HIGHER]),
+                                   DBV_Select0(&(OWT__->DBV_[OWT_MEM_EXTRA]), num__)));
     case 4:
       return DBV_Select(&(OWT__->DBV_[OWT_MEM_WHOLE]),
                         DBV_Select(&(OWT__->DBV_[OWT_MEM_HIGHER]),

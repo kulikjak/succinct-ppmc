@@ -1,5 +1,5 @@
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "compressor.h"
 #include "unity_fixture.h"
@@ -47,9 +47,9 @@ void end_decompressor() {
 
 char* generate_dna_string(int64_t length__) {
   int64_t i;
-  char *res;
+  char* res;
 
-  res = (char*) malloc (length__ * sizeof(*res));
+  res = (char*) malloc(length__ * sizeof(*res));
   for (i = 0; i < length__; i++)
     res[i] = rand() % 4;
   return res;
@@ -107,15 +107,15 @@ TEST(Compressor_main, RandomTest) {
   printf(" ");
 
   for (run = 0; run < compressor_RANDOM_TEST_POOL_SIZE; run++) {
-    // print dot for each running test
+    /* print dot for each running test */
     printf(".");
     fflush(stdout);
 
-    // generate filename based on test number
-    sprintf(filename, "tmp/random_test_%03d.bin", run);
+    /* generate filename based on test number */
+    snprintf(filename, sizeof(filename), "tmp/random_test_%03d.bin", run);
     start_compressor(filename);
 
-    // generate dna sequence
+    /* generate dna sequence */
     len = rand() % compressor_RANDOM_TEST_MAX_SEQ_SIZE;
     char* dna = generate_dna_string(len);
 

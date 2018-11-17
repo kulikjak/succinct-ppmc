@@ -1,12 +1,12 @@
 #ifndef _DEBRUIJN_GRAPH__
 #define _DEBRUIJN_GRAPH__
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "defines.h"
 #include "structure.h"
 #include "utils.h"
-#include "defines.h"
 
 #define DEBRUIJN_VERBOSE(func) \
   if (DEBRUIJN_VERBOSE_) {     \
@@ -38,19 +38,21 @@ typedef struct {
   int32_t depth;
 } deBruijn_graph;
 
+#define deBruijnRef deBruijn_graph*
+
 /*
  * Initialize deBruijn_graph object.
  *
  * @param  dB__  Reference to deBruijn_graph object.
  */
-void deBruijn_Init(deBruijn_graph *dB__);
+void deBruijn_Init(deBruijnRef dB__);
 
 /*
  * Free all memory associated with deBruijn graph object.
  *
  * @param  dB__  Reference to deBruijn_graph object.
  */
-void deBruijn_Free(deBruijn_graph *dB__);
+void deBruijn_Free(deBruijnRef dB__);
 
 /*
  * Get number of outgoing edges from given node.
@@ -60,7 +62,7 @@ void deBruijn_Free(deBruijn_graph *dB__);
  *
  * @return  A number of outgoing edges.
  */
-int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__);
+int32_t deBruijn_Outdegree(deBruijnRef dB__, int32_t idx__);
 
 /*
  * Get position of given edge symbol in given node.
@@ -71,7 +73,7 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__);
  *
  * @return  Index of edge in given node.
  */
-int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
+int32_t deBruijn_Find_Edge(deBruijnRef dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * From given node follow edge labeled by given symbol.
@@ -82,7 +84,7 @@ int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
  *
  * @return  Index of new node.
  */
-int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
+int32_t deBruijn_Outgoing(deBruijnRef dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * Get number of edges that point to current node.
@@ -96,7 +98,7 @@ int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval_
  *
  * @return  A number of predecessor nodes.
  */
-int32_t deBruijn_Indegree(deBruijn_graph *dB__, int32_t idx__);
+int32_t deBruijn_Indegree(deBruijnRef dB__, int32_t idx__);
 
 /*
  * Get node starting with given symbol that has an edge to given node.
@@ -104,7 +106,7 @@ int32_t deBruijn_Indegree(deBruijn_graph *dB__, int32_t idx__);
  * As this is not important for compression and it's not super straightforward,
  * it is not implemented.
  */
-int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__);
+int32_t deBruijn_Incomming(deBruijnRef dB__, int32_t idx__, Graph_value gval__);
 
 /*
  * Get label of a node corresponding to given line.
@@ -118,7 +120,7 @@ int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
  * @param  idx__  Edge index (line) in deBruijn graph.
  * @param  buffer__  [out] Output buffer with label in symbols.
  */
-void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__);
+void deBruijn_Label(deBruijnRef dB__, int32_t idx__, char *buffer__);
 
 /*
  * Print whole deBruijn graph struct.
@@ -130,7 +132,7 @@ void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__);
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  labels__  Node labels should be printed as well.
  */
-void deBruijn_Print(deBruijn_graph *dB__, bool labels__);
+void deBruijn_Print(deBruijnRef dB__, bool labels__);
 
 /*
  * Update longest common suffix length with its neighbours.
@@ -140,7 +142,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__);
  * @param  dB__  Reference to deBruijn_graph object.
  * @param  target__  Edge index (line) in deBruijn graph.
  */
-void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__);
+void deBruijn_update_csl(deBruijnRef dB__, int32_t target__);
 
 #if defined(TREE_CONTEXT_SHORTENING)
 /*
@@ -156,7 +158,8 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__);
  *
  * @return  Node with shorter context or -1 if one doesn't exist
  */
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__, Graph_value *label__, int32_t lptr__);
+int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__,
+                                 Graph_value *label__, int32_t lptr__);
 
 #else
 /*
@@ -170,11 +173,9 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
  *
  * @return  Node with shorter context or -1 if one doesn't exist
  */
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__);
-#endif
+int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
 
-//int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__,
-//                                 int32_t ctx_len__);
+#endif  /* defined(TREE_CONTEXT_SHORTENING) */
 
 /*
  * Get symbol frequencies from node pointed to by given index.
@@ -183,7 +184,7 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
  * @param  idx__  Edge index (line) in deBruijn graph.
  * @param  freq__  [Out] Frequency count structure.
  */
-void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq *freq__);
+void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq *freq__);
 
 /*
  * Move to next node pointed to by given edge (line) index.
@@ -194,7 +195,7 @@ void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq *
  * @return  Index of last edge of the next node pointed to by given edge or -1
  * if there is no next node.
  */
-int32_t deBruijn_Forward_(deBruijn_graph *dB__, int32_t idx__);
+int32_t deBruijn_Forward_(deBruijnRef dB__, int32_t idx__);
 
 /*
  * Move to parent node of given one.
@@ -205,7 +206,7 @@ int32_t deBruijn_Forward_(deBruijn_graph *dB__, int32_t idx__);
  * @return  Index of parent node (its edge pointing to given one) or -1 if there
  * is no parent node.
  */
-int32_t deBruijn_Backward_(deBruijn_graph *dB__, int32_t idx__);
+int32_t deBruijn_Backward_(deBruijnRef dB__, int32_t idx__);
 
 /*
  * Get length of common suffix of given line and line above.
@@ -220,7 +221,7 @@ int32_t deBruijn_Backward_(deBruijn_graph *dB__, int32_t idx__);
  *
  * @return  Length of longest common suffix
  */
-int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int32_t limit__);
+int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx__, int32_t limit__);
 
 /*
  * Initialize structure with given test data.
@@ -239,8 +240,8 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
  * @param  F__  F array (base positions of symbols)
  * @param  size__  Size of arrays L and W.
  */
-void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
+void deBruijn_Insert_test_data(deBruijnRef dB__, const Graph_value *L__, const Graph_value *W__,
                                const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
                                const int32_t size__);
 
-#endif  // _DEBRUIJN_GRAPH__
+#endif

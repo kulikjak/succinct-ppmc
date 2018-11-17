@@ -1,17 +1,16 @@
 #ifndef _COMPRESSOR__
 #define _COMPRESSOR__
 
-#include "arith/bitio.h"
 #include "arith/arith.h"
+#include "arith/bitio.h"
 
-#include "defines.h"
 #include "deBruijn.h"
-#include "tracker.h"
 #include "defines.h"
+#include "tracker.h"
 
 #define COMPRESSOR_VERBOSE(func) \
   if (COMPRESSOR_VERBOSE_) {     \
-    func                     \
+    func                         \
   }
 
 typedef struct {
@@ -20,10 +19,12 @@ typedef struct {
 
   int32_t state_;
 #ifdef TREE_CONTEXT_SHORTENING
-  int32_t lptr_;  /* pointer into the rolling label_ buffer */
-  Graph_value label_[CONTEXT_LENGTH];  /* label of the current state_ */
+  int32_t lptr_;                      /* pointer into the rolling label_ buffer */
+  Graph_value label_[CONTEXT_LENGTH]; /* label of the current state_ */
 #endif
 } compressor;
+
+#define CompressorRef compressor*
 
 #define Compression_Start(ofp__) { \
   startoutputtingbits(ofp__);      \
@@ -48,15 +49,14 @@ typedef struct {
  *
  * @param  C__  Reference to compressor object.
  */
-void Process_Init(compressor* C__);
+void Process_Init(CompressorRef C__);
 
 /*
  * Free memory associated with the compressor.
  *
  * @param  C__  Reference to compressor object.
  */
-void Process_Free(compressor * C__);
-
+void Process_Free(CompressorRef C__);
 
 /*
  * Compress symbol.
@@ -69,7 +69,7 @@ void Process_Free(compressor * C__);
  * @param  idx__  Node index (line) in deBruijn graph.
  * @param  gval__ Additional symbol (Graph_value).
  */
-void Compressor_Compress_symbol(compressor *C__, Graph_value gval__);
+void Compressor_Compress_symbol(CompressorRef C__, Graph_value gval__);
 
 /*
  * Decompress symbol.
@@ -77,10 +77,9 @@ void Compressor_Compress_symbol(compressor *C__, Graph_value gval__);
  * @param  D__  Reference to compressor object.
  * @param  gval__ [out] Additional symbol (Graph_value).
  */
-void Decompressor_Decompress_symbol(compressor *C__, Graph_value* gval__);
+void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__);
 
-
-// make hidden function visible to unit testing framework
+/* make hidden function visible to unit testing framework */
 #ifdef _UNITY
 
 /*
@@ -91,8 +90,8 @@ void Decompressor_Decompress_symbol(compressor *C__, Graph_value* gval__);
  * @param  gval__ Additional symbol (Graph_value).
  * @param  ctx_len__ Length of context in given node.
  */
-void Compressor_Increase_frequency_rec_(compressor *C__, int32_t idx__, Graph_value gval__, int32_t ctx_len__);
+void Compressor_Increase_frequency_rec_(CompressorRef C__, int32_t idx__, Graph_value gval__, int32_t ctx_len__);
 
-#endif  // _UNITY
+#endif  /* _UNITY */
 
-#endif  // _COMPRESSOR__
+#endif

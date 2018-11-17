@@ -6,9 +6,9 @@
 #include "dbv_memory.h"
 
 void benchmark(uint64_t size, double p = 0.5) {
-  using std::chrono::high_resolution_clock;
-  using std::chrono::duration_cast;
   using std::chrono::duration;
+  using std::chrono::duration_cast;
+  using std::chrono::high_resolution_clock;
 
   DBV_Struct DBV;
 
@@ -76,25 +76,19 @@ void benchmark(uint64_t size, double p = 0.5) {
 
   auto t8 = high_resolution_clock::now();
 
-  uint64_t sec_insert =
-      std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-  uint64_t sec_access =
-      std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
-  uint64_t sec_rank0 =
-      std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
-  uint64_t sec_rank1 =
-      std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count();
-  uint64_t sec_sel0 =
-      std::chrono::duration_cast<std::chrono::microseconds>(t7 - t6).count();
-  uint64_t sec_sel1 =
-      std::chrono::duration_cast<std::chrono::microseconds>(t8 - t7).count();
+  uint64_t sec_insert = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+  uint64_t sec_access = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+  uint64_t sec_rank0 = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+  uint64_t sec_rank1 = std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count();
+  uint64_t sec_sel0 = std::chrono::duration_cast<std::chrono::microseconds>(t7 - t6).count();
+  uint64_t sec_sel1 = std::chrono::duration_cast<std::chrono::microseconds>(t8 - t7).count();
 
-  std::cout << (double)sec_insert / size << " microseconds/insert" << std::endl;
-  std::cout << (double)sec_access / size << " microseconds/access" << std::endl;
-  std::cout << (double)sec_rank0 / size << " microseconds/rank0" << std::endl;
-  std::cout << (double)sec_rank1 / size << " microseconds/rank1" << std::endl;
-  std::cout << (double)sec_sel0 / size << " microseconds/select0" << std::endl;
-  std::cout << (double)sec_sel1 / size << " microseconds/select1" << std::endl;
+  std::cout << (double) sec_insert / size << " microseconds/insert" << std::endl;
+  std::cout << (double) sec_access / size << " microseconds/access" << std::endl;
+  std::cout << (double) sec_rank0 / size << " microseconds/rank0" << std::endl;
+  std::cout << (double) sec_rank1 / size << " microseconds/rank1" << std::endl;
+  std::cout << (double) sec_sel0 / size << " microseconds/select0" << std::endl;
+  std::cout << (double) sec_sel1 / size << " microseconds/select1" << std::endl;
 
   DBV_Free(&DBV);
 }

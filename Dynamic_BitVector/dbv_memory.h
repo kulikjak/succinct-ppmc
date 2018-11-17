@@ -22,13 +22,13 @@
     func                         \
   }
 
-#define DBV_MEMORY_GET_ANY(mem, arg)                           \
-  ((DBVNodeRef)((arg & 0x1) ? (void*)DBV_MEMORY_GET_LEAF(mem, arg) \
-                            : (void*)DBV_MEMORY_GET_NODE(mem, arg)))
-#define DBV_MEMORY_GET_NODE(mem, arg)                             \
+#define DBV_MEMORY_GET_ANY(mem, arg)                                \
+  ((DBVNodeRef)((arg & 0x1) ? (void*) DBV_MEMORY_GET_LEAF(mem, arg) \
+                            : (void*) DBV_MEMORY_GET_NODE(mem, arg)))
+#define DBV_MEMORY_GET_NODE(mem, arg)                                \
   (DBVNodeRef)(&(mem->nodes_[arg >> (DBV_MEMORY_BLOCK_SIZE_LOG + 1)] \
                             [(arg >> 1) & (DBV_MEMORY_BLOCK_SIZE - 1)]))
-#define DBV_MEMORY_GET_LEAF(mem, arg)                             \
+#define DBV_MEMORY_GET_LEAF(mem, arg)                                \
   (DBVLeafRef)(&(mem->leafs_[arg >> (DBV_MEMORY_BLOCK_SIZE_LOG + 1)] \
                             [(arg >> 1) & (DBV_MEMORY_BLOCK_SIZE - 1)]))
 
@@ -56,15 +56,15 @@ typedef struct {
   DBVNodeRef* nodes_;
   DBVLeafRef* leafs_;
 
-  int32_t n_block_count_;          /* number of allocated block pointers */
-  int32_t n_current_block_;        /* index of current block */
-  int32_t n_current_block_index_;  /* index inside current block (first free if possible) */
-  int32_t n_last_index_;           /* last global index (without bitshift) */
+  int32_t n_block_count_;         /* number of allocated block pointers */
+  int32_t n_current_block_;       /* index of current block */
+  int32_t n_current_block_index_; /* index inside current block (first free if possible) */
+  int32_t n_last_index_;          /* last global index (without bitshift) */
 
-  int32_t l_block_count_;          /* number of allocated block pointers */
-  int32_t l_current_block_;        /* index of current block */
-  int32_t l_current_block_index_;  /* index inside current block (first free if possible) */
-  int32_t l_last_index_;           /* last global index (without bitshift) */
+  int32_t l_block_count_;         /* number of allocated block pointers */
+  int32_t l_current_block_;       /* index of current block */
+  int32_t l_current_block_index_; /* index inside current block (first free if possible) */
+  int32_t l_last_index_;          /* last global index (without bitshift) */
 } DBVMemory_32b;
 
 #define DBVMemObj DBVMemory_32b*

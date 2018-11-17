@@ -33,7 +33,8 @@ int32_t DBV_Get(DBVStructRef DBV__, uint32_t pos__) {
 
   /* check correct boundaries */
   node_ref = DBV_MEMORY_GET_ANY(mem, DBV__->root_);
-  if (pos__ >= node_ref->p_) return -1;
+  if (pos__ >= node_ref->p_)
+    return -1;
 
   /* traverse the tree and enter correct leaf */
   while (!DBV_IS_LEAF(current)) {
@@ -41,7 +42,7 @@ int32_t DBV_Get(DBVStructRef DBV__, uint32_t pos__) {
 
     /* get p_ counter of left child and act accordingly */
     temp = DBV_MEMORY_GET_ANY(mem, node_ref->left_)->p_;
-    if ((uint32_t)temp > pos__) {
+    if ((uint32_t) temp > pos__) {
       current = node_ref->left_;
     } else {
       pos__ -= temp;

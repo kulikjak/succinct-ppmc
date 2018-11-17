@@ -10,10 +10,10 @@
 #define true 1
 #define false 0
 
-#define bool32 int32_t
+#define Bool32 int32_t
 
 #define UNREACHABLE assert(0);
-#define UNUSED(var) (void)(var)
+#define UNUSED(var) (void) (var)
 
 static void fatal(const char* m__, const char* e__) {
   fprintf(stderr, "[Fatal]: %s%s\n", m__, e__);

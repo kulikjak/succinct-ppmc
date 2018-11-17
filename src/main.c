@@ -51,14 +51,14 @@ static void main_encode(FILE* ifp__, FILE* ofp__) {
 
   do {
     if (buffer_len <= idx) {
-      if (!fgets(ibuffer, IO_BUFFER_SIZE, (FILE*)ifp__))
+      if (!fgets(ibuffer, IO_BUFFER_SIZE, (FILE*) ifp__))
         break;
 
       buffer_len = strlen(ibuffer);
       idx = 0;
     }
 
-    switch(ibuffer[idx]) {
+    switch (ibuffer[idx]) {
       case 'a':
       case 'A':
         symbol = VALUE_A;
@@ -80,7 +80,8 @@ static void main_encode(FILE* ifp__, FILE* ofp__) {
         continue;
       default:
         fprintf(stderr, "Unexpected symbol in input file %c.\n", ibuffer[idx]);
-        fprintf(stderr, "File can contain four letters of dna (both lower and uppercase) and spaces\n");
+        fprintf(stderr,
+                "File can contain four letters of dna (both lower and uppercase) and spaces\n");
         fclose(ifp__);
         fclose(ofp__);
         exit(EXIT_FAILURE);
@@ -172,8 +173,8 @@ int main(int argc, char* argv[]) {
   int32_t i;
   bool expect_ofile = false;
 
-  char *ofile = NULL;
-  char *ifile = NULL;
+  char* ofile = NULL;
+  char* ifile = NULL;
 
   FILE *ofp, *ifp;
 

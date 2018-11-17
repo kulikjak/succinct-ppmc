@@ -16,9 +16,13 @@ TEST_GROUP(Compressor_int_vector);
 Graph_Struct Graph;
 Graph_Line line;
 
-TEST_SETUP(Compressor_int_vector) { Graph_Init(&Graph); }
+TEST_SETUP(Compressor_int_vector) {
+  Graph_Init(&Graph);
+}
 
-TEST_TEAR_DOWN(Compressor_int_vector) { Graph_Free(&Graph); }
+TEST_TEAR_DOWN(Compressor_int_vector) {
+  Graph_Free(&Graph);
+}
 
 TEST(Compressor_int_vector, front_insertion) {
   int32_t i, sequence[TEST_SEQENCE_LEN];

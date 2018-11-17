@@ -9,8 +9,7 @@ void cache_stats_prep() {
 }
 
 void cache_stats_print() {
-  printf("Cache stats (%lf):\n",
-    ((double)cache_hits / (cache_hits + cache_misses)));
+  printf("Cache stats (%lf):\n", ((double) cache_hits / (cache_hits + cache_misses)));
   printf("    hit rate: %ld\n", cache_hits);
   printf("    miss rate: %ld\n", cache_misses);
 }
@@ -37,7 +36,7 @@ bool lookup_cache(uint32_t* idx__, LeafRef* leaf_ref) {
       *idx__ = cache[i].inside_idx_;
       *leaf_ref = cache[i].leaf_ref_;
 #ifdef ENABLE_CACHE_STATS
-        cache_hits++;
+      cache_hits++;
 #endif
       return true;
     }
@@ -48,4 +47,4 @@ bool lookup_cache(uint32_t* idx__, LeafRef* leaf_ref) {
   return false;
 }
 
-#endif  // ENABLE_LOOKUP_CACHE
+#endif  /* ENABLE_LOOKUP_CACHE */

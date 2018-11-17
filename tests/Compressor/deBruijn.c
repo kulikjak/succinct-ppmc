@@ -4,7 +4,7 @@
 TEST_GROUP(Compressor_deBruijn);
 
 #ifndef TEST_PRINT_SEQUENCES
-  #define TEST_PRINT_SEQUENCES false
+#define TEST_PRINT_SEQUENCES false
 #endif
 
 #define DEBRUIJN_PRINT_SEQUENCE false
@@ -14,20 +14,24 @@ TEST_GROUP(Compressor_deBruijn);
 deBruijn_graph dB;
 Graph_Line line;
 
-TEST_SETUP(Compressor_deBruijn) { deBruijn_Init(&dB); }
+TEST_SETUP(Compressor_deBruijn) {
+  deBruijn_Init(&dB);
+}
 
-TEST_TEAR_DOWN(Compressor_deBruijn) { deBruijn_Free(&dB); }
+TEST_TEAR_DOWN(Compressor_deBruijn) {
+  deBruijn_Free(&dB);
+}
 
 TEST(Compressor_deBruijn, static_test) {
-
   const Graph_value L[] = {0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1};
-  const Graph_value W[] = {_('A'), _('C'), _('G'), _('C'), _('G'), _('C'), _('$'), _('$'), _('$'), _('$'), _('A'), _('G'), _('G'), _('A'), _('$')};
+  const Graph_value W[] = {_('A'), _('C'), _('G'), _('C'), _('G'), _('C'), _('$'), _('$'),
+                           _('$'), _('$'), _('A'), _('G'), _('G'), _('A'), _('$')};
   const int32_t P[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   const int32_t F[] = {3, 7, 10, 15};
 
   const int32_t resOutdegree[] = {3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1};
-  const int32_t resOutgoingA[] = {4,  4,  4, -1, -1, -1, -1, -1, -1, -1, 5, 5,  -1, 6,  -1};
-  const int32_t resOutgoingC[] = {7,  7,  7,  8,  8,  9,  -1, -1, -1, -1, -1, -1, -1, -1, -1};
+  const int32_t resOutgoingA[] = {4, 4, 4, -1, -1, -1, -1, -1, -1, -1, 5, 5, -1, 6, -1};
+  const int32_t resOutgoingC[] = {7, 7, 7, 8, 8, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1};
   const int32_t resOutgoingG[] = {11, 11, 11, 12, 12, -1, -1, -1, -1, -1, 13, 13, 14, -1, -1};
 
   const int32_t resIndegree[] = {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -63,11 +67,10 @@ TEST(Compressor_deBruijn, cummulative_frequency) {
   cfreq freq;
 
   const Graph_value L[] = {0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1};
-  const Graph_value W[] = {_('A'), _('C'), _('G'), _('T'), _('$'), _('G'),
-                           _('C'), _('G'), _('A'), _('C'), _('G'), _('A'),
-                           _('G'), _('T'), _('A'), _('C')};
+  const Graph_value W[] = {_('A'), _('C'), _('G'), _('T'), _('$'), _('G'), _('C'), _('G'),
+                           _('A'), _('C'), _('G'), _('A'), _('G'), _('T'), _('A'), _('C')};
   const int32_t P[] = {12, 3, 3, 5, 0, 8, 1, 2, 5, 4, 6, 6, 1, 4, 5, 0};
-  const int32_t F[] = {1, 2, 4, 8};  // not important for this test
+  const int32_t F[] = {1, 2, 4, 8};  /* not important for this test */
 
   const int32_t resA[] = {12, 12, 12, 12, 0, 0, 0, 0, 5, 5, 5, 6, 6, 6, 5, 0};
   const int32_t resC[] = {3, 3, 3, 3, 0, 0, 1, 1, 4, 4, 4, 0, 0, 0, 0, 0};

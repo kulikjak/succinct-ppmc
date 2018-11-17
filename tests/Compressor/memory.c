@@ -17,7 +17,7 @@ TEST_TEAR_DOWN(Compressor_memory) {
 
 TEST(Compressor_memory, CorrectLeafNodeMapping) {
   int32_t i;
-  mem_ptr mptr;
+  MemPtr mptr;
 
   for (i = 0; i < MEMORY_SAMPLE_SIZE_; i++) {
     mptr = Memory_new_node(mem);

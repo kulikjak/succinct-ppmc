@@ -41,8 +41,10 @@ static void _test_wavelet_tree(UWT_Struct* uwt, uint8_t* sequence, uint16_t dsiz
 
   for (i = 0; i <= TEST_SEQENCE_LEN; i++) {
     for (j = 0; j < dsize; j++) {
-      TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, j), UWT_Rank(uwt, i, j));
-      TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, j), UWT_Select(uwt, i, j));
+      TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, j),
+                              UWT_Rank(uwt, i, j));
+      TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, j),
+                              UWT_Select(uwt, i, j));
     }
   }
 }
@@ -128,7 +130,6 @@ TEST(Wavelet_tree_universal, random_dict_sizes) {
   printf(" ");
   srand(time(NULL));
   for (s = 0; s < 10; s++) {
-
     printf(".");
     fflush(stdout);
     int16_t size = rand() % 256;

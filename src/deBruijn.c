@@ -1,12 +1,12 @@
 #include "deBruijn.h"
 
-void deBruijn_Init(deBruijn_graph *dB__) {
+void deBruijn_Init(deBruijnRef dB__) {
   Graph_Line line;
 
-  // initialize all structures
+  /* initialize all structures */
   Graph_Init(&(dB__->Graph_));
 
-  // insert root node with all four transitions
+  /* insert root node with all four transitions */
   GLine_Fill(&line, VALUE_0, VALUE_A, 1);
   GLine_Insert(&(dB__->Graph_), 0, &line);
   GLine_Fill(&line, VALUE_0, VALUE_C, 1);
@@ -16,7 +16,7 @@ void deBruijn_Init(deBruijn_graph *dB__) {
   GLine_Fill(&line, VALUE_1, VALUE_T, 1);
   GLine_Insert(&(dB__->Graph_), 3, &line);
 
-  // insert target null nodes
+  /* insert target null nodes */
   GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(dB__->Graph_), 4, &line);
   GLine_Fill(&line, VALUE_1, VALUE_$, 0);
@@ -38,11 +38,11 @@ void deBruijn_Init(deBruijn_graph *dB__) {
   deBruijn_update_csl(dB__, 7);
 }
 
-void deBruijn_Free(deBruijn_graph *dB__) {
+void deBruijn_Free(deBruijnRef dB__) {
   Graph_Free(&(dB__->Graph_));
 }
 
-int32_t deBruijn_Forward_(deBruijn_graph *dB__, int32_t idx__) {
+int32_t deBruijn_Forward_(deBruijnRef dB__, int32_t idx__) {
   int32_t rank, spos, temp;
   Graph_Line line;
 
@@ -50,24 +50,24 @@ int32_t deBruijn_Forward_(deBruijn_graph *dB__, int32_t idx__) {
     printf("[deBruijn]: Calling Forward on index %d\n", idx__);
   )
 
-  // find edge label of given edge (outgoing edge symbol)
+  /* find edge label of given edge (outgoing edge symbol) */
   GLine_Get(&(dB__->Graph_), idx__, &line);
 
-  // if edge label is dollar, there is nowhere to go
+  /* if edge label is dollar, there is nowhere to go */
   if (line.W_ == VALUE_$) return -1;
 
-  // calculate rank of edge label in the W array
+  /* calculate rank of edge label in the W array */
   rank = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_W, line.W_);
 
-  // get starting position of edge label TODO CAN BE OPTIMIZED (cannot be $)
+  /* get starting position of edge label TODO CAN BE OPTIMIZED (cannot be $) */
   spos = dB__->F_[line.W_];
 
-  // get index of the last edge of the node pointed to by given edge
+  /* get index of the last edge of the node pointed to by given edge */
   temp = Graph_Rank(&(dB__->Graph_), spos, VECTOR_L, VALUE_1);
   return Graph_Select(&(dB__->Graph_), temp + rank, VECTOR_L, VALUE_1) - 1;
 }
 
-int32_t deBruijn_Backward_(deBruijn_graph *dB__, int32_t idx__) {
+int32_t deBruijn_Backward_(deBruijnRef dB__, int32_t idx__) {
   int32_t base, temp;
   Graph_value symbol;
   Graph_Line line;
@@ -78,27 +78,28 @@ int32_t deBruijn_Backward_(deBruijn_graph *dB__, int32_t idx__) {
 
   assert(idx__ < Graph_Size(&(dB__->Graph_)) && idx__ >= 0);
 
-  // find last symbol of this node
+  /* find last symbol of this node */
   symbol = GET_VALUE_FROM_IDX(idx__, dB__);
 
-  // if last symbol is dollar, there is nowhere to go
-  if (symbol == VALUE_$) return -1;
+  /* if last symbol is dollar, there is nowhere to go */
+  if (symbol == VALUE_$)
+    return -1;
 
-  // rank to current base
+  /* rank to current base */
   base = Graph_Rank(&(dB__->Graph_), dB__->F_[symbol], VECTOR_L, VALUE_1);
 
-  // rank to given line (including it)
+  /* rank to given line (including it) */
   temp = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_L, VALUE_1);
 
-  // if given line is not last edge of the node, add that node
-  GLine_Get(&(dB__->Graph_), (uint32_t)idx__, &line);
+  /* if given line is not last edge of the node, add that node */
+  GLine_Get(&(dB__->Graph_), (uint32_t) idx__, &line);
   temp += (line.L_) ? 0 : 1;
 
-  // get index of the edge leading to given node
+  /* get index of the edge leading to given node */
   return Graph_Select(&(dB__->Graph_), temp - base, VECTOR_W, symbol) - 1;
 }
 
-int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__) {
+int32_t deBruijn_Outdegree(deBruijnRef dB__, int32_t idx__) {
   int32_t node_id;
 
   DEBRUIJN_VERBOSE(
@@ -107,15 +108,15 @@ int32_t deBruijn_Outdegree(deBruijn_graph *dB__, int32_t idx__) {
 
   assert(idx__ < Graph_Size(&(dB__->Graph_)) && idx__ >= 0);
 
-  // get node index
+  /* get node index */
   node_id = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_L, VALUE_1);
 
-  // calculate outdegree itself
+  /* calculate outdegree itself */
   return Graph_Select(&(dB__->Graph_), node_id + 1, VECTOR_L, VALUE_1) -
          Graph_Select(&(dB__->Graph_), node_id, VECTOR_L, VALUE_1);
 }
 
-int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
+int32_t deBruijn_Find_Edge(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {
 #ifdef ENABLE_CLEVER_NODE_SPLIT
   return Graph_Find_Edge(&(dB__->Graph_), idx__, gval__);
 #else
@@ -125,46 +126,49 @@ int32_t deBruijn_Find_Edge(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
     printf("[deBruijn]: Calling Find_Edge on index %d and value %d\n", idx__, gval__);
   )
 
-  // get last edge index for this node
+  /* get last edge index for this node */
   node_id = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_L, VALUE_1);
   last_pos = Graph_Select(&(dB__->Graph_), node_id + 1, VECTOR_L, VALUE_1);
 
-  // find range (number of edges leaving current node)
+  /* find range (number of edges leaving current node) */
   range = last_pos - Graph_Select(&(dB__->Graph_), node_id, VECTOR_L, VALUE_1);
 
-  // get position of last 'symbol' up to this node
+  /* get position of last 'symbol' up to this node */
   temp = Graph_Rank(&(dB__->Graph_), last_pos, VECTOR_W, gval__);
   select = Graph_Select(&(dB__->Graph_), temp, VECTOR_W, gval__) - 1;
 
-  // check if this position is in the range (transition exist)
-  if (last_pos - range <= select) return select;
+  /* check if this position is in the range (transition exist) */
+  if (last_pos - range <= select)
+    return select;
   return -1;
 #endif
 }
 
-int32_t deBruijn_Outgoing(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
+int32_t deBruijn_Outgoing(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {
   int32_t edge_idx;
 
   DEBRUIJN_VERBOSE(
     printf("[deBruijn]: Calling Outgoing on index %d and value %d\n", idx__, gval__);
   )
 
-  // get index of edge we should follow
+  /* get index of edge we should follow */
   edge_idx = deBruijn_Find_Edge(dB__, idx__, gval__);
 
-  // check if such edge exist
-  if (edge_idx == -1) return -1;
+  /* check if such edge exist */
+  if (edge_idx == -1)
+    return -1;
 
-  // return index of new node
+  /* return index of new node */
   return deBruijn_Forward_(dB__, edge_idx);
 }
 
-int32_t deBruijn_Indegree(deBruijn_graph *dB__, int32_t idx__) {
-  if (idx__ < dB__->F_[0]) return 0;
+int32_t deBruijn_Indegree(deBruijnRef dB__, int32_t idx__) {
+  if (idx__ < dB__->F_[0])
+    return 0;
   return 1;
 }
 
-int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval__) {
+int32_t deBruijn_Incomming(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {
   UNUSED(dB__);
   UNUSED(idx__);
   UNUSED(gval__);
@@ -173,14 +177,14 @@ int32_t deBruijn_Incomming(deBruijn_graph *dB__, int32_t idx__, Graph_value gval
   return 0;
 }
 
-void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__) {
+void deBruijn_Label(deBruijnRef dB__, int32_t idx__, char *buffer__) {
   int8_t symbol;
   int32_t pos;
 
 #ifdef OMIT_EXCESSIVE_DOLLAR_SIGNS_
-  memset(buffer__, ' ', CONTEXT_LENGTH+1);
+  memset(buffer__, ' ', CONTEXT_LENGTH + 1);
 #else
-  memset(buffer__, '$', CONTEXT_LENGTH+1);
+  memset(buffer__, '$', CONTEXT_LENGTH + 1);
 #endif
 
   pos = CONTEXT_LENGTH;
@@ -195,19 +199,21 @@ void deBruijn_Label(deBruijn_graph *dB__, int32_t idx__, char *buffer__) {
   } while (idx__ != -1);
 }
 
-void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
+void deBruijn_Print(deBruijnRef dB__, bool labels__) {
   char label[CONTEXT_LENGTH + 2];
   int32_t i, j, size;
   int32_t nextPos = 0;
   int32_t next = 0;
   Graph_Line line;
 
-  // print header for main structure
+  /* print header for main structure */
   if (labels__) {
     printf("     F  L  Label  ");
-    for (i = 0; i < CONTEXT_LENGTH - 5; i++) printf(" ");
+    for (i = 0; i < CONTEXT_LENGTH - 5; i++)
+      printf(" ");
     printf("W   P\n------------------------");
-    for (i = 0; i < CONTEXT_LENGTH - 5; i++) printf("-");
+    for (i = 0; i < CONTEXT_LENGTH - 5; i++)
+      printf("-");
     printf("\n");
   } else {
     printf("     F  L  W   P\n-----------------\n");
@@ -217,7 +223,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
   for (i = 0; i < size; i++) {
     printf("%4d: ", i);
 
-    // handle base positions for all symbols
+    /* handle base positions for all symbols */
     if (i == nextPos) {
       if (i == dB__->F_[3]) {
         printf("T  ");
@@ -231,19 +237,20 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
         printf("$  ");
       }
 
-      // find next position for another symbol
-      while (dB__->F_[next] == i && next <= SYMBOL_COUNT) next++;
+      /* find next position for another symbol */
+      while (dB__->F_[next] == i && next <= SYMBOL_COUNT)
+        next++;
       nextPos = (next <= SYMBOL_COUNT) ? dB__->F_[next] : -1;
     } else {
       printf("   ");
     }
 
-    // find edge label of given edge (outgoing edge symbol)
-    GLine_Get(&(dB__->Graph_), (uint32_t)i, &line);
+    /* find edge label of given edge (outgoing edge symbol) */
+    GLine_Get(&(dB__->Graph_), (uint32_t) i, &line);
 
     printf("%d  ", line.L_);
 
-    // handle finding of all the labels
+    /* handle finding of all the labels */
     if (labels__) {
       label[CONTEXT_LENGTH + 1] = 0;
       deBruijn_Label(dB__, i, label);
@@ -258,7 +265,7 @@ void deBruijn_Print(deBruijn_graph *dB__, bool labels__) {
   }
 }
 
-int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int32_t limit__) {
+int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx__, int32_t limit__) {
   int32_t common, idx1, idx2;
   int32_t symbol1, symbol2;
 
@@ -266,7 +273,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
     printf("[deBruijn]: Calling Get_common_suffix_len on index %d (limit: %d)\n", idx__, limit__);
   )
 
-  // there is no common suffix for top most line
+  /* there is no common suffix for top most line */
   if (!idx__) return 0;
 
   common = 0;
@@ -274,20 +281,19 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
   idx1 = idx__;
   idx2 = idx__ - 1;
 
-  // limit size of suffix for better performance
+  /* limit size of suffix for better performance */
   while (common < limit__) {
-    // get symbols itself
+    /* get symbols itself */
     symbol1 = GET_VALUE_FROM_IDX(idx1, dB__);
     symbol2 = GET_VALUE_FROM_IDX(idx2, dB__);
 
-    // dollars are not context
-    // (we can check only one - next condition will handle the other)
+    /* dollars are not context (we can check only one - next condition will handle the other) */
     if (symbol1 == 4) break;
 
-    // symbols are not the same
+    /* symbols are not the same */
     if (symbol1 != symbol2) break;
 
-    // continue backwards
+    /* continue backwards */
     idx1 = deBruijn_Backward_(dB__, idx1);
     idx2 = deBruijn_Backward_(dB__, idx2);
 
@@ -298,7 +304,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijn_graph *dB__, int32_t idx__, int
   return common;
 }
 
-void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
+void deBruijn_update_csl(deBruijnRef dB__, int32_t target__) {
 
 #if defined(INTEGER_CONTEXT_SHORTENING) \
   || defined(RAS_CONTEXT_SHORTENING)
@@ -311,14 +317,14 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
   /* there is nothing to update for the root node */
   if (target__ == 0) return;
 
-  Graph_Set_csl(&(dB__->Graph_), target__, 
-      deBruijn_Get_common_suffix_len_(dB__, target__, CONTEXT_LENGTH));
+  Graph_Set_csl(&(dB__->Graph_), target__,
+                deBruijn_Get_common_suffix_len_(dB__, target__, CONTEXT_LENGTH));
 
   /* target is at the bottom of the list - only one csl to update */
   if (target__ == graph_size - 1) return;
 
   Graph_Set_csl(&(dB__->Graph_), target__ + 1,
-      deBruijn_Get_common_suffix_len_(dB__, target__ + 1, CONTEXT_LENGTH));
+                deBruijn_Get_common_suffix_len_(dB__, target__ + 1, CONTEXT_LENGTH));
 
 #elif defined(LABEL_CONTEXT_SHORTENING) \
     || defined(TREE_CONTEXT_SHORTENING)
@@ -328,9 +334,9 @@ void deBruijn_update_csl(deBruijn_graph *dB__, int32_t target__) {
 #endif
 }
 
-int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ctx_len__
+int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__
 #if defined(TREE_CONTEXT_SHORTENING)
-                                ,Graph_value *label__, int32_t lptr__
+                                , Graph_value *label__, int32_t lptr__
 #endif
   ) {
 
@@ -351,7 +357,8 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 
   /* get starting position for current context length */
   i = lptr__ - ctx_len__;
-  if (i < 0) i += CONTEXT_LENGTH;
+  if (i < 0)
+    i += CONTEXT_LENGTH;
 
   /* find the target node */
   current = 0;
@@ -368,8 +375,7 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
 #if defined(LABEL_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
       return idx__;
-#elif defined(INTEGER_CONTEXT_SHORTENING) \
-   || defined(RAS_CONTEXT_SHORTENING)
+#elif defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
     if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
       return idx__;
 #endif
@@ -381,10 +387,10 @@ int32_t deBruijn_Shorten_context(deBruijn_graph *dB__, int32_t idx__, int32_t ct
   UNREACHABLE
   return 0;
 
-#endif  /* endif defined(TREE_CONTEXT_SHORTENING) */
+#endif /* endif defined(TREE_CONTEXT_SHORTENING) */
 }
 
-void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* freq__) {
+void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq* freq__) {
 #ifdef ENABLE_CLEVER_NODE_SPLIT
   Graph_Get_symbol_frequency(&(dB__->Graph_), idx__, freq__);
 #else
@@ -416,7 +422,7 @@ void deBruijn_Get_symbol_frequency(deBruijn_graph *dB__, uint32_t idx__, cfreq* 
 #endif
 }
 
-void deBruijn_Insert_test_data(deBruijn_graph *dB__, const Graph_value *L__, const Graph_value *W__,
+void deBruijn_Insert_test_data(deBruijnRef dB__, const Graph_value *L__, const Graph_value *W__,
                                const int32_t *P__, const int32_t F__[SYMBOL_COUNT],
                                const int32_t size__) {
   int32_t i;

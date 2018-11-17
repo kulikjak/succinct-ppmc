@@ -31,7 +31,6 @@
   r1->r_ = r2->r_ op r3->r_;
 
 void DBV_Insert(DBVStructRef DBV__, uint32_t pos__, bool val__) {
-
   if (pos__ > DBV_MEMORY_GET_ANY(DBV__->mem_, DBV__->root_)->p_)
     FATAL("Index out of range");
 
@@ -64,7 +63,6 @@ void DBV_Insert(DBVStructRef DBV__, uint32_t pos__, bool val__) {
     INSERT_BIT(current_ref, pos__, val__);
 
   } else {
-  
     DBVMemPtr node = DBV_Memory_new_node(mem);
     DBVNodeRef node_ref = DBV_MEMORY_GET_NODE(mem, node);
 
@@ -231,6 +229,5 @@ void DBV_Insert(DBVStructRef DBV__, uint32_t pos__, bool val__) {
     } while (true);
 
 #endif  /* DBV_ENABLE_RED_BLACK_BALANCING */
-
   }
 }

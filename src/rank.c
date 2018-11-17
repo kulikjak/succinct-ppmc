@@ -9,7 +9,7 @@
 
 #define GRAPH_SIMPLE_RANK_EXPAND(type__) {                      \
   int32_t i, limit, rank;                                       \
-  mem_ptr current;                                              \
+  MemPtr current;                                               \
                                                                 \
   current = Graph__.root_;                                      \
   rank = 0;                                                     \
@@ -65,7 +65,7 @@
   int32_t i, temp, rank;                                                    \
   int32_t vector, local_p, mask;                                            \
                                                                             \
-  mem_ptr current = Graph__.root_;                                          \
+  MemPtr current = Graph__.root_;                                           \
   rank = 0;                                                                 \
                                                                             \
   LeafRef leaf_ref;                                                         \

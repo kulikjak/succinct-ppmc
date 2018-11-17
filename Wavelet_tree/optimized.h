@@ -66,7 +66,7 @@ void OWT_Print_BitVectors(OWTStructRef OWT__);
 /*
  * Print wavelet tree.
  *
- * This function is not very effecient and 
+ * This function is not very effecient and
  * should be only used for testing purposes.
  *
  * @param  OWT__  OWT structure reference.

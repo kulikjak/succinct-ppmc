@@ -11,8 +11,8 @@
   int32_t i, temp;                                             \
   int32_t select = 0;                                          \
   uint32_t local_var;                                          \
-  mem_ptr tmp_node;                                            \
-  mem_ptr current = Graph__.root_;                             \
+  MemPtr tmp_node;                                             \
+  MemPtr current = Graph__.root_;                              \
                                                                \
   NodeRef node_ref;                                            \
   LeafRef leaf_ref;                                            \
@@ -78,8 +78,8 @@
   int32_t local_p, vector, mask;                                                   \
   int32_t select = 0;                                                              \
   uint32_t local_var;                                                              \
-  mem_ptr tmp_node;                                                                \
-  mem_ptr current = Graph__.root_;                                                 \
+  MemPtr tmp_node;                                                                 \
+  MemPtr current = Graph__.root_;                                                  \
                                                                                    \
   NodeRef node_ref;                                                                \
   LeafRef leaf_ref;                                                                \

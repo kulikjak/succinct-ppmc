@@ -31,7 +31,8 @@ void calculate_mapping_order() {
   printf("{");
   for (i = 0; i < 256; i++) {
     printf("%d", order[i]);
-    if (i < 255) printf(", ");
+    if (i < 255)
+      printf(", ");
   }
   printf("}\n");
 }

@@ -25,7 +25,7 @@ void benchmark_random_insertion() {
   Graph_Line line;
   Graph_Init(&Graph);
 
-  int8_t *dna_string = gen_dna_vals();
+  int8_t* dna_string = gen_dna_vals();
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
@@ -43,7 +43,7 @@ void benchmark_operations() {
   Graph_Line line;
   Graph_Init(&Graph);
 
-  int8_t *dna_string = gen_dna_vals();
+  int8_t* dna_string = gen_dna_vals();
   for (int32_t i = 0; i < sample_size; i++) {
     GLine_Fill(&line, VAR_IGNORE, dna_string[i], VAR_IGNORE);
     GLine_Insert(&Graph, i, &line);

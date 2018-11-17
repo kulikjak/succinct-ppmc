@@ -40,8 +40,7 @@ void _test_binary_vector(GraphRef Graph__, BitSeqType* sequence) {
 
   for (i = 0; i < TEST_SEQENCE_LEN; i++) {
     GLine_Get(Graph__, i, &line);
-    TEST_ASSERT_EQUAL_INT32(
-        bit_sequence_get(sequence, TEST_SEQENCE_LEN, i), line.L_);
+    TEST_ASSERT_EQUAL_INT32(bit_sequence_get(sequence, TEST_SEQENCE_LEN, i), line.L_);
   }
 
   for (i = 0; i <= TEST_SEQENCE_LEN; i++) {
@@ -133,7 +132,7 @@ TEST(Compressor_binary_vector, mixed_insertion) {
     GLine_Insert(&Graph, i, &line);
   }
 
-  for (i = TEST_SEQENCE_LEN - 1; i >= (TEST_SEQENCE_LEN / 4 ) * 3; i--) {
+  for (i = TEST_SEQENCE_LEN - 1; i >= (TEST_SEQENCE_LEN / 4) * 3; i--) {
     bit = (sequence[i / BitSeqSize] >> ((BitSeqSize - 1) - (i % BitSeqSize))) & 0x1;
 
     GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
@@ -147,7 +146,7 @@ TEST(Compressor_binary_vector, mixed_insertion) {
     GLine_Insert(&Graph, TEST_SEQENCE_LEN / 4, &line);
   }
 
-  for (i = TEST_SEQENCE_LEN / 2; i < (TEST_SEQENCE_LEN / 4 ) * 3; i++) {
+  for (i = TEST_SEQENCE_LEN / 2; i < (TEST_SEQENCE_LEN / 4) * 3; i++) {
     bit = (sequence[i / BitSeqSize] >> ((BitSeqSize - 1) - (i % BitSeqSize))) & 0x1;
 
     GLine_Fill(&line, bit, VAR_IGNORE, VAR_IGNORE);
@@ -158,7 +157,7 @@ TEST(Compressor_binary_vector, mixed_insertion) {
 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
 
-void test_node_split_(mem_ptr ptr__) {
+void test_node_split_(MemPtr ptr__) {
   LeafRef leaf;
   NodeRef node;
 
@@ -179,14 +178,14 @@ TEST(Compressor_binary_vector, clever_node_split) {
 
   for (i = 0; i < TEST_SEQENCE_LEN; i++) {
     if (!limiter) {
-      sequence[i / BitSeqSize] |= ((BitSeqType)0x1) << ((BitSeqSize - 1) - (i % BitSeqSize));
+      sequence[i / BitSeqSize] |= ((BitSeqType) 0x1) << ((BitSeqSize - 1) - (i % BitSeqSize));
       limiter = 3;
     } else {
       limiter--;
     }
   }
-  sequence[(TEST_SEQENCE_LEN-1) / BitSeqSize] |=
-    ((BitSeqType)0x1) << ((BitSeqSize - 1) - ((TEST_SEQENCE_LEN-1) % BitSeqSize));
+  sequence[(TEST_SEQENCE_LEN - 1) / BitSeqSize] |= ((BitSeqType) 0x1)
+      << ((BitSeqSize - 1) - ((TEST_SEQENCE_LEN - 1) % BitSeqSize));
 
   for (i = TEST_SEQENCE_LEN - 1; i >= 0; i--) {
     bit = (sequence[i / BitSeqSize] >> ((BitSeqSize - 1) - (i % BitSeqSize))) & 0x1;

@@ -14,12 +14,12 @@
 #include <time.h>
 
 static uint8_t* int_sequence_generate_random(int32_t ssize__, int32_t dsize__) {
-  uint8_t* sequence = (uint8_t*)malloc(ssize__ * sizeof(uint8_t));
+  uint8_t* sequence = (uint8_t*) malloc(ssize__ * sizeof(uint8_t));
 
   srand(time(NULL));
   for (int32_t i = 0; i < ssize__; i++)
     sequence[i] = rand() % dsize__;
-  return sequence;  
+  return sequence;
 }
 
 static void int_sequence_free(uint8_t** seq__) {
@@ -35,13 +35,14 @@ static void int_sequence_print(uint8_t* seq__, int32_t len__) {
 
 /*
  * Integer sequence get operation.
- * 
+ *
  * @param  seq__  Symbol sequence.
  * @param  len__  Length of the sequence.
  * @param  pos__  Query position.
  */
 static int32_t int_sequence_get(uint8_t* seq__, int32_t len__, int32_t pos__) {
-  if (pos__ < 0 || pos__ >= len__) return -1;
+  if (pos__ < 0 || pos__ >= len__)
+    return -1;
 
   return seq__[pos__];
 }
@@ -72,14 +73,16 @@ static int32_t int_sequence_rank(uint8_t* seq__, int32_t len__, int32_t x__, uin
  * @param  ch__  Query symbol.
  */
 static int32_t int_sequence_select(uint8_t* seq__, int32_t len__, int32_t x__, uint8_t ch__) {
-  if (!x__) return 0;
+  if (!x__)
+    return 0;
 
   for (int32_t i = 0; i < len__; i++) {
     if (seq__[i] == ch__) {
-      if (!(--x__)) return i + 1;
+      if (!(--x__))
+        return i + 1;
     }
   }
   return -1;
 }
 
-#endif  /* _INTEGER_SEQUENCE__ */
+#endif
