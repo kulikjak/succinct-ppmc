@@ -288,7 +288,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx__, int32_t
     symbol2 = GET_VALUE_FROM_IDX(idx2, dB__);
 
     /* dollars are not context (we can check only one - next condition will handle the other) */
-    if (symbol1 == 4) break;
+    if (symbol1 == VALUE_$) break;
 
     /* symbols are not the same */
     if (symbol1 != symbol2) break;
