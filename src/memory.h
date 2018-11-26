@@ -48,10 +48,7 @@ typedef struct node_32e {
   uint32_t rL_; /* number of set bits in L vector */
 
   /* number of set bits in all W vectors */
-  uint32_t rW_;
-  uint32_t rWl_; /* for lower second level */
-  uint32_t rWh_; /* for higher second level */
-  uint32_t rWs_; /* for special last level */
+  uint32_t rW_[8];
 
 #if defined(DIRECT_MEMORY)
   Bool32 is_leaf;
@@ -68,10 +65,7 @@ typedef struct {
   uint32_t rL_; /* number of set bits in L vector */
 
   /* number of set bits in all W vectors */
-  uint32_t rW_;
-  uint32_t rWl_; /* for lower second level */
-  uint32_t rWh_; /* for higher second level */
-  uint32_t rWs_; /* for special last level */
+  uint32_t rW_[8];
 
 #if defined(DIRECT_MEMORY)
   Bool32 is_leaf;
@@ -79,9 +73,7 @@ typedef struct {
 
   /* all graph data vectors */
   uint32_t vectorL_;
-  uint32_t vectorWl0_;
-  uint32_t vectorWl1_;
-  uint32_t vectorWl2_;
+  uint32_t vectorW_[4];
   uint32_t vectorP_[32];
 
 #if defined(INTEGER_CONTEXT_SHORTENING)

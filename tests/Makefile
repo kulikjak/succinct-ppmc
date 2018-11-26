@@ -41,9 +41,9 @@ test_compressor: TEST_ARGUMENTS += $(COMPRESSOR_SRC_FILES) $(ARITH_SRC_FILES) \
 	./Compressor.c
 
 # variables for use with RAS context shortening
-test_compressor: $(UWT_DEPEND)
-test_compressor: TEST_INC_DIRS += -I$(WT_ROOT) -I$(DBV_ROOT)
-test_compressor: TEST_ARGUMENTS += $(UWT_SRC_FILES) $(DBV_SRC_FILES)
+#test_compressor: $(UWT_DEPEND)
+#test_compressor: TEST_INC_DIRS += -I$(WT_ROOT) -I$(DBV_ROOT)
+#test_compressor: TEST_ARGUMENTS += $(UWT_SRC_FILES) $(DBV_SRC_FILES)
 
 .PHONY: test_%
 test_%: download

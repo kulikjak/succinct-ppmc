@@ -60,7 +60,7 @@ int32_t deBruijn_Forward_(deBruijnRef dB__, int32_t idx__) {
   rank = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_W, line.W_);
 
   /* get starting position of edge label */
-  spos = dB__->F_[line.W_]; 
+  spos = dB__->F_[line.W_ >> 0x1];
 
   /* get index of the last edge of the node pointed to by given edge */
   temp = Graph_Rank(&(dB__->Graph_), spos, VECTOR_L, VALUE_1);
@@ -86,7 +86,7 @@ int32_t deBruijn_Backward_(deBruijnRef dB__, int32_t idx__) {
     return -1;
 
   /* rank to current base */
-  base = Graph_Rank(&(dB__->Graph_), dB__->F_[symbol], VECTOR_L, VALUE_1);
+  base = Graph_Rank(&(dB__->Graph_), dB__->F_[symbol >> 0x1], VECTOR_L, VALUE_1);
 
   /* rank to given line (including it) */
   temp = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_L, VALUE_1);
@@ -288,7 +288,7 @@ int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx__, int32_t
     symbol2 = GET_VALUE_FROM_IDX(idx2, dB__);
 
     /* dollars are not context (we can check only one - next condition will handle the other) */
-    if (symbol1 == 4) break;
+    if (symbol1 == VALUE_$) break;
 
     /* symbols are not the same */
     if (symbol1 != symbol2) break;

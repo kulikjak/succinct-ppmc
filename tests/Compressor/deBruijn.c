@@ -11,6 +11,14 @@ TEST_GROUP(Compressor_deBruijn);
 
 #define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
 
+
+#define GET_VALUE_FROM_SYMBOL(symb__)        \
+      (((symb__) == 'A') ? VALUE_A           \
+    : ((symb__) == 'C') ? VALUE_C            \
+    : ((symb__) == 'G') ? VALUE_G            \
+    : ((symb__) == 'T') ? VALUE_T : VALUE_$)
+
+
 deBruijn_graph dB;
 Graph_Line line;
 

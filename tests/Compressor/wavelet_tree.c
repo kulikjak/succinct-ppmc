@@ -21,7 +21,7 @@ Graph_Struct Graph;
 Graph_Line line;
 
 TEST_SETUP(Compressor_wavelet_tree) {
-  sequence = int_sequence_generate_random(TEST_SEQENCE_LEN, 5);
+  sequence = int_sequence_generate_random(TEST_SEQENCE_LEN, 9);
   Graph_Init(&Graph);
 }
 
@@ -32,6 +32,7 @@ TEST_TEAR_DOWN(Compressor_wavelet_tree) {
 
 static void _test_wavelet_tree(GraphRef Graph__, uint8_t* sequence) {
   int32_t i;
+  Graph_value g;
 
   if (TEST_PRINT_SEQUENCES) {
     int_sequence_print(sequence, TEST_SEQENCE_LEN);
@@ -44,27 +45,15 @@ static void _test_wavelet_tree(GraphRef Graph__, uint8_t* sequence) {
   }
 
   for (i = 0; i <= TEST_SEQENCE_LEN; i++) {
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, VALUE_A),
-                            Graph_Rank(Graph__, i, VECTOR_W, VALUE_A));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, VALUE_C),
-                            Graph_Rank(Graph__, i, VECTOR_W, VALUE_C));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, VALUE_G),
-                            Graph_Rank(Graph__, i, VECTOR_W, VALUE_G));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, VALUE_T),
-                            Graph_Rank(Graph__, i, VECTOR_W, VALUE_T));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, VALUE_$),
-                            Graph_Rank(Graph__, i, VECTOR_W, VALUE_$));
+    for (g = VALUE_A; g <= VALUE_$; g++) {
+      TEST_ASSERT_EQUAL_INT32(int_sequence_rank(sequence, TEST_SEQENCE_LEN, i, g),
+                              Graph_Rank(Graph__, i, VECTOR_W, g));
+    }
 
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, VALUE_A),
-                            Graph_Select(Graph__, i, VECTOR_W, VALUE_A));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, VALUE_C),
-                            Graph_Select(Graph__, i, VECTOR_W, VALUE_C));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, VALUE_G),
-                            Graph_Select(Graph__, i, VECTOR_W, VALUE_G));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, VALUE_T),
-                            Graph_Select(Graph__, i, VECTOR_W, VALUE_T));
-    TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, VALUE_$),
-                            Graph_Select(Graph__, i, VECTOR_W, VALUE_$));
+    for (g = VALUE_A; g <= VALUE_$; g++) {
+      TEST_ASSERT_EQUAL_INT32(int_sequence_select(sequence, TEST_SEQENCE_LEN, i, g),
+                              Graph_Select(Graph__, i, VECTOR_W, g));
+    }
   }
 }
 

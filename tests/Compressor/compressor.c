@@ -51,7 +51,7 @@ char* generate_dna_string(int64_t length__) {
 
   res = (char*) malloc(length__ * sizeof(*res));
   for (i = 0; i < length__; i++)
-    res[i] = rand() % 4;
+    res[i] = (rand() % 4) * 2;
   return res;
 }
 

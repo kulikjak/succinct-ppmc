@@ -126,10 +126,10 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
   rank = Graph_Rank(&(C__->dB_.Graph_), idx__, VECTOR_W, gval__);
 
   if (!rank) { /* there is no symbol above this */
-    x = C__->dB_.F_[gval__];
+    x = C__->dB_.F_[gval__ >> 0x1];
 
     /* update the F array */
-    for (i = gval__ + 1; i < SYMBOL_COUNT; i++)
+    for (i = (gval__ >> 0x1) + 1; i < SYMBOL_COUNT; i++)
       C__->dB_.F_[i]++;
 
   } else {
@@ -175,7 +175,7 @@ int32_t Compressor_Compress_symbol_aux_(CompressorRef C__, int32_t idx__, Graph_
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1);
 #endif
 
-    /* this cannot happen because there level one is full that means, that we
+    /* this cannot happen because whole level one is full that means, that we
      * are never outputting character itself */
     assert(ctx_len__ != 0);
     Compressor_encode_(C__, idx__, VALUE_ESC);
@@ -193,7 +193,7 @@ int32_t Compressor_Compress_symbol_aux_(CompressorRef C__, int32_t idx__, Graph_
     Compressor_encode_(C__, idx__, gval__);
     Compressor_Increase_frequency_rec_(C__, idx__, gval__, ctx_len__ - 1);
 
-    return deBruijn_Forward_(&(C__->dB_), idx__);
+    return deBruijn_Forward_(&(C__->dB_), transition);
   }
 
   return finish_symbol_insertion_(C__, idx__, gval__);
@@ -238,7 +238,7 @@ int32_t Decompressor_Decompress_symbol_aux_(CompressorRef C__, int32_t idx__, Gr
 
     *gval__ = symbol;
     Compressor_Increase_frequency_rec_((CompressorRef) C__, idx__, symbol, ctx_len__ - 1);
-    return deBruijn_Forward_(&(C__->dB_), idx__);
+    return deBruijn_Forward_(&(C__->dB_), transition);
   }
 
   return finish_symbol_insertion_(C__, idx__, symbol);

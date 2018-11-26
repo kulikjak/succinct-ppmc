@@ -12,19 +12,28 @@
     func                        \
   }
 
+/* Number of distinct symbols not counting x variants */
 #define SYMBOL_COUNT 4
 
-#define GET_MASK_FROM_VALUE(symb__)  \
-      (((symb__) == VALUE_A) ? 0     \
-    : ((symb__) == VALUE_C) ? 2      \
-    : ((symb__) == VALUE_G) ? 4      \
-    : ((symb__) == VALUE_T) ? 6 : 7)
+#define GET_MASK_FROM_VALUE(symb__) \
+      (((symb__) == VALUE_A) ? 0    \
+    : ((symb__) == VALUE_Ax) ? 2    \
+    : ((symb__) == VALUE_C) ? 4     \
+    : ((symb__) == VALUE_Cx) ? 6    \
+    : ((symb__) == VALUE_G) ? 8     \
+    : ((symb__) == VALUE_Gx) ? 10   \
+    : ((symb__) == VALUE_T) ? 12    \
+    : ((symb__) == VALUE_Tx) ? 14 : 15)
 
-#define GET_VALUE_FROM_MASK(mask__)        \
-      (((mask__) == 0) ? VALUE_A           \
-    : ((mask__) == 2) ? VALUE_C            \
-    : ((mask__) == 4) ? VALUE_G            \
-    : ((mask__) == 6) ? VALUE_T : VALUE_$)
+#define GET_VALUE_FROM_MASK(mask__) \
+      (((mask__) == 0) ? VALUE_A    \
+    : ((mask__) == 2) ? VALUE_Ax    \
+    : ((mask__) == 4) ? VALUE_C     \
+    : ((mask__) == 6) ? VALUE_Cx    \
+    : ((mask__) == 8) ? VALUE_G     \
+    : ((mask__) == 10) ? VALUE_Gx   \
+    : ((mask__) == 12) ? VALUE_T    \
+    : ((mask__) == 14) ? VALUE_Tx : VALUE_$)
 
 #define INSERT_BIT(vector, counter, pos, value) {                        \
     assert(pos < 32);                                                    \
@@ -46,19 +55,27 @@
 #define NODE_OPERATION_2(r1, r2, op) { \
     r1->p_ op r2->p_;                  \
     r1->rL_ op r2->rL_;                \
-    r1->rW_ op r2->rW_;                \
-    r1->rWl_ op r2->rWl_;              \
-    r1->rWh_ op r2->rWh_;              \
-    r1->rWs_ op r2->rWs_;              \
+    r1->rW_[0] op r2->rW_[0];          \
+    r1->rW_[1] op r2->rW_[1];          \
+    r1->rW_[2] op r2->rW_[2];          \
+    r1->rW_[3] op r2->rW_[3];          \
+    r1->rW_[4] op r2->rW_[4];          \
+    r1->rW_[5] op r2->rW_[5];          \
+    r1->rW_[6] op r2->rW_[6];          \
+    r1->rW_[7] op r2->rW_[7];          \
   }
 
 #define NODE_OPERATION_3(r1, r2, r3, op) { \
     r1->p_ = r2->p_ op r3->p_;             \
     r1->rL_ = r2->rL_ op r3->rL_;          \
-    r1->rW_ = r2->rW_ op r3->rW_;          \
-    r1->rWl_ = r2->rWl_ op r3->rWl_;       \
-    r1->rWh_ = r2->rWh_ op r3->rWh_;       \
-    r1->rWs_ = r2->rWs_ op r3->rWs_;       \
+    r1->rW_[0] = r2->rW_[0] op r3->rW_[0];          \
+    r1->rW_[1] = r2->rW_[1] op r3->rW_[1];       \
+    r1->rW_[2] = r2->rW_[2] op r3->rW_[2];       \
+    r1->rW_[3] = r2->rW_[3] op r3->rW_[3];       \
+    r1->rW_[4] = r2->rW_[4] op r3->rW_[4];          \
+    r1->rW_[5] = r2->rW_[5] op r3->rW_[5];       \
+    r1->rW_[6] = r2->rW_[6] op r3->rW_[6];       \
+    r1->rW_[7] = r2->rW_[7] op r3->rW_[7];       \
   }
 
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
@@ -67,12 +84,16 @@ typedef enum {
   VALUE_0 = 0,
   VALUE_1 = 1,
 
-  VALUE_A = 0,
-  VALUE_C = 1,
-  VALUE_G = 2,
-  VALUE_T = 3,
-  VALUE_$ = 4,
-  VALUE_ESC = 4
+  VALUE_A  = 0,
+  VALUE_Ax = 1,
+  VALUE_C  = 2,
+  VALUE_Cx = 3,
+  VALUE_G  = 4,
+  VALUE_Gx = 5,
+  VALUE_T  = 6,
+  VALUE_Tx = 7,
+  VALUE_$  = 8,
+  VALUE_ESC = 8
 } Graph_value;
 
 typedef struct {
@@ -87,7 +108,7 @@ typedef struct {
 } Graph_Line;
 
 typedef struct {
-  uint32_t symbol_[SYMBOL_COUNT + 1];
+  uint32_t symbol_[(SYMBOL_COUNT * 2) + 1];
   uint32_t total_;
 } cfreq;
 
@@ -96,10 +117,14 @@ typedef struct {
 
 /* Defines for rank and select macro expansion */
 #define EXPAND_L 0
-#define EXPAND_WTOP 1
-#define EXPAND_WLEFT 2
-#define EXPAND_WRIGHT 3
-#define EXPAND_WBOTTOM 4
+#define EXPAND_W0 1
+#define EXPAND_W1 2
+#define EXPAND_W2 3
+#define EXPAND_W3 4
+#define EXPAND_W4 5
+#define EXPAND_W5 6
+#define EXPAND_W6 7
+#define EXPAND_W7 8
 
 /*
  * Macro that contains whole tree search loop.
