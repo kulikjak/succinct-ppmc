@@ -179,7 +179,7 @@ int32_t deBruijn_Incomming(deBruijnRef dB__, int32_t idx__, Graph_value gval__) 
 
 void deBruijn_Label(deBruijnRef dB__, int32_t idx__, char *buffer__) {
   int8_t symbol;
-  int32_t pos;
+  int32_t pos, i;
 
 #ifdef OMIT_EXCESSIVE_DOLLAR_SIGNS_
   memset(buffer__, ' ', CONTEXT_LENGTH + 1);
@@ -188,15 +188,12 @@ void deBruijn_Label(deBruijnRef dB__, int32_t idx__, char *buffer__) {
 #endif
 
   pos = CONTEXT_LENGTH;
-  do {
-    if (pos < 0)
-      FATAL("deBruijn_Label context is longer than CONTEXT_LENGTH");
-
+  for (i = 0; i < CONTEXT_LENGTH; i++) {
     symbol = GET_VALUE_FROM_IDX(idx__, dB__);
 
     buffer__[pos--] = GET_SYMBOL_FROM_VALUE(symbol);
     idx__ = deBruijn_Backward_(dB__, idx__);
-  } while (idx__ != -1);
+  }
 }
 
 void deBruijn_Print(deBruijnRef dB__, bool labels__) {
