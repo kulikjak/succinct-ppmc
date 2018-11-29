@@ -2,13 +2,7 @@
 
 void Process_Init(CompressorRef C__) {
   deBruijn_Init(&(C__->dB_));
-  Tracker_reset();
-
   C__->state_ = 4;
-
-#if defined(TREE_CONTEXT_SHORTENING)
-  C__->lptr_ = 0;
-#endif
 
 #if defined(ENABLE_CACHE_STATS)
   cache_stats_prep();
@@ -36,13 +30,12 @@ void Compressor_encode_(cfreq* freq__, Graph_value gval__) {
     lower += freq__->symbol_[i];
   upper = lower + freq__->symbol_[i];
 
-
   arithmetic_encode(lower, upper, freq__->total_);
 }
 
 Graph_value Decompressor_decode_(cfreq* freq__) {
-  Graph_value i;
   int32_t target, lower, upper;
+  Graph_value i;
 
   if (freq__->total_ == 0) {
     target = arithmetic_decode_target(1);
@@ -90,7 +83,6 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
     if (temp > 0) {
       len = deBruijn_Get_common_suffix_len_(&(C__->dB_), idx__, temp);
       if (len >= CONTEXT_LENGTH - 1) {
-        Tracker_push(&temp);
         exists_bellow = true;
       }
     }
@@ -111,8 +103,8 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
     GLine_Fill(&line, VALUE_0, gval, 1);
     GLine_Insert(&(C__->dB_.Graph_), idx__, &line);
 
-    /* update registered variables */
-    Tracker_update(idx__);
+    /* update temp variable if newly inserted node moved it */
+    temp += (temp >= idx__) ? 1 : 0;
 
     /* update the F array */
     for (i = 0; i < SYMBOL_COUNT; i++) {
@@ -126,8 +118,6 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
   }
 
   if (exists_bellow) {
-    Tracker_pop();
-
     Graph_Change_symbol(&(C__->dB_.Graph_), temp, gval + 1);
     return deBruijn_Forward_(&(C__->dB_), idx__);
   }
@@ -158,9 +148,6 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
   GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(C__->dB_.Graph_), x, &line);
 
-  /* update registered variables */
-  Tracker_update(x);
-
   deBruijn_update_csl(&(C__->dB_), (x > idx__) ? idx__ : idx__ + 1);
   deBruijn_update_csl(&(C__->dB_), x);
 
@@ -168,8 +155,7 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
 }
 
 void Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int32_t lo__, int32_t up__, int32_t ctx_len__) {
-  int32_t rank1, rank2, rank3, rank4, i, temp;
-  int32_t idx__ = C__->state_;
+  int32_t rank1, rank2, rank3, rank4, i, temp, count;
   cfreq freq;
 
   /* check if given transition exists in this range */
@@ -179,7 +165,8 @@ void Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int3
   rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__ + 1);
   rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__ + 1);
 
-  if ((rank2 - rank1) > 0 || (rank4 - rank3) > 0) {
+  count = (rank2 - rank1) + (rank4 - rank3);
+  if (count) {
 
     deBruijn_Get_symbol_frequency_range(&(C__->dB_), lo__, up__, &freq);
     Compressor_encode_(&freq, gval__);
@@ -199,16 +186,15 @@ void Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int3
     Compressor_encode_(&freq, VALUE_ESC);
 
     /* find range of shorter context */
-    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, ctx_len__ - 1);
-    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, ctx_len__ - 1);
+    int lo = deBruijn_shorten_lower(&(C__->dB_), C__->state_, ctx_len__ - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), C__->state_, ctx_len__ - 1);
 
     Compressor_Compress_symbol_aux_(C__, gval__, lo, up, ctx_len__ - 1);
   }
 }
 
 void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__, int32_t lo__, int32_t up__, int32_t ctx_len__) {
-  int32_t rank1, rank2, rank3, rank4, i, temp;
-  int32_t idx__ = C__->state_;
+  int32_t rank1, rank2, rank3, rank4, i, temp, count;
   cfreq freq;
 
   /* get decompressed symbol */
@@ -221,8 +207,8 @@ void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__,
     )
 
     /* find range of shorter context */
-    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, ctx_len__ - 1);
-    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, ctx_len__ - 1);
+    int lo = deBruijn_shorten_lower(&(C__->dB_), C__->state_, ctx_len__ - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), C__->state_, ctx_len__ - 1);
 
     Decompressor_Decompress_symbol_aux_(C__, gval__, lo, up, ctx_len__ - 1);
 
@@ -238,7 +224,8 @@ void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__,
     rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, symbol + 1);
     rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, symbol + 1);
 
-    if ((rank2 - rank1) > 0 || (rank4 - rank3) > 0) {
+    count = (rank2 - rank1) + (rank4 - rank3);
+    if (count) {
 
       for (i = rank1 + 1; i <= rank2; i++) {
         temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, symbol) - 1;
@@ -248,6 +235,8 @@ void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__,
         temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, symbol + 1) - 1;
         Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
       }
+    } else {
+      FATAL("There is no transition");
     }
 
     *gval__ = symbol;
@@ -256,29 +245,26 @@ void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__,
 
 void Compressor_Compress_symbol(CompressorRef C__, Graph_value gval__) {
   int32_t transition;
-  int32_t idx__ = C__->state_;
   cfreq freq;
 
-  transition = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__ & 0xE);
+  transition = deBruijn_Find_Edge(&(C__->dB_), C__->state_, gval__ & 0xE);
 
   if (transition == -1) {
     COMPRESSOR_VERBOSE(
       printf("[compressor] Escape character output\n");
     )
     /* output escape character */
-    deBruijn_Get_symbol_frequency(&(C__->dB_), idx__, &freq);
+    deBruijn_Get_symbol_frequency(&(C__->dB_), C__->state_, &freq);
     Compressor_encode_(&freq, VALUE_ESC);
 
     /* find range of shorter context */
-    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
-    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
+    int lo = deBruijn_shorten_lower(&(C__->dB_), C__->state_, CONTEXT_LENGTH - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), C__->state_, CONTEXT_LENGTH - 1);
 
     Compressor_Compress_symbol_aux_(C__, gval__, lo, up, CONTEXT_LENGTH - 1);
 
     /* insert new node into the graph */
-    Tracker_push(&idx__);
-    C__->state_ = finish_symbol_insertion_(C__, idx__, gval__);
-    Tracker_pop();
+    C__->state_ = finish_symbol_insertion_(C__, C__->state_, gval__);
 
   } else {
     /* we have a transition in this node */
@@ -287,7 +273,7 @@ void Compressor_Compress_symbol(CompressorRef C__, Graph_value gval__) {
     )
 
     /* output given character */
-    deBruijn_Get_symbol_frequency(&(C__->dB_), idx__, &freq);
+    deBruijn_Get_symbol_frequency(&(C__->dB_), C__->state_, &freq);
     Compressor_encode_(&freq, gval__);
 
     Graph_Increase_frequency(&(C__->dB_.Graph_), transition);
@@ -300,8 +286,7 @@ void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__) {
   cfreq freq;
 
   /* get decompressed symbol */
-  int32_t idx__ = C__->state_;
-  deBruijn_Get_symbol_frequency(&(C__->dB_), idx__, &freq);
+  deBruijn_Get_symbol_frequency(&(C__->dB_), C__->state_, &freq);
   Graph_value symbol = Decompressor_decode_(&freq);
 
   if (symbol == VALUE_ESC) {
@@ -310,25 +295,22 @@ void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__) {
     )
 
     /* find range of shorter context */
-    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
-    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
+    int lo = deBruijn_shorten_lower(&(C__->dB_), C__->state_, CONTEXT_LENGTH - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), C__->state_, CONTEXT_LENGTH - 1);
 
     Decompressor_Decompress_symbol_aux_(C__, gval__, lo, up, CONTEXT_LENGTH - 1);
 
     /* insert new node into the graph */
-    Tracker_push(&idx__);
-    C__->state_ = finish_symbol_insertion_(C__, idx__, *gval__);
-    Tracker_pop();
+    C__->state_ = finish_symbol_insertion_(C__, C__->state_, *gval__);
 
   } else {
     COMPRESSOR_VERBOSE(
       printf("[compressor] Output symbol %c\n", GET_SYMBOL_FROM_VALUE(symbol));
     )
 
-    transition = deBruijn_Find_Edge(&(C__->dB_), idx__, symbol);
+    transition = deBruijn_Find_Edge(&(C__->dB_), C__->state_, symbol);
     if (transition == -1) {
-      printf("Fatal - there is no transition\n");
-      exit(1);
+      FATAL("There is no transition");
     }
 
     *gval__ = symbol;

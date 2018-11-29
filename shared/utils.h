@@ -15,12 +15,12 @@
 #define UNREACHABLE assert(0);
 #define UNUSED(var) (void) (var)
 
-static void fatal(const char* m__, const char* e__) {
-  fprintf(stderr, "[Fatal]: %s%s\n", m__, e__);
+static void fatal(const char* m__) {
+  fprintf(stderr, "[Fatal]: %s\n", m__);
   exit(EXIT_FAILURE);
 }
 
-#define FATAL(msg) (fatal(msg, ""))
+#define FATAL(msg) (fatal(msg))
 
 #define malloc_(a) malloc(a)
 #define calloc_(a, b) calloc(a, b)

@@ -282,11 +282,9 @@ void deBruijn_update_csl(deBruijnRef dB__, int32_t target__) {
   Graph_Set_csl(&(dB__->Graph_), target__ + 1,
                 deBruijn_Get_common_suffix_len_(dB__, target__ + 1, target__));
 
-#elif defined(LABEL_CONTEXT_SHORTENING) \
-    || defined(TREE_CONTEXT_SHORTENING)
+#elif defined(LABEL_CONTEXT_SHORTENING)
   UNUSED(dB__);
   UNUSED(target__);
-
 #endif
 }
 

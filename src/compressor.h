@@ -6,7 +6,6 @@
 
 #include "deBruijn.h"
 #include "defines.h"
-#include "tracker.h"
 
 #define COMPRESSOR_VERBOSE(func) \
   if (COMPRESSOR_VERBOSE_) {     \
@@ -15,13 +14,7 @@
 
 typedef struct {
   deBruijn_graph dB_;
-  int32_t depth_;
-
   int32_t state_;
-#ifdef TREE_CONTEXT_SHORTENING
-  int32_t lptr_;                      /* pointer into the rolling label_ buffer */
-  Graph_value label_[CONTEXT_LENGTH]; /* label of the current state_ */
-#endif
 } compressor;
 
 #define CompressorRef compressor*

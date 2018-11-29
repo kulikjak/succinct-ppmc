@@ -79,10 +79,6 @@
 /* These define the way of how context shortening is handled.
  * LABEL_CONTEXT_SHORTENING calculates context each time shortening occurs.
  * INTEGER_CONTEXT_SHORTENING saves context sizes in integer variables.
- * TREE_CONTEXT_SHORTENING uses no additional memory by traversing the tree
- *   from the root all the way to node with shorter context. Since the context
- *   is always small and not dependent on the size of the input, this is fast.
- *
  * RAS_CONTEXT_SHORTENING uses ranks and selects to move above wavelet tree
  *   storing context lengths. It has an incredible memory overhead and is not
  *   as fast as other methods.
@@ -90,7 +86,6 @@
  * Exacly one of those must be specified */
 //#define LABEL_CONTEXT_SHORTENING
 #define INTEGER_CONTEXT_SHORTENING
-//#define TREE_CONTEXT_SHORTENING
 //#define RAS_CONTEXT_SHORTENING
 
 /* These define the way how memory is allocated and managed.
@@ -106,11 +101,6 @@
  * Exacly one of those must be specified */
 //#define INDEXED_MEMORY
 #define DIRECT_MEMORY
-
-/* Use PPMD algorithm instead of PPMC. This is here mostly for compression
- * comparison with other implementations and it is not implemented most
- * efficiently. */
-//#define PPMD
 
 /**************** ARITHMETIC CODING DEFINES **********************
  *
@@ -172,17 +162,13 @@
 #endif
 
 #if (defined(LABEL_CONTEXT_SHORTENING) && defined(INTEGER_CONTEXT_SHORTENING)) \
- || (defined(LABEL_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))    \
  || (defined(LABEL_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))     \
- || (defined(INTEGER_CONTEXT_SHORTENING) && defined(TREE_CONTEXT_SHORTENING))  \
- || (defined(INTEGER_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))   \
- || (defined(TREE_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))
+ || (defined(INTEGER_CONTEXT_SHORTENING) && defined(RAS_CONTEXT_SHORTENING))
  #error "Exacly one context shortening algorithm must be specified."
 #endif
 
 #if (!defined(INTEGER_CONTEXT_SHORTENING)) && \
     (!defined(LABEL_CONTEXT_SHORTENING)) && \
-    (!defined(TREE_CONTEXT_SHORTENING)) && \
     (!defined(RAS_CONTEXT_SHORTENING))
   #error "Exacly one context shortening algorithm must be specified."
 #endif
