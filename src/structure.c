@@ -102,7 +102,7 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
             (leaf__->p_ - pos__) * sizeof(int32_t));
 #if defined(INTEGER_CONTEXT_SHORTENING)
     memmove(&(leaf__->context_[pos__ + 1]), &(leaf__->context_[pos__]),
-            (leaf__->p_ - pos__) * sizeof(int32_t));
+            (leaf__->p_ - pos__) * sizeof(*leaf__->context_));
 #endif
   }
   leaf__->vectorP_[pos__] = line__->P_;
@@ -229,7 +229,7 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
 #ifdef INTEGER_CONTEXT_SHORTENING
     memcpy(right_ref->context_, current_ref->context_ + 16 + split_offset,
-           (16 - split_offset) * sizeof(uint32_t));
+           (16 - split_offset) * sizeof(*current_ref->context_));
 #endif
 
     right_ref->p_ = 16 - split_offset;

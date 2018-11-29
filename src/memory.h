@@ -77,7 +77,7 @@ typedef struct {
   uint32_t vectorP_[32];
 
 #if defined(INTEGER_CONTEXT_SHORTENING)
-  uint32_t context_[32];
+  uint8_t context_[32];
 #endif
 
 } leaf_32e;
