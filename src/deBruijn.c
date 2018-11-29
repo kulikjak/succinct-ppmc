@@ -23,10 +23,9 @@ void deBruijn_Init(deBruijnRef dB__) {
   dB__->F_[3] = 4;
 
   /* calculate csl for all inserted lines */
-  /*deBruijn_update_csl(dB__, 1);
-  deBruijn_update_csl(dB__, 3);
-  deBruijn_update_csl(dB__, 5);
-  deBruijn_update_csl(dB__, 7);*/
+  deBruijn_update_csl(dB__, 0);
+  deBruijn_update_csl(dB__, 2);
+  deBruijn_update_csl(dB__, 4);
 }
 
 void deBruijn_Free(deBruijnRef dB__) {
@@ -302,7 +301,11 @@ int32_t deBruijn_shorten_lower(deBruijnRef dB__, int32_t idx__, int32_t ctx_len_
 
   while (idx__ > 0) {
     /* check for length of common suffix */
+#if defined(LABEL_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, idx__ - 1) < ctx_len__)
+#elif defined(INTEGER_CONTEXT_SHORTENING)
+    if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
+#endif
       return idx__;
 
     /* move one line higher */
@@ -320,11 +323,14 @@ int32_t deBruijn_shorten_upper(deBruijnRef dB__, int32_t idx__, int32_t ctx_len_
   int gsize = Graph_Size(&(dB__->Graph_));
   if (idx__ < dB__->F_[0] || ctx_len__ == 0) return gsize - 1;
 
-
   idx__++;
   while (idx__ < gsize) {
     /* check for length of common suffix */
+#if defined(LABEL_CONTEXT_SHORTENING)
     if (deBruijn_Get_common_suffix_len_(dB__, idx__, idx__ - 1) < ctx_len__)
+#elif defined(INTEGER_CONTEXT_SHORTENING)
+    if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
+#endif
       return idx__ - 1;
 
     /* move one line higher */
