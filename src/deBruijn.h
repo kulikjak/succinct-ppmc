@@ -44,11 +44,6 @@ typedef struct {
 
 #define deBruijnRef deBruijn_graph*
 
-int32_t deBruijn_Get_common_suffix_lenX_(deBruijnRef dB__, int32_t idx1__, int32_t idx2__);
-int32_t deBruijn_shorten_lower(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
-int32_t deBruijn_shorten_upper(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
-void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t up_, cfreq* freq__);
-
 /*
  * Initialize deBruijn_graph object.
  *
@@ -144,6 +139,18 @@ void deBruijn_Label(deBruijnRef dB__, int32_t idx__, char *buffer__);
 void deBruijn_Print(deBruijnRef dB__, bool labels__);
 
 /*
+ * Get lower and upper limits for given context length.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  idx__  Edge index (line) in deBruijn graph.
+ * @param  ctx_len__ Desired new context length.
+ *
+ * @return  Index of first lower/upper line with given context length.
+ */
+int32_t deBruijn_shorten_lower(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
+int32_t deBruijn_shorten_upper(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
+
+/*
  * Update longest common suffix length with its neighbours.
  *
  * This function updates cls both with higher and lower neighbour.
@@ -153,39 +160,6 @@ void deBruijn_Print(deBruijnRef dB__, bool labels__);
  */
 void deBruijn_update_csl(deBruijnRef dB__, int32_t target__);
 
-#if defined(TREE_CONTEXT_SHORTENING)
-/*
- * Shorten current context.
- *
- * This function effectively follows suffix links of PPM tree.
- *
- * @param  dB__  Reference to deBruijn_graph object.
- * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  ctx_len__ Desired new context length.
- * @param  label__ Rolling buffer with current context label.
- * @param  lptr__ Pointer into the rolling buffer.
- *
- * @return  Node with shorter context or -1 if one doesn't exist
- */
-int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__,
-                                 Graph_value *label__, int32_t lptr__);
-
-#else
-/*
- * Shorten current context.
- *
- * This function effectively follows suffix links of PPM tree.
- *
- * @param  dB__  Reference to deBruijn_graph object.
- * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  ctx_len__ Desired new context length.
- *
- * @return  Node with shorter context or -1 if one doesn't exist
- */
-int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
-
-#endif  /* defined(TREE_CONTEXT_SHORTENING) */
-
 /*
  * Get symbol frequencies from node pointed to by given index.
  *
@@ -194,6 +168,16 @@ int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_le
  * @param  freq__  [Out] Frequency count structure.
  */
 void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq *freq__);
+
+/*
+ * Get symbol frequencies from given range.
+ *
+ * @param  dB__  Reference to deBruijn_graph object.
+ * @param  lo__  Lower bound of given range
+ * @param  up__  Upper bound of given range
+ * @param  freq__  [Out] Frequency count structure.
+ */
+void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo__, int32_t up__, cfreq* freq__);
 
 /*
  * Move to next node pointed to by given edge (line) index.
@@ -220,17 +204,13 @@ int32_t deBruijn_Backward_(deBruijnRef dB__, int32_t idx__);
 /*
  * Get length of common suffix of given line and line above.
  *
- * This is the simpliest (and slowest) way of determining length of common
- * suffix. It is however the most memory efficient one as it does not store
- * any aditional information.
- *
  * @param  dB__  Reference to deBruijn_graph object.
- * @param  idx__  Edge index (line) in deBruijn graph.
- * @param  limit__ Limit of checking.
+ * @param  idx1__  First edge index (line) in deBruijn graph.
+ * @param  idx2__  Second edge index (line) in deBruijn graph.
  *
  * @return  Length of longest common suffix
  */
-int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx__, int32_t limit__);
+int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx1__, int32_t idx2__);
 
 /*
  * Initialize structure with given test data.

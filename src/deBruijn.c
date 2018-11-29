@@ -17,27 +17,6 @@ void deBruijn_Init(deBruijnRef dB__) {
   GLine_Fill(&line, VALUE_1, VALUE_$, 0);
   GLine_Insert(&(dB__->Graph_), 4, &line);
 
-
-  /* insert root node with all four transitions */
-  /*GLine_Fill(&line, VALUE_0, VALUE_A, 1);
-  GLine_Insert(&(dB__->Graph_), 0, &line);
-  GLine_Fill(&line, VALUE_0, VALUE_C, 1);
-  GLine_Insert(&(dB__->Graph_), 1, &line);
-  GLine_Fill(&line, VALUE_0, VALUE_G, 1);
-  GLine_Insert(&(dB__->Graph_), 2, &line);
-  GLine_Fill(&line, VALUE_1, VALUE_T, 1);
-  GLine_Insert(&(dB__->Graph_), 3, &line); */
-
-  /* insert target null nodes */
-  /*GLine_Fill(&line, VALUE_1, VALUE_$, 0);
-  GLine_Insert(&(dB__->Graph_), 4, &line);
-  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
-  GLine_Insert(&(dB__->Graph_), 5, &line);
-  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
-  GLine_Insert(&(dB__->Graph_), 6, &line);
-  GLine_Fill(&line, VALUE_1, VALUE_$, 0);
-  GLine_Insert(&(dB__->Graph_), 7, &line);*/
-
   dB__->F_[0] = 1;
   dB__->F_[1] = 2;
   dB__->F_[2] = 3;
@@ -100,18 +79,12 @@ int32_t deBruijn_Backward_(deBruijnRef dB__, int32_t idx__) {
   /* rank to current base */
   base = Graph_Rank(&(dB__->Graph_), dB__->F_[symbol >> 0x1], VECTOR_L, VALUE_1);
 
-  //printf("%d\n", base);
-
   /* rank to given line (including it) */
   temp = Graph_Rank(&(dB__->Graph_), idx__ + 1, VECTOR_L, VALUE_1);
-
-  //printf("%d\n", temp);
 
   /* if given line is not last edge of the node, add that node */
   GLine_Get(&(dB__->Graph_), (uint32_t) idx__, &line);
   temp += (line.L_) ? 0 : 1;
-
-  //printf("%d\n", temp - base);
 
   /* get index of the edge leading to given node */
   return Graph_Select(&(dB__->Graph_), temp - base, VECTOR_W, symbol) - 1;
@@ -138,31 +111,7 @@ int32_t deBruijn_Find_Edge(deBruijnRef dB__, int32_t idx__, Graph_value gval__) 
 #ifdef ENABLE_CLEVER_NODE_SPLIT
   return Graph_Find_Edge(&(dB__->Graph_), idx__, gval__);
 #else
-  FATAL("Use ENABLE_CLEVER_NODE_SPLIT");
-
-/*
-
-  int32_t node_id, last_pos, range, select, temp;
-
-  DEBRUIJN_VERBOSE(
-    printf("[deBruijn]: Calling Find_Edge on index %d and value %d\n", idx__, gval__);
-  )
-
-  * get last edge index for this node *
-  node_id = Graph_Rank(&(dB__->Graph_), idx__, VECTOR_L, VALUE_1);
-  last_pos = Graph_Select(&(dB__->Graph_), node_id + 1, VECTOR_L, VALUE_1);
-
-  * find range (number of edges leaving current node) *
-  range = last_pos - Graph_Select(&(dB__->Graph_), node_id, VECTOR_L, VALUE_1);
-
-  * get position of last 'symbol' up to this node *
-  temp = Graph_Rank(&(dB__->Graph_), last_pos, VECTOR_W, gval__);
-  select = Graph_Select(&(dB__->Graph_), temp, VECTOR_W, gval__) - 1;
-
-  * check if this position is in the range (transition exist) *
-  if (last_pos - range <= select)
-    return select;
-  return -1; */
+  #error "It is impossible to run this code without ENABLE_CLEVER_NODE_SPLIT"
 #endif
 }
 
@@ -281,7 +230,7 @@ void deBruijn_Print(deBruijnRef dB__, bool labels__) {
   }
 }
 
-int32_t deBruijn_Get_common_suffix_lenX_(deBruijnRef dB__, int32_t idx1__, int32_t idx2__) {
+int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx1__, int32_t idx2__) {
   int32_t common;
   int32_t symbol1, symbol2;
 
@@ -290,16 +239,12 @@ int32_t deBruijn_Get_common_suffix_lenX_(deBruijnRef dB__, int32_t idx1__, int32
   )
   common = 0;
 
-  //printf("A %d %d S %d\n", idx1__, idx2__, Graph_Size(&(dB__->Graph_)));
-
   /* limit size of suffix for better performance */
   while (common < CONTEXT_LENGTH) {
     /* get symbols itself */
     symbol1 = GET_VALUE_FROM_IDX(idx1__, dB__);
     symbol2 = GET_VALUE_FROM_IDX(idx2__, dB__);
 
-    //printf("%d %d\n", symbol1, symbol2);
-
     /* dollars are not context (we can check only one - next condition will handle the other) */
     if (symbol1 == VALUE_$) break;
 
@@ -307,54 +252,11 @@ int32_t deBruijn_Get_common_suffix_lenX_(deBruijnRef dB__, int32_t idx1__, int32
     if (symbol1 != symbol2) break;
 
     /* continue backwards */
-    //printf("---------------------------------------\n");
     idx1__ = deBruijn_Backward_(dB__, idx1__);
     idx2__ = deBruijn_Backward_(dB__, idx2__);
-
-    //printf("A %d %d S %d\n", idx1__, idx2__, Graph_Size(&(dB__->Graph_)));
-
     common++;
 
     if (idx1__ == -1 || idx2__ == -1) break;
-  }
-  return common;
-}
-
-int32_t deBruijn_Get_common_suffix_len_(deBruijnRef dB__, int32_t idx__, int32_t limit__) {
-  int32_t common, idx1, idx2;
-  int32_t symbol1, symbol2;
-
-  DEBRUIJN_VERBOSE(
-    printf("[deBruijn]: Calling Get_common_suffix_len on index %d (limit: %d)\n", idx__, limit__);
-  )
-
-  /* there is no common suffix for top most line */
-  if (!idx__) return 0;
-
-  common = 0;
-
-  idx1 = idx__;
-  idx2 = idx__ - 1;
-
-  /* limit size of suffix for better performance */
-  while (common < limit__) {
-    /* get symbols itself */
-    symbol1 = GET_VALUE_FROM_IDX(idx1, dB__);
-    symbol2 = GET_VALUE_FROM_IDX(idx2, dB__);
-
-    /* dollars are not context (we can check only one - next condition will handle the other) */
-    if (symbol1 == VALUE_$) break;
-
-    /* symbols are not the same */
-    if (symbol1 != symbol2) break;
-
-    /* continue backwards */
-    idx1 = deBruijn_Backward_(dB__, idx1);
-    idx2 = deBruijn_Backward_(dB__, idx2);
-
-    common++;
-
-    if (idx1 == -1 || idx2 == -1) break;
   }
   return common;
 }
@@ -373,13 +275,13 @@ void deBruijn_update_csl(deBruijnRef dB__, int32_t target__) {
   if (target__ == 0) return;
 
   Graph_Set_csl(&(dB__->Graph_), target__,
-                deBruijn_Get_common_suffix_len_(dB__, target__, CONTEXT_LENGTH));
+                deBruijn_Get_common_suffix_len_(dB__, target__, target__ - 1));
 
   /* target is at the bottom of the list - only one csl to update */
   if (target__ == graph_size - 1) return;
 
   Graph_Set_csl(&(dB__->Graph_), target__ + 1,
-                deBruijn_Get_common_suffix_len_(dB__, target__ + 1, CONTEXT_LENGTH));
+                deBruijn_Get_common_suffix_len_(dB__, target__ + 1, target__));
 
 #elif defined(LABEL_CONTEXT_SHORTENING) \
     || defined(TREE_CONTEXT_SHORTENING)
@@ -400,7 +302,7 @@ int32_t deBruijn_shorten_lower(deBruijnRef dB__, int32_t idx__, int32_t ctx_len_
 
   while (idx__ > 0) {
     /* check for length of common suffix */
-    if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
+    if (deBruijn_Get_common_suffix_len_(dB__, idx__, idx__ - 1) < ctx_len__)
       return idx__;
 
     /* move one line higher */
@@ -422,45 +324,13 @@ int32_t deBruijn_shorten_upper(deBruijnRef dB__, int32_t idx__, int32_t ctx_len_
   idx__++;
   while (idx__ < gsize) {
     /* check for length of common suffix */
-    if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
+    if (deBruijn_Get_common_suffix_len_(dB__, idx__, idx__ - 1) < ctx_len__)
       return idx__ - 1;
 
     /* move one line higher */
     idx__++;
   }
   return gsize - 1;
-}
-
-int32_t deBruijn_Shorten_context(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__) {
-
-  DEBRUIJN_VERBOSE(
-    printf("[deBruijn]: Calling Shorten_context on index %d (ctx len: %d)\n", idx__, ctx_len__);
-  )
-
-  /* if this is root node it is not possible to shorten context */
-  if (idx__ < dB__->F_[0]) return -1;
-
-  /* context of len 0 points surely to root node */
-  if (ctx_len__ == 0) return dB__->F_[0] - 1;
-
-  /* context can be surely shortened beyond this point */
-
-  while (idx__) {
-    /* check for length of common suffix */
-#if defined(LABEL_CONTEXT_SHORTENING)
-    if (deBruijn_Get_common_suffix_len_(dB__, idx__, ctx_len__) < ctx_len__)
-      return idx__;
-#elif defined(INTEGER_CONTEXT_SHORTENING) || defined(RAS_CONTEXT_SHORTENING)
-    if (Graph_Get_csl(&(dB__->Graph_), idx__) < ctx_len__)
-      return idx__;
-#endif
-
-    /* move one line higher */
-    idx__--;
-  }
-
-  UNREACHABLE
-  return 0;
 }
 
 void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t up_, cfreq* freq__) {
@@ -506,6 +376,7 @@ void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq* freq
 
   freq__->total_ = 0;
 
+  memset(freq__, 0, sizeof(*freq__));
   for (cnt = 0, i = VALUE_A; i <= VALUE_T; i+= 2) {
     idx = deBruijn_Find_Edge(dB__, idx__, i);
     if (idx == -1) continue;
