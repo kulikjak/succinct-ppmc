@@ -88,9 +88,9 @@
  *   as fast as other methods.
  *
  * Exacly one of those must be specified */
-//#define LABEL_CONTEXT_SHORTENING
+#define LABEL_CONTEXT_SHORTENING
 //#define INTEGER_CONTEXT_SHORTENING
-#define TREE_CONTEXT_SHORTENING
+//#define TREE_CONTEXT_SHORTENING
 //#define RAS_CONTEXT_SHORTENING
 
 /* These define the way how memory is allocated and managed.

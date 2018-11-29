@@ -13,22 +13,26 @@
     func                       \
   }
 
-#define GET_SYMBOL_FROM_VALUE(symb__)    \
-      (((symb__) == VALUE_A) ? 'A'       \
-    : ((symb__) == VALUE_C) ? 'C'        \
-    : ((symb__) == VALUE_G) ? 'G'        \
-    : ((symb__) == VALUE_T) ? 'T' : '$')
+#define GET_SYMBOL_FROM_VALUE(symb__) \
+      (((symb__) == VALUE_A) ? 'A'    \
+    : ((symb__) == VALUE_Ax) ? 'A'    \
+    : ((symb__) == VALUE_C)  ? 'C'    \
+    : ((symb__) == VALUE_Cx) ? 'C'    \
+    : ((symb__) == VALUE_G)  ? 'G'    \
+    : ((symb__) == VALUE_Gx) ? 'G'    \
+    : ((symb__) == VALUE_T)  ? 'T'    \
+    : ((symb__) == VALUE_Tx) ? 'T' : '$')
 
-#define GET_VALUE_FROM_SYMBOL(symb__)        \
-      (((symb__) == 'A') ? VALUE_A           \
-    : ((symb__) == 'C') ? VALUE_C            \
-    : ((symb__) == 'G') ? VALUE_G            \
+#define GET_VALUE_FROM_SYMBOL(symb__) \
+      (((symb__) == 'A') ? VALUE_A    \
+    : ((symb__) == 'C') ? VALUE_C     \
+    : ((symb__) == 'G') ? VALUE_G     \
     : ((symb__) == 'T') ? VALUE_T : VALUE_$)
 
-#define GET_VALUE_FROM_IDX(idx__, dB__)          \
-      ((idx__ < dB__->F_[0]) ? VALUE_$           \
-    : (idx__ < dB__->F_[1]) ? VALUE_A            \
-    : (idx__ < dB__->F_[2]) ? VALUE_C            \
+#define GET_VALUE_FROM_IDX(idx__, dB__) \
+      ((idx__ < dB__->F_[0]) ? VALUE_$  \
+    : (idx__ < dB__->F_[1]) ? VALUE_A   \
+    : (idx__ < dB__->F_[2]) ? VALUE_C   \
     : (idx__ < dB__->F_[3]) ? VALUE_G : VALUE_T)
 
 typedef struct {
@@ -39,6 +43,11 @@ typedef struct {
 } deBruijn_graph;
 
 #define deBruijnRef deBruijn_graph*
+
+int32_t deBruijn_Get_common_suffix_lenX_(deBruijnRef dB__, int32_t idx1__, int32_t idx2__);
+int32_t deBruijn_shorten_lower(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
+int32_t deBruijn_shorten_upper(deBruijnRef dB__, int32_t idx__, int32_t ctx_len__);
+void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t up_, cfreq* freq__);
 
 /*
  * Initialize deBruijn_graph object.

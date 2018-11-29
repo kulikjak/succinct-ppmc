@@ -108,7 +108,7 @@ typedef struct {
 } Graph_Line;
 
 typedef struct {
-  uint32_t symbol_[(SYMBOL_COUNT * 2) + 1];
+  uint32_t symbol_[SYMBOL_COUNT + 1];
   uint32_t total_;
 } cfreq;
 

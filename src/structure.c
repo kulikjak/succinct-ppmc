@@ -581,14 +581,14 @@ void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__)
     }
     cnt++;
 
-    freq__->symbol_[value] = leaf_ref->vectorP_[pos];
+    freq__->symbol_[value >> 0x1] = leaf_ref->vectorP_[pos];
     freq__->total_ += leaf_ref->vectorP_[pos];
 
     l_bit = leaf_ref->vectorL_ >> (31 - pos++) & 0x1;
     if (l_bit) break;
   } while (1);
 
-  freq__->symbol_[VALUE_ESC] = cnt;
+  freq__->symbol_[VALUE_ESC >> 0x1] = cnt;
   freq__->total_ += cnt;
 }
 
@@ -622,7 +622,7 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
                  (leaf_ref->vectorW_[0] >> (31 - pos) & 0x1) << 0x3;
 
     value = GET_VALUE_FROM_MASK(ochar_mask);
-    if (value == val__) {
+    if ((value & 0xE) == (val__ & 0xE)) {
       return backup + (pos - (int32_t) pos__);
     }
 

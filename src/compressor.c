@@ -5,7 +5,7 @@ void Process_Init(CompressorRef C__) {
   Tracker_reset();
 
   C__->depth_ = 0;
-  C__->state_ = 0;
+  C__->state_ = 4;
 
 #if defined(TREE_CONTEXT_SHORTENING)
   C__->lptr_ = 0;
@@ -29,6 +29,7 @@ void Compressor_encode_(CompressorRef C__, int32_t pos__, Graph_value gval__) {
   Graph_value i;
   cfreq freq;
 
+  memset(&freq, 0, sizeof(freq));
   deBruijn_Get_symbol_frequency(&(C__->dB_), pos__, &freq);
 
   if (freq.total_ == 0) {
@@ -36,9 +37,31 @@ void Compressor_encode_(CompressorRef C__, int32_t pos__, Graph_value gval__) {
     return;
   }
 
-  for (lower = 0, i = VALUE_A; i < gval__; i++)
+  for (lower = 0, i = VALUE_A; i < gval__ >> 0x1; i ++)
     lower += freq.symbol_[i];
   upper = lower + freq.symbol_[i];
+
+
+  arithmetic_encode(lower, upper, freq.total_);
+}
+
+void Compressor_encode_range_(CompressorRef C__, int32_t lo__, int32_t hi__, Graph_value gval__) {
+  int32_t lower, upper;
+  Graph_value i;
+  cfreq freq;
+
+  memset(&freq, 0, sizeof(freq));
+  deBruijn_Get_symbol_frequency_range(&(C__->dB_), lo__, hi__, &freq);
+
+  if (freq.total_ == 0) {
+    arithmetic_encode(0, 1, 1);
+    return;
+  }
+
+  for (lower = 0, i = VALUE_A; i < gval__ >> 0x1; i ++)
+    lower += freq.symbol_[i];
+  upper = lower + freq.symbol_[i];
+
 
   arithmetic_encode(lower, upper, freq.total_);
 }
@@ -48,6 +71,7 @@ Graph_value Decompressor_decode_(CompressorRef C__, int32_t idx__) {
   Graph_value i;
   int32_t target, lower, upper;
 
+  memset(&freq, 0, sizeof(freq));
   deBruijn_Get_symbol_frequency(&(C__->dB_), idx__, &freq);
 
   if (freq.total_ == 0) {
@@ -57,13 +81,40 @@ Graph_value Decompressor_decode_(CompressorRef C__, int32_t idx__) {
   }
   target = arithmetic_decode_target(freq.total_);
 
-  for (upper = 0, i = VALUE_A; i <= VALUE_ESC; i++) {
+  for (upper = 0, i = VALUE_A; i <= (VALUE_ESC >> 0x1); i++) {
     lower = upper;
     upper += freq.symbol_[i];
 
     if (lower <= target && target < upper) {
       arithmetic_decode(lower, upper, freq.total_);
-      return i;
+      return (i << 0x1);
+    }
+  }
+  UNREACHABLE;
+}
+
+Graph_value Decompressor_decode_range_(CompressorRef C__, int32_t lo__, int32_t hi__) {
+  cfreq freq;
+  Graph_value i;
+  int32_t target, lower, upper;
+
+  memset(&freq, 0, sizeof(freq));
+  deBruijn_Get_symbol_frequency_range(&(C__->dB_), lo__, hi__, &freq);
+
+  if (freq.total_ == 0) {
+    target = arithmetic_decode_target(1);
+    arithmetic_decode(0, 1, 1);
+    return VALUE_ESC;
+  }
+  target = arithmetic_decode_target(freq.total_);
+
+  for (upper = 0, i = VALUE_A; i <= (VALUE_ESC >> 0x1); i++) {
+    lower = upper;
+    upper += freq.symbol_[i];
+
+    if (lower <= target && target < upper) {
+      arithmetic_decode(lower, upper, freq.total_);
+      return (i << 0x1);
     }
   }
   UNREACHABLE;
@@ -95,21 +146,51 @@ void Compressor_Increase_frequency_rec_(CompressorRef C__, int32_t idx__, Graph_
 }
 
 int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value gval__) {
-  int32_t i, rank, temp, x;
+  int32_t i, rank, temp, len, x;
   Graph_Line line;
+
+  bool exists_above = false;
+  bool exists_bellow = false;
+  Graph_value gval = gval__;
+
+  /* check if target node already exists above this line */
+  rank = Graph_Rank(&(C__->dB_.Graph_), idx__, VECTOR_W, gval__);
+  if (rank) {
+    temp = Graph_Select(&(C__->dB_.Graph_), rank, VECTOR_W, gval__) - 1;
+    len = deBruijn_Get_common_suffix_lenX_(&(C__->dB_), idx__, temp);
+    if (len >= CONTEXT_LENGTH - 1) {
+      exists_above = true;
+      gval += 1;
+    }
+  }
+
+  if (!exists_above) {
+    /* check if target node already exists below this line */
+    rank = Graph_Rank(&(C__->dB_.Graph_), idx__ + 1, VECTOR_W, gval__);
+    temp = Graph_Select(&(C__->dB_.Graph_), rank + 1, VECTOR_W, gval__) - 1;
+
+    if (temp > 0) {
+      len = deBruijn_Get_common_suffix_lenX_(&(C__->dB_), idx__, temp);
+      if (len >= CONTEXT_LENGTH - 1) {
+        Tracker_push(&temp);
+        exists_bellow = true;
+      }
+    }
+  }
 
   /* check what symbol is in W */
   GLine_Get(&(C__->dB_.Graph_), (uint32_t) idx__, &line);
   if (line.W_ == VALUE_$) {
     /* change symbol to new one and increase frequency to 1 */
     /* These is no need to upgrade the csl as we are not changing suffix */
-    Graph_Change_symbol(&(C__->dB_.Graph_), idx__, gval__);
+
+    Graph_Change_symbol(&(C__->dB_.Graph_), idx__, gval);
     Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
 
   } else {
     /* insert new edge into this node */
     /* csl must be updated but only after both nodes are inserted */
-    GLine_Fill(&line, VALUE_0, gval__, 1);
+    GLine_Fill(&line, VALUE_0, gval, 1);
     GLine_Insert(&(C__->dB_.Graph_), idx__, &line);
 
     /* update registered variables */
@@ -121,6 +202,33 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
         C__->dB_.F_[i]++;
     }
   }
+
+  if (exists_above) {
+    return deBruijn_Forward_(&(C__->dB_), idx__);
+  }
+
+  if (exists_bellow) {
+    Tracker_pop();
+
+    Graph_Change_symbol(&(C__->dB_.Graph_), temp, gval + 1);
+    return deBruijn_Forward_(&(C__->dB_), idx__);
+  }
+
+  /* check if target node already exists below this line *
+  rank = Graph_Rank(&(C__->dB_.Graph_), idx__ + 1, VECTOR_W, gval__);
+  temp = Graph_Select(&(C__->dB_.Graph_), rank + 1, VECTOR_W, gval__) - 1;
+  printf("IDX: %d, RANK: %d SEL: %d\n", idx__, rank, temp);
+
+  if (temp > 0) {
+    len = deBruijn_Get_common_suffix_lenX_(&(C__->dB_), idx__, temp);
+    printf("LEN: %d\n", len);
+    if (len >= CONTEXT_LENGTH - 1) {
+
+      printf("fnfnfn\n");
+      Graph_Change_symbol(&(C__->dB_.Graph_), temp, gval + 1);
+      return deBruijn_Forward_(&(C__->dB_), idx__);
+    }
+  }*/
 
   /* find same transition symbol above this line */
   rank = Graph_Rank(&(C__->dB_.Graph_), idx__, VECTOR_W, gval__);
@@ -134,8 +242,8 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
 
   } else {
     /* go forward from this node */
-    temp = Graph_Select(&(C__->dB_.Graph_), rank, VECTOR_W, gval__);
-    x = deBruijn_Forward_(&(C__->dB_), temp - 1) + 1;
+    temp = Graph_Select(&(C__->dB_.Graph_), rank, VECTOR_W, gval__) - 1;
+    x = deBruijn_Forward_(&(C__->dB_), temp) + 1;
 
     /* update the F array */
     for (i = 0; i < SYMBOL_COUNT; i++) {
@@ -151,58 +259,189 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
   /* update registered variables */
   Tracker_update(x);
 
-  deBruijn_update_csl(&(C__->dB_), (x > idx__) ? idx__ : idx__ + 1);
-  deBruijn_update_csl(&(C__->dB_), x);
+  /*deBruijn_update_csl(&(C__->dB_), (x > idx__) ? idx__ : idx__ + 1);
+  deBruijn_update_csl(&(C__->dB_), x);*/
 
   return x;
 }
 
-int32_t Compressor_Compress_symbol_aux_(CompressorRef C__, int32_t idx__, Graph_value gval__, int32_t ctx_len__) {
-  int32_t prev_node, transition;
+int32_t Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int32_t lo__, int32_t up__, int32_t ctx_len__) {
+  int32_t rank1, rank2, rank3, rank4, i, temp;
+  int32_t idx__ = C__->state_;
 
-  /* check if transition exist from this node via given symbol */
-  transition = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__);
+  /* check if given transition exists in this range */
+  rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__);
+  rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__);
 
-  if (transition == -1) {
+  rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__ + 1);
+  rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__ + 1);
+
+  if ((rank2 - rank1) > 0 || (rank4 - rank3) > 0) {
+
+    Compressor_encode_range_(C__, lo__, up__, gval__);
+
+    for (i = rank1 + 1; i <= rank2; i++) {
+      temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, gval__) - 1;
+      Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
+    }
+    for (i = rank3 + 1; i <= rank4; i++) {
+      temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, gval__ + 1) - 1;
+      Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
+    }
+
+  } else {
+
+    Compressor_encode_range_(C__, lo__, up__, VALUE_ESC);
+
+    /* find range of shorter context */
+    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, ctx_len__ - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, ctx_len__ - 1);
+
+    Compressor_Compress_symbol_aux_(C__, gval__, lo, up, ctx_len__ - 1);
+  }
+  return 0;
+}
+
+int32_t Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__, int32_t lo__, int32_t up__, int32_t ctx_len__) {
+  int32_t rank1, rank2, rank3, rank4, i, temp;
+  int32_t idx__ = C__->state_;
+
+  /* check if given transition exists in this range */
+  /*rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__);
+  rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__);
+
+  rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__ + 1);
+  rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__ + 1);
+
+  int32_t prev_node, transition; */
+
+  /* get decompressed symbol */
+  Graph_value symbol = Decompressor_decode_range_(C__, lo__, up__);
+
+  if (symbol == VALUE_ESC) {
     COMPRESSOR_VERBOSE(
       printf("[compressor] Escape character output\n");
     )
-
+/*
 #if defined(TREE_CONTEXT_SHORTENING)
     prev_node =
         deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1, C__->label_, C__->lptr_);
 #else
     prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1);
-#endif
+#endif */
 
-    /* this cannot happen because whole level one is full that means, that we
-     * are never outputting character itself */
+    /* find range of shorter context */
+    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, ctx_len__ - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, ctx_len__ - 1);
+
+    Decompressor_Decompress_symbol_aux_(C__, gval__, lo, up, ctx_len__ - 1);
+
+    //Compressor_Compress_symbol_aux_(C__, gval__, lo, up, CONTEXT_LENGTH - 1);
+
+    /* insert new node into the graph */
+    /*Tracker_push(&idx__);
+    C__->state_ = finish_symbol_insertion_(C__, idx__, gval__);
+    Tracker_pop();
+
+
+
+
+    * this cannot happen because there level one is full that means, that we
+     * are never outputting character itself *
     assert(ctx_len__ != 0);
+
+    Tracker_push(&idx__);
+    Decompressor_Decompress_symbol_aux_(C__, prev_node, &symbol, ctx_len__ - 1);
+    Tracker_pop();
+    *gval__ = symbol; */
+  } else {
+    COMPRESSOR_VERBOSE(
+      printf("[compressor] Output symbol %c\n", GET_SYMBOL_FROM_VALUE(symbol));
+    )
+
+
+    /* check if given transition exists in this range */
+    rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, symbol);
+    rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, symbol);
+
+    rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, symbol + 1);
+    rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, symbol + 1);
+
+    if ((rank2 - rank1) > 0 || (rank4 - rank3) > 0) {
+
+      for (i = rank1 + 1; i <= rank2; i++) {
+        temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, symbol) - 1;
+        Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
+      }
+      for (i = rank3 + 1; i <= rank4; i++) {
+        temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, symbol + 1) - 1;
+        Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
+      }
+    }
+
+    *gval__ = symbol;
+
+    /*transition = deBruijn_Find_Edge(&(C__->dB_), idx__, symbol);
+    if (transition == -1) {
+      printf("Fatal - there is no transition\n");
+      exit(1);
+    }
+
+    *gval__ = symbol;
+    Compressor_Increase_frequency_rec_((CompressorRef) C__, idx__, symbol, ctx_len__ - 1);
+    //return deBruijn_Forward_(&(C__->dB_), transition);*/
+  }
+
+  //return finish_symbol_insertion_(C__, idx__, symbol);
+  return 0;
+}
+
+void Compressor_Compress_symbol(CompressorRef C__, Graph_value gval__) {
+  int32_t transition;
+
+  int32_t idx__ = C__->state_;
+
+  transition = deBruijn_Find_Edge(&(C__->dB_), idx__, gval__ & 0xE);
+
+  if (transition == -1) {
+    COMPRESSOR_VERBOSE(
+      printf("[compressor] Escape character output\n");
+    )
+    /* output escape character */
     Compressor_encode_(C__, idx__, VALUE_ESC);
 
-    /* save current value of the index and go to the context shorter node */
+    /* find range of shorter context */
+    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
+
+    Compressor_Compress_symbol_aux_(C__, gval__, lo, up, CONTEXT_LENGTH - 1);
+
+    /* insert new node into the graph */
     Tracker_push(&idx__);
-    Compressor_Compress_symbol_aux_(C__, prev_node, gval__, ctx_len__ - 1);
+    C__->state_ = finish_symbol_insertion_(C__, idx__, gval__);
     Tracker_pop();
+
   } else {
     /* we have a transition in this node */
     COMPRESSOR_VERBOSE(
       printf("[compressor] Output symbol %c\n", GET_SYMBOL_FROM_VALUE(gval__));
     )
 
+    /* output given character */
     Compressor_encode_(C__, idx__, gval__);
-    Compressor_Increase_frequency_rec_(C__, idx__, gval__, ctx_len__ - 1);
 
-    return deBruijn_Forward_(&(C__->dB_), transition);
+    Graph_Increase_frequency(&(C__->dB_.Graph_), transition);
+    C__->state_ = deBruijn_Forward_(&(C__->dB_), transition);
   }
-
-  return finish_symbol_insertion_(C__, idx__, gval__);
+  //deBruijn_Print(&(C__->dB_), true);
+  //Compressor_encode_(C__, idx__, gval__);
 }
 
-int32_t Decompressor_Decompress_symbol_aux_(CompressorRef C__, int32_t idx__, Graph_value* gval__, int32_t ctx_len__) {
-  int32_t prev_node, transition;
+void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__) {
+  int32_t transition;
 
   /* get decompressed symbol */
+  int32_t idx__ = C__->state_;
   Graph_value symbol = Decompressor_decode_(C__, idx__);
 
   if (symbol == VALUE_ESC) {
@@ -210,21 +449,17 @@ int32_t Decompressor_Decompress_symbol_aux_(CompressorRef C__, int32_t idx__, Gr
       printf("[compressor] Escape character output\n");
     )
 
-#if defined(TREE_CONTEXT_SHORTENING)
-    prev_node =
-        deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1, C__->label_, C__->lptr_);
-#else
-    prev_node = deBruijn_Shorten_context(&(C__->dB_), idx__, ctx_len__ - 1);
-#endif
+    /* find range of shorter context */
+    int lo = deBruijn_shorten_lower(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
+    int up = deBruijn_shorten_upper(&(C__->dB_), idx__, CONTEXT_LENGTH - 1);
 
-    /* this cannot happen because there level one is full that means, that we
-     * are never outputting character itself */
-    assert(ctx_len__ != 0);
+    Decompressor_Decompress_symbol_aux_(C__, gval__, lo, up, CONTEXT_LENGTH - 1);
 
+    /* insert new node into the graph */
     Tracker_push(&idx__);
-    Decompressor_Decompress_symbol_aux_(C__, prev_node, &symbol, ctx_len__ - 1);
+    C__->state_ = finish_symbol_insertion_(C__, idx__, *gval__);
     Tracker_pop();
-    *gval__ = symbol;
+
   } else {
     COMPRESSOR_VERBOSE(
       printf("[compressor] Output symbol %c\n", GET_SYMBOL_FROM_VALUE(symbol));
@@ -237,40 +472,12 @@ int32_t Decompressor_Decompress_symbol_aux_(CompressorRef C__, int32_t idx__, Gr
     }
 
     *gval__ = symbol;
-    Compressor_Increase_frequency_rec_((CompressorRef) C__, idx__, symbol, ctx_len__ - 1);
-    return deBruijn_Forward_(&(C__->dB_), transition);
+    Graph_Increase_frequency(&(C__->dB_.Graph_), transition);
+    C__->state_ = deBruijn_Forward_(&(C__->dB_), transition);
   }
 
-  return finish_symbol_insertion_(C__, idx__, symbol);
-}
+/*
 
-void Compressor_Compress_symbol(CompressorRef C__, Graph_value gval__) {
-  int32_t res, shorter;
-
-  if (C__->depth_ >= CONTEXT_LENGTH) {
-#if defined(TREE_CONTEXT_SHORTENING)
-    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1, C__->label_,
-                                       C__->lptr_);
-#else
-    shorter = deBruijn_Shorten_context(&(C__->dB_), C__->state_, C__->depth_ - 1);
-#endif
-    res = Compressor_Compress_symbol_aux_(C__, shorter, gval__, C__->depth_ - 1);
-  } else {
-    res = Compressor_Compress_symbol_aux_(C__, C__->state_, gval__, C__->depth_);
-  }
-  C__->state_ = (res == -1) ? C__->state_ : res;
-
-#if defined(TREE_CONTEXT_SHORTENING)
-  C__->label_[C__->lptr_++] = gval__;
-  if (C__->lptr_ >= CONTEXT_LENGTH)
-    C__->lptr_ -= CONTEXT_LENGTH;
-#endif
-  /* increase context depth if shorter than CONTEXT_LENGTH */
-  if (C__->depth_ < CONTEXT_LENGTH)
-    C__->depth_++;
-}
-
-void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__) {
   int32_t res, shorter;
 
   if (C__->depth_ >= CONTEXT_LENGTH) {
@@ -291,7 +498,7 @@ void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__) {
   if (C__->lptr_ >= CONTEXT_LENGTH)
     C__->lptr_ -= CONTEXT_LENGTH;
 #endif
-  /* increase context depth if shorter than CONTEXT_LENGTH */
+  * increase context depth if shorter than CONTEXT_LENGTH 
   if (C__->depth_ < CONTEXT_LENGTH)
-    C__->depth_++;
+    C__->depth_++;*/
 }

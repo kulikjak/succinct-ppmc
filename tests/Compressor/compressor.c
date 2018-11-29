@@ -6,8 +6,9 @@
 
 TEST_GROUP(Compressor_main);
 
-#define compressor_RANDOM_TEST_MAX_SEQ_SIZE 300
-#define compressor_RANDOM_TEST_POOL_SIZE 300
+#define COMPRESSOR_LABEL_TEST_SIZE 1000
+#define COMPRESSOR_RANDOM_TEST_MAX_SEQ_SIZE 300
+#define COMPRESSOR_RANDOM_TEST_POOL_SIZE 300
 
 #define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
 
@@ -59,6 +60,31 @@ TEST_SETUP(Compressor_main) {}
 
 TEST_TEAR_DOWN(Compressor_main) {}
 
+TEST(Compressor_main, LabelTest) {
+  int32_t i, j;
+  char* dna;
+  char label[CONTEXT_LENGTH + 2];
+
+  start_compressor("tmp/astatic_test.bin");
+
+  srand(time(NULL));
+  dna = generate_dna_string(COMPRESSOR_LABEL_TEST_SIZE);
+
+  for (i = 0; i < COMPRESSOR_LABEL_TEST_SIZE; i++) {
+    Compressor_Compress_symbol(&C, dna[i]);
+
+    if ((i % (CONTEXT_LENGTH / 2) == 0) & (i > CONTEXT_LENGTH)) {
+      deBruijn_Label(&(C.dB_), C.state_, label);
+      for (j = 1; j <= CONTEXT_LENGTH; j++) {
+        assert(GET_VALUE_FROM_SYMBOL(label[j]) == dna[i - CONTEXT_LENGTH + j]);
+      }
+    }
+  }
+  free(dna);
+
+  end_compressor();
+}
+
 TEST(Compressor_main, StaticTest) {
   start_compressor("tmp/static_test.bin");
 
@@ -77,23 +103,23 @@ TEST(Compressor_main, StaticTest) {
 
   Graph_value val;
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
+  TEST_ASSERT_EQUAL_INT32(VALUE_A, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_C);
+  TEST_ASSERT_EQUAL_INT32(VALUE_C, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
+  TEST_ASSERT_EQUAL_INT32(VALUE_A, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
+  TEST_ASSERT_EQUAL_INT32(VALUE_A, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_C);
+  TEST_ASSERT_EQUAL_INT32(VALUE_C, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_C);
+  TEST_ASSERT_EQUAL_INT32(VALUE_C, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_G);
+  TEST_ASSERT_EQUAL_INT32(VALUE_G, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_T);
+  TEST_ASSERT_EQUAL_INT32(VALUE_T, val);
   Decompressor_Decompress_symbol(&C, &val);
-  TEST_ASSERT_EQUAL_INT32(val, VALUE_A);
+  TEST_ASSERT_EQUAL_INT32(VALUE_A, val);
 
   end_decompressor();
 }
@@ -106,7 +132,7 @@ TEST(Compressor_main, RandomTest) {
   srand(0);
   printf(" ");
 
-  for (run = 0; run < compressor_RANDOM_TEST_POOL_SIZE; run++) {
+  for (run = 0; run < COMPRESSOR_RANDOM_TEST_POOL_SIZE; run++) {
     /* print dot for each running test */
     printf(".");
     fflush(stdout);
@@ -116,7 +142,7 @@ TEST(Compressor_main, RandomTest) {
     start_compressor(filename);
 
     /* generate dna sequence */
-    len = rand() % compressor_RANDOM_TEST_MAX_SEQ_SIZE;
+    len = rand() % COMPRESSOR_RANDOM_TEST_MAX_SEQ_SIZE;
     char* dna = generate_dna_string(len);
 
     for (i = 0; i < len; i++) {
@@ -137,6 +163,7 @@ TEST(Compressor_main, RandomTest) {
 }
 
 TEST_GROUP_RUNNER(Compressor_main) {
+  RUN_TEST_CASE(Compressor_main, LabelTest);
   RUN_TEST_CASE(Compressor_main, StaticTest);
   RUN_TEST_CASE(Compressor_main, RandomTest);
 }

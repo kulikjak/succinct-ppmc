@@ -93,11 +93,11 @@ TEST(Compressor_deBruijn, cummulative_frequency) {
   for (int32_t i = 0; i < 16; i++) {
     deBruijn_Get_symbol_frequency(&dB, i, &freq);
 
-    TEST_ASSERT_EQUAL_INT32(resA[i], freq.symbol_[VALUE_A]);
-    TEST_ASSERT_EQUAL_INT32(resC[i], freq.symbol_[VALUE_C]);
-    TEST_ASSERT_EQUAL_INT32(resG[i], freq.symbol_[VALUE_G]);
-    TEST_ASSERT_EQUAL_INT32(resT[i], freq.symbol_[VALUE_T]);
-    TEST_ASSERT_EQUAL_INT32(resEsc[i], freq.symbol_[VALUE_ESC]);
+    TEST_ASSERT_EQUAL_INT32(resA[i], freq.symbol_[VALUE_A >> 0x1]);
+    TEST_ASSERT_EQUAL_INT32(resC[i], freq.symbol_[VALUE_C >> 0x1]);
+    TEST_ASSERT_EQUAL_INT32(resG[i], freq.symbol_[VALUE_G >> 0x1]);
+    TEST_ASSERT_EQUAL_INT32(resT[i], freq.symbol_[VALUE_T >> 0x1]);
+    TEST_ASSERT_EQUAL_INT32(resEsc[i], freq.symbol_[VALUE_ESC >> 0x1]);
     TEST_ASSERT_EQUAL_INT32(resTotal[i], freq.total_);
   }
 }
