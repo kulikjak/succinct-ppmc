@@ -203,11 +203,7 @@ void deBruijn_Label(deBruijnRef dB__, int32_t idx__, char *buffer__) {
   int8_t symbol;
   int32_t pos, i;
 
-//#ifdef OMIT_EXCESSIVE_DOLLAR_SIGNS_
-//  memset(buffer__, ' ', CONTEXT_LENGTH + 1);
-//#else
   memset(buffer__, '$', CONTEXT_LENGTH + 1);
-//#endif
 
   pos = CONTEXT_LENGTH;
   for (i = 0; i < CONTEXT_LENGTH; i++) {

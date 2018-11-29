@@ -112,11 +112,6 @@
  * efficiently. */
 //#define PPMD
 
-/* Define to hide leading $ signs in Label print.
- * This doesn't have any performance drawbacks, because label print functions
- * are never used in actual code except for debugging. */
-#define OMIT_EXCESSIVE_DOLLAR_SIGNS_
-
 /**************** ARITHMETIC CODING DEFINES **********************
  *
  * from bitio.h:
