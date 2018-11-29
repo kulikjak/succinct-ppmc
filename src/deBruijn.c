@@ -392,7 +392,7 @@ void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq* freq
     freq__->total_ += line.P_;
   }
 
-  freq__->symbol_[VALUE_ESC] = cnt;
+  freq__->symbol_[VALUE_ESC >> 0x1] = cnt;
   freq__->total_ += cnt;
 #endif
 }
