@@ -198,7 +198,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     split_mask = 0xFFFF;
     split_offset = 0;
 
-#ifdef ENABLE_CLEVER_NODE_SPLIT
     if ((current_ref->vectorL_ >> 16) & 0x1) {
       /* do nothing */
     } else if ((current_ref->vectorL_ >> 15) & 0x1) {
@@ -213,7 +212,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     } else {
       /* FATAL("Node split unsuccessful, structure is corrupted."); */
     }
-#endif
 
     /* initialize new right node */
     LeafRef right_ref = MEMORY_GET_LEAF(Graph__->mem_, node_ref->right_);
@@ -540,8 +538,6 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
   leaf_ref->vectorP_[pos__]++;
 }
 
-#ifdef ENABLE_CLEVER_NODE_SPLIT
-
 void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__) {
   MemPtr current;
   Graph_value value;
@@ -673,5 +669,3 @@ int32_t Graph_Get_csl(GraphRef Graph__, uint32_t pos__) {
 }
 
 #endif  /* INTEGER_CONTEXT_SHORTENING */
-
-#endif

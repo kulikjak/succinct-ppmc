@@ -155,8 +155,6 @@ TEST(Compressor_binary_vector, mixed_insertion) {
   _test_binary_vector(&Graph, sequence);
 }
 
-#ifdef ENABLE_CLEVER_NODE_SPLIT
-
 void test_node_split_(MemPtr ptr__) {
   LeafRef leaf;
   NodeRef node;
@@ -196,7 +194,6 @@ TEST(Compressor_binary_vector, clever_node_split) {
 
   test_node_split_(Graph.root_);
 }
-#endif
 
 TEST_GROUP_RUNNER(Compressor_binary_vector) {
   RUN_TEST_CASE(Compressor_binary_vector, front_insertion);
@@ -204,8 +201,5 @@ TEST_GROUP_RUNNER(Compressor_binary_vector) {
   RUN_TEST_CASE(Compressor_binary_vector, front_rear_insertion);
   RUN_TEST_CASE(Compressor_binary_vector, rear_front_insertion);
   RUN_TEST_CASE(Compressor_binary_vector, mixed_insertion);
-
-#ifdef ENABLE_CLEVER_NODE_SPLIT
   RUN_TEST_CASE(Compressor_binary_vector, clever_node_split);
-#endif
 }

@@ -61,13 +61,6 @@
  * reduced performance */
 #define ENABLE_RED_BLACK_BALANCING
 
-/* When splitting nodes, always keep transitions form one node in the same leaf.
- * This can increase used memory by a little bit, but can improve performance.
- * Operations line finding transition in given node or getting frequency of
- * transitions in given node can find everything in one leaf and doesn't have
- * to search for each transition separately. */
-#define ENABLE_CLEVER_NODE_SPLIT
-
 /* Use cache for leaf lookup when performing rank, select and other tree
  * related operations */
 //#define ENABLE_LOOKUP_CACHE

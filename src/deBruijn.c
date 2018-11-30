@@ -107,11 +107,7 @@ int32_t deBruijn_Outdegree(deBruijnRef dB__, int32_t idx__) {
 }
 
 int32_t deBruijn_Find_Edge(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {
-#ifdef ENABLE_CLEVER_NODE_SPLIT
   return Graph_Find_Edge(&(dB__->Graph_), idx__, gval__);
-#else
-  #error "It is impossible to run this code without ENABLE_CLEVER_NODE_SPLIT"
-#endif
 }
 
 int32_t deBruijn_Outgoing(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {
@@ -366,35 +362,7 @@ void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t 
 }
 
 void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq* freq__) {
-#ifdef ENABLE_CLEVER_NODE_SPLIT
   Graph_Get_symbol_frequency(&(dB__->Graph_), idx__, freq__);
-#else
-
-  DEBRUIJN_VERBOSE(
-    printf("[deBruijn]: Calling Get_symbol_frequency on index %d\n", idx__);
-  )
-
-  int32_t idx, cnt;
-  Graph_value i;
-  Graph_Line line;
-
-  freq__->total_ = 0;
-
-  memset(freq__, 0, sizeof(*freq__));
-  for (cnt = 0, i = VALUE_A; i <= VALUE_T; i+= 2) {
-    idx = deBruijn_Find_Edge(dB__, idx__, i);
-    if (idx == -1) continue;
-
-    cnt++;
-
-    GLine_Get(&(dB__->Graph_), (uint32_t)idx, &line);
-    freq__->symbol_[i] = line.P_;
-    freq__->total_ += line.P_;
-  }
-
-  freq__->symbol_[VALUE_ESC >> 0x1] = cnt;
-  freq__->total_ += cnt;
-#endif
 }
 
 void deBruijn_Insert_test_data(deBruijnRef dB__, const Graph_value *L__, const Graph_value *W__,
