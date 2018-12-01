@@ -95,7 +95,7 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
     /* These is no need to upgrade the csl as we are not changing suffix */
 
     Graph_Change_symbol(&(C__->dB_.Graph_), idx__, gval);
-    Graph_Increase_frequency(&(C__->dB_.Graph_), idx__);
+    Graph_Increase_frequency(&(C__->dB_.Graph_), idx__, 1);
 
   } else {
     /* insert new edge into this node */
@@ -155,29 +155,21 @@ int32_t finish_symbol_insertion_(CompressorRef C__, int32_t idx__, Graph_value g
 }
 
 void Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int32_t lo__, int32_t up__, int32_t ctx_len__) {
-  int32_t rank1, rank2, rank3, rank4, i, temp, count;
+  int32_t rank1, rank2, i, temp, count;
   cfreq freq;
 
   /* check if given transition exists in this range */
-  rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__);
-  rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__);
-
-  rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, gval__ + 1);
-  rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, gval__ + 1);
-
-  count = (rank2 - rank1) + (rank4 - rank3);
+  rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, ((gval__ >> 0x1) | 0x10));
+  rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, ((gval__ >> 0x1) | 0x10));
+  count = (rank2 - rank1);
   if (count) {
 
     deBruijn_Get_symbol_frequency_range(&(C__->dB_), lo__, up__, &freq);
     Compressor_encode_(&freq, gval__);
 
     for (i = rank1 + 1; i <= rank2; i++) {
-      temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, gval__) - 1;
-      Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
-    }
-    for (i = rank3 + 1; i <= rank4; i++) {
-      temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, gval__ + 1) - 1;
-      Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
+      temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, ((gval__ >> 0x1) | 0x10)) - 1;
+      Graph_Increase_frequency(&(C__->dB_.Graph_), temp, 1);
     }
 
   } else {
@@ -194,7 +186,7 @@ void Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int3
 }
 
 void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__, int32_t lo__, int32_t up__, int32_t ctx_len__) {
-  int32_t rank1, rank2, rank3, rank4, i, temp, count;
+  int32_t rank1, rank2, i, temp, count;
   cfreq freq;
 
   /* get decompressed symbol */
@@ -218,22 +210,15 @@ void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__,
     )
 
     /* check if given transition exists in this range */
-    rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, symbol);
-    rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, symbol);
+    rank1 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, ((symbol >> 0x1) | 0x10));
+    rank2 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, ((symbol >> 0x1) | 0x10));
 
-    rank3 = Graph_Rank(&(C__->dB_.Graph_), lo__, VECTOR_W, symbol + 1);
-    rank4 = Graph_Rank(&(C__->dB_.Graph_), up__ + 1, VECTOR_W, symbol + 1);
-
-    count = (rank2 - rank1) + (rank4 - rank3);
+    count = (rank2 - rank1);
     if (count) {
 
       for (i = rank1 + 1; i <= rank2; i++) {
-        temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, symbol) - 1;
-        Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
-      }
-      for (i = rank3 + 1; i <= rank4; i++) {
-        temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, symbol + 1) - 1;
-        Graph_Increase_frequency(&(C__->dB_.Graph_), temp);
+        temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, ((symbol >> 0x1) | 0x10)) - 1;
+        Graph_Increase_frequency(&(C__->dB_.Graph_), temp, 1);
       }
     } else {
       FATAL("There is no transition");
@@ -276,7 +261,7 @@ void Compressor_Compress_symbol(CompressorRef C__, Graph_value gval__) {
     deBruijn_Get_symbol_frequency(&(C__->dB_), C__->state_, &freq);
     Compressor_encode_(&freq, gval__);
 
-    Graph_Increase_frequency(&(C__->dB_.Graph_), transition);
+    Graph_Increase_frequency(&(C__->dB_.Graph_), transition, 1);
     C__->state_ = deBruijn_Forward_(&(C__->dB_), transition);
   }
 }
@@ -314,7 +299,7 @@ void Decompressor_Decompress_symbol(CompressorRef C__, Graph_value* gval__) {
     }
 
     *gval__ = symbol;
-    Graph_Increase_frequency(&(C__->dB_.Graph_), transition);
+    Graph_Increase_frequency(&(C__->dB_.Graph_), transition, 1);
     C__->state_ = deBruijn_Forward_(&(C__->dB_), transition);
   }
 }

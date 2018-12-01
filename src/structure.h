@@ -93,7 +93,12 @@ typedef enum {
   VALUE_T  = 6,
   VALUE_Tx = 7,
   VALUE_$  = 8,
-  VALUE_ESC = 8
+  VALUE_ESC = 8,
+
+  VALUE_As = 0x10,
+  VALUE_Cs = 0x11,
+  VALUE_Gs = 0x12,
+  VALUE_Ts = 0x13
 } Graph_value;
 
 typedef struct {
@@ -334,8 +339,9 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__);
  *
  * @param  Graph__  Reference to Graph_Struct object.
  * @param  pos__  Update position.
+ * @param  amount__  Frequency increase size.
  */
-void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__);
+void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__, uint32_t amount__);
 
 /*
  * Get symbol frequencies from node pointed to by given index.

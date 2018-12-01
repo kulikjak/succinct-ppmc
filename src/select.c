@@ -282,7 +282,7 @@ int32_t Graph_Select_L(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 }
 
 int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
-  int32_t temp;
+  int32_t temp, temp2;
 
   switch (val__) {
     case VALUE_A:
@@ -322,6 +322,30 @@ int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
       temp = graph_Wselect_7_(*Graph__, pos__, false);
       temp = graph_Wselect_6_(*Graph__, temp, false);
       temp = graph_Wselect_2_(*Graph__, temp, false);
+      return graph_Wselect_0_(*Graph__, temp, false);
+    case VALUE_As:
+      temp = graph_Wselect_1_(*Graph__, pos__, true);
+      return graph_Wselect_0_(*Graph__, temp, true);
+    case VALUE_Cs:
+      temp = graph_Wselect_1_(*Graph__, pos__, false);
+      return graph_Wselect_0_(*Graph__, temp, true);
+    case VALUE_Gs:
+      temp = graph_Wselect_2_(*Graph__, pos__, true);
+      return graph_Wselect_0_(*Graph__, temp, false);
+    case VALUE_Ts:
+      /* This is not very optimized way of doing this! */
+      temp = graph_Wselect_2_(*Graph__, pos__, false);
+      temp = graph_Wselect_0_(*Graph__, temp, false);
+
+      if (temp == -1)
+        return temp;
+
+      temp2 = Graph_Select_W(Graph__, 1, VALUE_$);
+      if (temp2 == -1 || temp < temp2) {
+        return temp;
+      }
+
+      temp = graph_Wselect_2_(*Graph__, pos__ + 1, false);
       return graph_Wselect_0_(*Graph__, temp, false);
   }
 

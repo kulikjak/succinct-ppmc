@@ -526,7 +526,7 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   } while (current != STACK_ERROR);
 }
 
-void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
+void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__, uint32_t amount__) {
   MemPtr current;
   LeafRef leaf_ref;
 
@@ -535,7 +535,7 @@ void Graph_Increase_frequency(GraphRef Graph__, uint32_t pos__) {
   )
 
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
-  leaf_ref->vectorP_[pos__]++;
+  leaf_ref->vectorP_[pos__] += amount__;
 }
 
 void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__) {

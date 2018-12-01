@@ -333,6 +333,11 @@ int32_t deBruijn_shorten_upper(deBruijnRef dB__, int32_t idx__, int32_t ctx_len_
   return gsize - 1;
 }
 
+
+void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq* freq__) {
+  Graph_Get_symbol_frequency(&(dB__->Graph_), idx__, freq__);
+}
+
 void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t up_, cfreq* freq__) {
 
   DEBRUIJN_VERBOSE(
@@ -359,10 +364,6 @@ void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t 
 
   freq__->symbol_[VALUE_ESC >> 0x1] = cnt;
   freq__->total_ += cnt;
-}
-
-void deBruijn_Get_symbol_frequency(deBruijnRef dB__, uint32_t idx__, cfreq* freq__) {
-  Graph_Get_symbol_frequency(&(dB__->Graph_), idx__, freq__);
 }
 
 void deBruijn_Insert_test_data(deBruijnRef dB__, const Graph_value *L__, const Graph_value *W__,

@@ -71,7 +71,7 @@ TEST(Compressor_int_vector, frequency_increase) {
     pos = rand() % TEST_SEQENCE_LEN;
 
     sequence[pos]++;
-    Graph_Increase_frequency(&Graph, pos);
+    Graph_Increase_frequency(&Graph, pos, 1);
   }
 
   for (i = 0; i < TEST_SEQENCE_LEN; i++) {

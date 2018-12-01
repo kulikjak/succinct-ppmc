@@ -281,6 +281,19 @@ int32_t Graph_Rank_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
       temp = graph_Wrank_2_(*Graph__, temp);
       temp = graph_Wrank_6_(*Graph__, temp);
       return graph_Wrank_7_(*Graph__, temp);
+    case VALUE_As:
+      temp = pos__ - graph_Wrank_0_(*Graph__, pos__);
+      return temp - graph_Wrank_1_(*Graph__, temp);
+    case VALUE_Cs:
+      temp = pos__ - graph_Wrank_0_(*Graph__, pos__);
+      return graph_Wrank_1_(*Graph__, temp);
+    case VALUE_Gs:
+      temp = graph_Wrank_0_(*Graph__, pos__);
+      return temp - graph_Wrank_2_(*Graph__, temp);
+    case VALUE_Ts:
+      temp = graph_Wrank_0_(*Graph__, pos__);
+      temp = graph_Wrank_2_(*Graph__, temp);
+      return temp - Graph_Rank_W(Graph__, pos__, VALUE_$);
   }
 
   FATAL("VECTOR_W does not support this query value.");
