@@ -22,7 +22,7 @@ void UWT_Free(UWTStructRef UWT__) {
   for (int32_t i = 0; i < UWT__->ncount_; i++)
     DBV_Free(&(UWT__->DBV_[i]));
 
-  free(UWT__->DBV_);
+  free_(UWT__->DBV_);
 
   UWT__->ncount_ = 0;
   UWT__->scount_ = 0;

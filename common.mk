@@ -14,6 +14,7 @@ ARITH_ROOT = $(COMPRESSOR_ROOT)/arith
 UNITY_ROOT = $(BASE_ROOT)/tests/Unity-master
 
 # additional directories
+PROFILING_DIR = $(BASE_ROOT)/profiling
 SHARED_DIR = $(BASE_ROOT)/shared
 MISC_DIR = $(BASE_ROOT)/misc
 
@@ -29,6 +30,8 @@ UWT_SRC_FILES = $(WT_ROOT)/universal.c
 UWT_HEADER_FILES = $(WT_ROOT)/universal.h
 
 WT_SRC_FILES = $(UWT_SRC_FILES) $(OWT_SRC_FILES)
+
+PROFILING_SRC_FILES = $(PROFILING_DIR)/memory_profiling.c
 
 COMPRESSOR_SRC_FILES = \
 	$(COMPRESSOR_ROOT)/cache.c      \

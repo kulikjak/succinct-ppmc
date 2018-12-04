@@ -29,14 +29,14 @@ void DBV_Memory_Free(DBVMemObj* mem__) {
   DBVMemObj mem = *mem__;
 
   for (i = 0; i <= mem->n_current_block_; i++)
-    free(mem->nodes_[i]);
-  free(mem->nodes_);
+    free_(mem->nodes_[i]);
+  free_(mem->nodes_);
 
   for (i = 0; i <= mem->l_current_block_; i++)
-    free(mem->leafs_[i]);
-  free(mem->leafs_);
+    free_(mem->leafs_[i]);
+  free_(mem->leafs_);
 
-  free(mem);
+  free_(mem);
   mem__ = NULL;
 }
 

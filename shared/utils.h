@@ -22,9 +22,28 @@ static void fatal(const char* m__) {
 
 #define FATAL(msg) (fatal(msg))
 
+#ifndef ENABLE_MEMORY_PROFILING
 #define malloc_(a) malloc(a)
 #define calloc_(a, b) calloc(a, b)
 #define realloc_(a, b) realloc(a, b)
 #define free_(a) free(a)
+
+#define init_memory_profiling() {}
+#define finish_memory_profiling() {}
+
+#else
+void init_memory_profiling();
+void finish_memory_profiling();
+
+void *prof_malloc(size_t size);
+void *prof_calloc(size_t nmemb, size_t size);
+void *prof_realloc(void *ptr, size_t size);
+void prof_free(void *ptr);
+
+#define malloc_(a) prof_malloc(a)
+#define calloc_(a, b) prof_calloc(a, b)
+#define realloc_(a, b) prof_realloc(a, b)
+#define free_(a) prof_free(a)
+#endif
 
 #endif

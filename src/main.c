@@ -2,6 +2,7 @@
 
 #include "compressor.h"
 #include "defines.h"
+#include "utils.h"
 
 #define IO_BUFFER_SIZE 1024
 
@@ -265,10 +266,14 @@ int main(int argc, char* argv[]) {
     printf("Output file: %s\n", ofile);
   )
 
+  init_memory_profiling();
+
   if (mode == ENCODE)
     main_encode(ifp, ofp);
   else if (mode == DECODE)
     main_decode(ifp, ofp);
+
+  finish_memory_profiling();
 
   fclose(ifp);
   fclose(ofp);

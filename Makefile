@@ -21,6 +21,10 @@ COMPRESSOR_INCLUDES += -I$(DBV_ROOT)
 compressor: $(COMPRESSOR_DEPEND) $(UWT_DEPEND)
 	$(CXX) $(CFLAGS) $(COMPRESSOR_INCLUDES) $(COMPRESSOR_ALL) -o $@ -lm
 
+compressor-pmem: $(COMPRESSOR_DEPEND) $(UWT_DEPEND)
+	$(CXX) $(CFLAGS) $(COMPRESSOR_INCLUDES) $(COMPRESSOR_ALL) \
+	$(PROFILING_SRC_FILES) -DENABLE_MEMORY_PROFILING -o $@ -lm
+
 dnagen: $(MISC_DIR)/dnagen.c
 	$(CXX) $(CFLAGS) $^ -o $@
 
@@ -31,8 +35,8 @@ test:
 .PHONY: clean
 clean:
 	$(MAKE) clean -C tests
-	rm compressor
-	rm -f dnagen
+	rm -f compressor compressor-pmem dnagen
+	rm -f mprof_file.out
 
 .PHONY: purge
 purge: clean
