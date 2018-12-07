@@ -1,30 +1,36 @@
-CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -O3
-CFLAGS += -Wno-error=unused-function -Wno-unused-function
+# include all shared rules with correct BASE_ROOT
+BASE_ROOT = ..
+include $(BASE_ROOT)/common.mk
 
-MEMORY_SOURCES = ../src/memory.c
-MEMORY_FILES = $(MEMORY_SOURCES) ../src/memory.h
+# redefine c flags for better performance control
+CFLAGS = -std=c99 -O3
 
-STRUCTURE_SOURCES = $(MEMORY_SOURCES) ../src/structure.c ../src/rank.c ../src/select.c
-STRUCTURE_FILES = $(STRUCTURE_SOURCES) $(MEMORY_FILES) ../src/structure.h
+BENCHMARK_SHARED = structure_compact.c structure_common.h
 
-ORIGINAL_WAVELET_SOURCES =
-ORIGINAL_WAVELET_FILES = ../other/Wavelet_tree/structure_ext.h ../other/RaS_Complex/memory.h
-ORIGINAL_WAVELET_FILES += ../other/RaS_Complex/structure.h ../other/shared/utils.h
+INCLUDE_DIRS = -I$(SHARED_DIR) -I$(MISC_DIR)
+
+COMPRESSOR_STRUCT_SRC_FILES = \
+	$(COMPRESSOR_ROOT)/cache.c      \
+	$(COMPRESSOR_ROOT)/memory.c     \
+	$(COMPRESSOR_ROOT)/rank.c       \
+	$(COMPRESSOR_ROOT)/select.c     \
+	$(COMPRESSOR_ROOT)/structure.c
 
 all: structure_
 
-structure_: structure_compact structure_original
+structure_: structure_compact structure_universal
 
-structure_compact: $(STRUCTURE_FILES) structure_compact.c structure_common.h
-	$(CXX) $(CFLAGS) $(STRUCTURE_SOURCES) structure_compact.c -o $@ -lm
+structure_compact: INCLUDE_DIRS += -I$(COMPRESSOR_ROOT)
+structure_compact: $(COMPRESSOR_DEPEND) $(BENCHMARK_SHARED) structure_compact.c
+	$(CXX) $(CFLAGS) $(INCLUDE_DIRS) $(COMPRESSOR_STRUCT_SRC_FILES) structure_compact.c -o $@ -lm
 
-structure_original: $(ORIGINAL_WAVELET_FILES) structure_original.c structure_common.h
-	$(CXX) $(CFLAGS) $(ORIGINAL_WAVELET_SOURCES) structure_original.c -o $@ -lm
+structure_universal: INCLUDE_DIRS += -I$(WT_ROOT) -I$(DBV_ROOT)
+structure_universal: $(UWT_DEPEND) $(BENCHMARK_SHARED) structure_universal.c
+	$(CXX) $(CFLAGS) $(INCLUDE_DIRS) $(UWT_SRC_FILES) $(DBV_SRC_FILES) structure_universal.c -o $@ -lm
 
 .PHONY: clean_structure
 clean_structure:
-	rm -f structure_compact structure_original
+	rm -f structure_compact structure_universal
 
 clean: clean_structure
 

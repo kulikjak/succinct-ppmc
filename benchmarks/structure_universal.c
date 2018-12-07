@@ -1,85 +1,86 @@
 #include "structure_common.h"
 
-#include "../other/Wavelet_tree/structure_ext.h"
+#include "universal.h"
+#include "int_sequence.h"
 
 void benchmark_sequential_insertion() {
-  WT_Struct wt;
-  WT_Init(&wt);
+  UWT_Struct wt;
+  UWT_Init(&wt, 8);
 
-  int8_t* dna_string = gen_dna_vals();
+  uint8_t* input_string = int_sequence_generate_random(sample_size, 8);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    WT_VInsert(&wt, i, dna_string[i]);
+    UWT_Insert(&wt, i, input_string[i]);
   }
   END_BENCHMARK(seq_insertion);
 
-  free(dna_string);
-  WT_Free(&wt);
+  free(input_string);
+  UWT_Free(&wt);
 }
 
 void benchmark_random_insertion() {
-  WT_Struct wt;
-  WT_Init(&wt);
+  UWT_Struct wt;
+  UWT_Init(&wt, 8);
 
-  int8_t* dna_string = gen_dna_vals();
+  uint8_t* input_string = int_sequence_generate_random(sample_size, 8);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    WT_VInsert(&wt, (rand() % (i + 1)), dna_string[i]);
+    UWT_Insert(&wt, (rand() % (i + 1)), input_string[i]);
   }
   END_BENCHMARK(rand_insertion);
 
-  free(dna_string);
-  WT_Free(&wt);
+  free(input_string);
+  UWT_Free(&wt);
 }
 
 void benchmark_operations() {
-  WT_Struct wt;
-  WT_Init(&wt);
+  UWT_Struct wt;
+  UWT_Init(&wt, 8);
 
-  int8_t* dna_string = gen_dna_vals();
+  uint8_t* input_string = int_sequence_generate_random(sample_size, 8);
   for (int32_t i = 0; i < sample_size; i++)
-    WT_VInsert(&wt, i, dna_string[i]);
-  free(dna_string);
+    UWT_Insert(&wt, i, input_string[i]);
+  free(input_string);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    WT_VRank(&wt, i, rand() % 4);
+    UWT_Rank(&wt, i, rand() % 4);
   }
   END_BENCHMARK(seq_rank);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    WT_VSelect(&wt, i, rand() % 4);
+    UWT_Select(&wt, i, rand() % 4);
   }
   END_BENCHMARK(seq_select);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    WT_VGet(&wt, i);
+    UWT_Get(&wt, i);
   }
   END_BENCHMARK(seq_access);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < secondary_size; i++) {
-    WT_VRank(&wt, rand() % sample_size, rand() % 4);
+    UWT_Rank(&wt, rand() % sample_size, rand() % 4);
   }
   END_BENCHMARK(rand_rank);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < secondary_size; i++) {
-    WT_VSelect(&wt, rand() % sample_size, rand() % 4);
+    UWT_Select(&wt, rand() % sample_size, rand() % 4);
   }
   END_BENCHMARK(rand_select);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < secondary_size; i++) {
-    WT_VGet(&wt, rand() % sample_size);
+    UWT_Get(&wt, rand() % sample_size);
   }
   END_BENCHMARK(rand_access);
 
-  WT_Free(&wt);
+  UWT_Free(&wt);
 }
 
 int main(int argc, char* argv[]) {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-STRUCTURE_SAMPLE_SIZE=100
-STRUCTURE_SECONDARY_SIZE=100
+STRUCTURE_SAMPLE_SIZE=10000
+STRUCTURE_SECONDARY_SIZE=10000
 clean=false
 
 echo \
@@ -10,7 +10,7 @@ vectors (each having its own underlying tree - original structure) with wavelet
 tree created from binary vectors merged into one common tree (compact structure)."
 echo
 
-if [ ! -f "structure_original" ] ||
+if [ ! -f "structure_universal" ] ||
    [ ! -f "structure_compact" ]; then
   echo "Needed executables not found - trying to build them."
   make structure_
@@ -30,7 +30,7 @@ echo "Random rank|select|access tests do $STRUCTURE_SECONDARY_SIZE operations ea
 
 echo
 echo "================= Original structure ================"
-./structure_original "$STRUCTURE_SAMPLE_SIZE" "$STRUCTURE_SECONDARY_SIZE"
+./structure_universal "$STRUCTURE_SAMPLE_SIZE" "$STRUCTURE_SECONDARY_SIZE"
 
 echo
 echo "================= Compact structure ================="

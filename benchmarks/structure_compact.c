@@ -1,22 +1,23 @@
 #include "structure_common.h"
 
 #include "../src/structure.h"
+#include "int_sequence.h"
 
 void benchmark_sequential_insertion() {
   Graph_Struct Graph;
   Graph_Line line;
   Graph_Init(&Graph);
 
-  int8_t* dna_string = gen_dna_vals();
+  uint8_t* input_string = int_sequence_generate_random(sample_size, 8);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    GLine_Fill(&line, VAR_IGNORE, dna_string[i], VAR_IGNORE);
+    GLine_Fill(&line, VAR_IGNORE, input_string[i], VAR_IGNORE);
     GLine_Insert(&Graph, i, &line);
   }
   END_BENCHMARK(seq_insertion);
 
-  free(dna_string);
+  free(input_string);
   Graph_Free(&Graph);
 }
 
@@ -25,16 +26,16 @@ void benchmark_random_insertion() {
   Graph_Line line;
   Graph_Init(&Graph);
 
-  int8_t* dna_string = gen_dna_vals();
+  uint8_t* input_string = int_sequence_generate_random(sample_size, 8);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
-    GLine_Fill(&line, VAR_IGNORE, dna_string[i], VAR_IGNORE);
+    GLine_Fill(&line, VAR_IGNORE, input_string[i], VAR_IGNORE);
     GLine_Insert(&Graph, (rand() % (i + 1)), &line);
   }
   END_BENCHMARK(rand_insertion);
 
-  free(dna_string);
+  free(input_string);
   Graph_Free(&Graph);
 }
 
@@ -43,12 +44,12 @@ void benchmark_operations() {
   Graph_Line line;
   Graph_Init(&Graph);
 
-  int8_t* dna_string = gen_dna_vals();
+  uint8_t* input_string = int_sequence_generate_random(sample_size, 8);
   for (int32_t i = 0; i < sample_size; i++) {
-    GLine_Fill(&line, VAR_IGNORE, dna_string[i], VAR_IGNORE);
+    GLine_Fill(&line, VAR_IGNORE, input_string[i], VAR_IGNORE);
     GLine_Insert(&Graph, i, &line);
   }
-  free(dna_string);
+  free(input_string);
 
   START_BENCHMARK;
   for (int32_t i = 0; i < sample_size; i++) {
