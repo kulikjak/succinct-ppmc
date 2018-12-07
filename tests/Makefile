@@ -25,8 +25,8 @@ all: test_wavelet_tree
 test_wavelet_tree: $(WT_DEPEND)
 test_wavelet_tree: TEST_INC_DIRS += -I$(WT_ROOT) -I$(DBV_ROOT)
 test_wavelet_tree: TEST_ARGUMENTS += $(DBV_SRC_FILES) $(WT_SRC_FILES) \
-	./Wavelet_tree/optimized.c ./Wavelet_tree/universal.c \
-	./Wavelet_tree.c
+	./Wavelet_tree/optimized.c ./Wavelet_tree/optimized_ext.c \
+	./Wavelet_tree/universal.c ./Wavelet_tree.c
 
 all: test_compressor
 test_compressor: $(COMPRESSOR_DEPEND) tmp

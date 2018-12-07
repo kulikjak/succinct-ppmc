@@ -2,6 +2,7 @@
 
 static void RunAllTests(void) {
   RUN_TEST_GROUP(Wavelet_tree_optimized);
+  RUN_TEST_GROUP(Wavelet_tree_optimized_ext);
   RUN_TEST_GROUP(Wavelet_tree_universal);
 }
 
