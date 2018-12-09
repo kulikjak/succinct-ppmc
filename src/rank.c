@@ -26,8 +26,8 @@
   if (type__ == EXPAND_L) {                                     \
     if (pos__ >= node_ref->p_) return node_ref->rL_;            \
   } else if (type__ == EXPAND_W0) {                             \
-    if (pos__ >= node_ref->p_) return node_ref->rW_[0];         \
-  }                                                             \
+    if (pos__ >= node_ref->p_) return GET_RVECTOR(node_ref, 0);         \
+  }                                                     \
                                                                 \
   /* traverse the tree and enter correct leaf */                \
   while (!IS_LEAF(current)) {                                   \
@@ -44,7 +44,7 @@
       if (type__ == EXPAND_L)                                   \
         rank += left_child->rL_;                                \
       else if (type__ == EXPAND_W0)                             \
-        rank += left_child->rW_[0];                             \
+        rank += GET_RVECTOR(left_child, 0);                     \
     }                                                           \
   }                                                             \
   leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);            \
@@ -79,33 +79,33 @@
                                                                                                   \
     node_ref = MEMORY_GET_ANY(Graph__.mem_, current);                                             \
     if (type__ == EXPAND_W1) {                                                                    \
-      local_p = node_ref->p_ - node_ref->rW_[0];                                                  \
+      local_p = node_ref->p_ - GET_RVECTOR(node_ref, 0);                                          \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[1];                                                                  \
+        return GET_RVECTOR(node_ref, 1);                                                          \
     } else if (type__ == EXPAND_W2) {                                                             \
-      local_p = node_ref->rW_[0];                                                                 \
+      local_p = GET_RVECTOR(node_ref, 0);                                                         \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[2];                                                                  \
+        return GET_RVECTOR(node_ref, 2);                                                          \
     } else if (type__ == EXPAND_W3) {                                                             \
-      local_p = node_ref->p_ - node_ref->rW_[0] - node_ref->rW_[1];                               \
+      local_p = node_ref->p_ - GET_RVECTOR(node_ref, 0) - GET_RVECTOR(node_ref, 1);               \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[3];                                                                  \
+        return GET_RVECTOR(node_ref, 3);                                                          \
     } else if (type__ == EXPAND_W4) {                                                             \
-      local_p = node_ref->rW_[1];                                                                 \
+      local_p = GET_RVECTOR(node_ref, 1);                                                         \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[4];                                                                  \
+        return GET_RVECTOR(node_ref, 4);                                                          \
     } else if (type__ == EXPAND_W5) {                                                             \
-      local_p = node_ref->rW_[0] - node_ref->rW_[2];                                              \
+      local_p = GET_RVECTOR(node_ref, 0) - GET_RVECTOR(node_ref, 2);                              \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[5];                                                                  \
+        return GET_RVECTOR(node_ref, 5);                                                          \
     } else if (type__ == EXPAND_W6) {                                                             \
-      local_p = node_ref->rW_[2];                                                                 \
+      local_p = GET_RVECTOR(node_ref, 2);                                                         \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[6];                                                                  \
+        return GET_RVECTOR(node_ref, 6);                                                          \
     } else if (type__ == EXPAND_W7) {                                                             \
-      local_p = node_ref->rW_[6];                                                                 \
+      local_p = GET_RVECTOR(node_ref, 6);                                                         \
       if (pos__ >= (uint32_t) local_p)                                                            \
-        return node_ref->rW_[7];                                                                  \
+        return GET_RVECTOR(node_ref, 7);                                                          \
     }                                                                                             \
                                                                                                   \
     /* traverse the tree and enter correct leaf */                                                \
@@ -115,19 +115,19 @@
                                                                                                   \
       /* get p_ counter of left child and act accordingly */                                      \
       if (type__ == EXPAND_W1) {                                                                  \
-        temp = left_child->p_ - left_child->rW_[0];                                               \
+        temp = left_child->p_ - GET_RVECTOR(left_child, 0);                                       \
       } else if (type__ == EXPAND_W2) {                                                           \
-        temp = left_child->rW_[0];                                                                \
+        temp = GET_RVECTOR(left_child, 0);                                                        \
       } else if (type__ == EXPAND_W3) {                                                           \
-        temp = left_child->p_ - left_child->rW_[0] - left_child->rW_[1];                          \
+        temp = left_child->p_ - GET_RVECTOR(left_child, 0) - GET_RVECTOR(left_child, 1);          \
       } else if (type__ == EXPAND_W4) {                                                           \
-        temp = left_child->rW_[1];                                                                \
+        temp = GET_RVECTOR(left_child, 1);                                                        \
       } else if (type__ == EXPAND_W5) {                                                           \
-        temp = left_child->rW_[0] - left_child->rW_[2];                                           \
+        temp = GET_RVECTOR(left_child, 0) - GET_RVECTOR(left_child, 2);                           \
       } else if (type__ == EXPAND_W6) {                                                           \
-        temp = left_child->rW_[2];                                                                \
+        temp = GET_RVECTOR(left_child, 2);                                                        \
       } else if (type__ == EXPAND_W7) {                                                           \
-        temp = left_child->rW_[6];                                                                \
+        temp = GET_RVECTOR(left_child, 6);                                                        \
       }                                                                                           \
                                                                                                   \
       if ((uint32_t) temp >= pos__) {                                                             \
@@ -137,19 +137,19 @@
         current = node_ref->right_;                                                               \
                                                                                                   \
         if (type__ == EXPAND_W1) {                                                                \
-          rank += left_child->rW_[1];                                                             \
+          rank += GET_RVECTOR(left_child, 1);                                                     \
         } else if (type__ == EXPAND_W2) {                                                         \
-          rank += left_child->rW_[2];                                                             \
+          rank += GET_RVECTOR(left_child, 2);                                                     \
         } else if (type__ == EXPAND_W3) {                                                         \
-          rank += left_child->rW_[3];                                                             \
+          rank += GET_RVECTOR(left_child, 3);                                                     \
         } else if (type__ == EXPAND_W4) {                                                         \
-          rank += left_child->rW_[4];                                                             \
+          rank += GET_RVECTOR(left_child, 4);                                                     \
         } else if (type__ == EXPAND_W5) {                                                         \
-          rank += left_child->rW_[5];                                                             \
+          rank += GET_RVECTOR(left_child, 5);                                                     \
         } else if (type__ == EXPAND_W6) {                                                         \
-          rank += left_child->rW_[6];                                                             \
+          rank += GET_RVECTOR(left_child, 6);                                                     \
         } else if (type__ == EXPAND_W7) {                                                         \
-          rank += left_child->rW_[7];                                                             \
+          rank += GET_RVECTOR(left_child, 7);                                                     \
         }                                                                                         \
       }                                                                                           \
     }                                                                                             \

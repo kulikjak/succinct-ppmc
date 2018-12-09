@@ -18,9 +18,9 @@ void Graph_Init(GraphRef Graph__) {
   UWT_Init(&uwt, CONTEXT_LENGTH + 1);
 #endif
 
-#ifdef DIRECT_MEMORY
-  leaf_ref->is_leaf = true;
-#endif
+  /* this does nothing with indexed memory where
+     is_leaf is explicitly stored in index value */
+  MAKE_LEAF(leaf_ref);
 
 #ifdef ENABLE_LOOKUP_CACHE
   reset_cache();
@@ -179,18 +179,20 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node_ref->p_ = 33;
     node_ref->rL_ = current_ref->rL_ + line__->L_;
 
-    node_ref->rW_[0] = current_ref->rW_[0] + ((mask & 0x8) >> 0x3);
-    node_ref->rW_[1] = current_ref->rW_[1] + ((mask & 0x4) && ((~mask) & 0x8));
-    node_ref->rW_[2] = current_ref->rW_[2] + ((mask & 0x4) && (mask & 0x8));
-    node_ref->rW_[3] = current_ref->rW_[3] + ((mask & 0x2) && ((~mask) & 0x4) && ((~mask) & 0x8));
-    node_ref->rW_[4] = current_ref->rW_[4] + ((mask & 0x2) && (mask & 0x4) && ((~mask) & 0x8));
-    node_ref->rW_[5] = current_ref->rW_[5] + ((mask & 0x2) && ((~mask) & 0x4) && (mask & 0x8));
-    node_ref->rW_[6] = current_ref->rW_[6] + ((mask & 0x2) && (mask & 0x4) && (mask & 0x8));
-    node_ref->rW_[7] = current_ref->rW_[7] + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4) && (mask & 0x8));
+    node_ref->rW_[0] = GET_RVECTOR(current_ref, 0) + ((mask & 0x8) >> 0x3);
+    node_ref->rW_[1] = GET_RVECTOR(current_ref, 1) + ((mask & 0x4) && ((~mask) & 0x8));
+    node_ref->rW_[2] = GET_RVECTOR(current_ref, 2) + ((mask & 0x4) && (mask & 0x8));
+    node_ref->rW_[3] = GET_RVECTOR(current_ref, 3) + ((mask & 0x2) && ((~mask) & 0x4) && ((~mask) & 0x8));
+    node_ref->rW_[4] = GET_RVECTOR(current_ref, 4) + ((mask & 0x2) && (mask & 0x4) && ((~mask) & 0x8));
+    node_ref->rW_[5] = GET_RVECTOR(current_ref, 5) + ((mask & 0x2) && ((~mask) & 0x4) && (mask & 0x8));
+    node_ref->rW_[6] = GET_RVECTOR(current_ref, 6) + ((mask & 0x2) && (mask & 0x4) && (mask & 0x8));
+    node_ref->rW_[7] = GET_RVECTOR(current_ref, 7) + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4) && (mask & 0x8));
 
     /* allocate new right leaf and reuse current as left leaf */
     node_ref->right_ = Memory_new_leaf(Graph__->mem_);
     node_ref->left_ = current;
+
+    MAKE_NODE(node_ref);
 
     STACK_PUSH(node);
 
@@ -243,6 +245,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     right_ref->rW_[6] = RANK((right_ref->vectorW_[0]) & (right_ref->vectorW_[1]) & (right_ref->vectorW_[2]));
     right_ref->rW_[7] = RANK((right_ref->vectorW_[0]) & (right_ref->vectorW_[1]) & (right_ref->vectorW_[2]) & (right_ref->vectorW_[3]));
 
+    MAKE_LEAF(right_ref);
+
     /* initialize (reuse) old leaf as left one */
     current_ref->vectorL_ = current_ref->vectorL_ & (~split_mask);
 
@@ -264,6 +268,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     current_ref->rW_[5] = RANK((current_ref->vectorW_[0]) & (~(current_ref->vectorW_[1])) & (current_ref->vectorW_[2]));
     current_ref->rW_[6] = RANK((current_ref->vectorW_[0]) & (current_ref->vectorW_[1]) & (current_ref->vectorW_[2]));
     current_ref->rW_[7] = RANK((current_ref->vectorW_[0]) & (current_ref->vectorW_[1]) & (current_ref->vectorW_[2]) & (current_ref->vectorW_[3]));
+
+    MAKE_LEAF(current_ref);
 
     /* now insert bit into correct leaf */
     if (pos__ < (uint32_t)(16 + split_offset)) {

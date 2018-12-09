@@ -26,22 +26,39 @@
   (LeafRef)(&(mem->leafs_[arg >> (MEMORY_BLOCK_SIZE_LOG_ + 1)] \
                          [(arg >> 1) & (MEMORY_BLOCK_SIZE_ - 1)]))
 
+#define MAKE_NODE(arg) {}
+#define MAKE_LEAF(arg) {}
 #define IS_LEAF(arg) (arg & 0x1)
 
 #define MemPtr int32_t
 
 /* definitions for direct memory model */
-#elif defined(DIRECT_MEMORY)
+#elif defined(DIRECT_MEMORY)  /* defined(INDEXED_MEMORY) */
 
 #define MEMORY_GET_ANY(mem, arg) ((NodeRef)(arg))
 #define MEMORY_GET_NODE(mem, arg) ((NodeRef)(arg))
 #define MEMORY_GET_LEAF(mem, arg) ((LeafRef)(arg))
 
+#if defined(EMBEDED_FLAGS)
+
+#define MAKE_NODE(arg) (arg)->rW_[5] &= 0x7FFFFFFF
+#define MAKE_LEAF(arg) (arg)->rW_[5] |= 0x80000000
+#define IS_LEAF(arg) (((arg)->rW_[5]) & 0x80000000)
+
+#else  /* defined(EMBEDED_FLAGS) */
+
+#define MAKE_NODE(arg) (arg)->is_leaf = false
+#define MAKE_LEAF(arg) (arg)->is_leaf = true
 #define IS_LEAF(arg) (arg)->is_leaf
+
+#endif  /* defined(EMBEDED_FLAGS) */
+
 
 #define MemPtr struct node_32e*
 
-#endif
+#endif  /* defined(INDEXED_MEMORY) */
+
+#define GET_RVECTOR(arg, idx) ((idx == 5) ? ((arg->rW_[idx]) & 0x7FFFFFFF ) : (arg->rW_[idx]))
 
 typedef struct node_32e {
   uint32_t p_;  /* shared counter for total number of elements */
@@ -49,8 +66,18 @@ typedef struct node_32e {
 
   /* number of set bits in all W vectors */
   uint32_t rW_[8];
+  
+  /*
+   * Highest bits of r5 and r6 are used as a flags for red black tree balancing algorithm and the
+   * is_leaf macro. While this might not be the perfect place to put them, it is pretty good
+   * considering that this prototype application uses many defines to change behavior and these
+   * two counters are always there without any substantial change.
+   *
+   * r5 -> leaf indicator
+   * r6 -> node color for rb balancing
+   */
 
-#if defined(DIRECT_MEMORY)
+#if defined(DIRECT_MEMORY) && (!defined(EMBEDED_FLAGS))
   Bool32 is_leaf;
 #endif
 
@@ -67,7 +94,7 @@ typedef struct {
   /* number of set bits in all W vectors */
   uint32_t rW_[8];
 
-#if defined(DIRECT_MEMORY)
+#if defined(DIRECT_MEMORY) && (!defined(EMBEDED_FLAGS))
   Bool32 is_leaf;
 #endif
 

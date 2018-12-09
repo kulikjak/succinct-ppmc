@@ -76,7 +76,7 @@ MemPtr Memory_new_leaf(MemObj mem__) {
   mem__->l_current_block_index_++;
   return ((++mem__->l_last_index_) << 1) | 0x1;
 #elif defined(DIRECT_MEMORY)
-  mem__->leafs_[mem__->l_current_block_][mem__->l_current_block_index_++].is_leaf = true;
+  MAKE_LEAF(&(mem__->leafs_[mem__->l_current_block_][mem__->l_current_block_index_++]));
   return (MemPtr)(&(mem__->leafs_[mem__->l_current_block_][mem__->l_current_block_index_ - 1]));
 #endif
 }
@@ -117,7 +117,7 @@ MemPtr Memory_new_node(MemObj mem__) {
   mem__->n_current_block_index_++;
   return (++mem__->n_last_index_) << 1;
 #elif defined(DIRECT_MEMORY)
-  mem__->nodes_[mem__->n_current_block_][mem__->n_current_block_index_++].is_leaf = false;
+  MAKE_NODE(&(mem__->nodes_[mem__->n_current_block_][mem__->n_current_block_index_++]));
   return (MemPtr)(&(mem__->nodes_[mem__->n_current_block_][mem__->n_current_block_index_ - 1]));
 #endif
 }

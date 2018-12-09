@@ -55,27 +55,27 @@
 #define NODE_OPERATION_2(r1, r2, op) { \
     r1->p_ op r2->p_;                  \
     r1->rL_ op r2->rL_;                \
-    r1->rW_[0] op r2->rW_[0];          \
-    r1->rW_[1] op r2->rW_[1];          \
-    r1->rW_[2] op r2->rW_[2];          \
-    r1->rW_[3] op r2->rW_[3];          \
-    r1->rW_[4] op r2->rW_[4];          \
-    r1->rW_[5] op r2->rW_[5];          \
-    r1->rW_[6] op r2->rW_[6];          \
-    r1->rW_[7] op r2->rW_[7];          \
+    r1->rW_[0] op GET_RVECTOR(r2, 0);  \
+    r1->rW_[1] op GET_RVECTOR(r2, 1);  \
+    r1->rW_[2] op GET_RVECTOR(r2, 2);  \
+    r1->rW_[3] op GET_RVECTOR(r2, 3);  \
+    r1->rW_[4] op GET_RVECTOR(r2, 4);  \
+    r1->rW_[5] op GET_RVECTOR(r2, 5);  \
+    r1->rW_[6] op GET_RVECTOR(r2, 6);  \
+    r1->rW_[7] op GET_RVECTOR(r2, 7);  \
   }
 
-#define NODE_OPERATION_3(r1, r2, r3, op) { \
-    r1->p_ = r2->p_ op r3->p_;             \
-    r1->rL_ = r2->rL_ op r3->rL_;          \
-    r1->rW_[0] = r2->rW_[0] op r3->rW_[0];          \
-    r1->rW_[1] = r2->rW_[1] op r3->rW_[1];       \
-    r1->rW_[2] = r2->rW_[2] op r3->rW_[2];       \
-    r1->rW_[3] = r2->rW_[3] op r3->rW_[3];       \
-    r1->rW_[4] = r2->rW_[4] op r3->rW_[4];          \
-    r1->rW_[5] = r2->rW_[5] op r3->rW_[5];       \
-    r1->rW_[6] = r2->rW_[6] op r3->rW_[6];       \
-    r1->rW_[7] = r2->rW_[7] op r3->rW_[7];       \
+#define NODE_OPERATION_3(r1, r2, r3, op) {                  \
+    r1->p_ = r2->p_ op r3->p_;                              \
+    r1->rL_ = r2->rL_ op r3->rL_;                           \
+    r1->rW_[0] = GET_RVECTOR(r2, 0) op GET_RVECTOR(r3, 0);  \
+    r1->rW_[1] = GET_RVECTOR(r2, 1) op GET_RVECTOR(r3, 1);  \
+    r1->rW_[2] = GET_RVECTOR(r2, 2) op GET_RVECTOR(r3, 2);  \
+    r1->rW_[3] = GET_RVECTOR(r2, 3) op GET_RVECTOR(r3, 3);  \
+    r1->rW_[4] = GET_RVECTOR(r2, 4) op GET_RVECTOR(r3, 4);  \
+    r1->rW_[5] = GET_RVECTOR(r2, 5) op GET_RVECTOR(r3, 5);  \
+    r1->rW_[6] = GET_RVECTOR(r2, 6) op GET_RVECTOR(r3, 6);  \
+    r1->rW_[7] = GET_RVECTOR(r2, 7) op GET_RVECTOR(r3, 7);  \
   }
 
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;

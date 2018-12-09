@@ -95,6 +95,10 @@
 //#define INDEXED_MEMORY
 #define DIRECT_MEMORY
 
+/* Embed flags for red black tree and the leaf indicator directly into the
+ * other variables to save space occupied by them. */
+#define EMBEDED_FLAGS
+
 /**************** ARITHMETIC CODING DEFINES **********************
  *
  * from bitio.h:

@@ -7,70 +7,70 @@
  * by reducing number of calls needed to perform selects.
  */
 
-#define GRAPH_SIMPLE_SELECT_EXPAND(type__) {                      \
-  int32_t i, temp;                                                \
-  int32_t select = 0;                                             \
-  uint32_t local_var;                                             \
-  MemPtr tmp_node;                                                \
-  MemPtr current = Graph__.root_;                                 \
-                                                                  \
-  NodeRef node_ref;                                               \
-  LeafRef leaf_ref;                                               \
-                                                                  \
-  /* gets optimized away if all expansions are successfull */     \
-  if (type__ != EXPAND_L && type__ != EXPAND_W0)                  \
-    FATAL("Wrong type in GRAPH_SIMPLE_SELECT_EXPAND macro");      \
-                                                                  \
-  /* check correct boundaries */                                  \
-  if (num__ <= 0) return 0;                                       \
-                                                                  \
-  node_ref = MEMORY_GET_ANY(Graph__.mem_, Graph__.root_);         \
-  local_var = (type__ == EXPAND_L)                                \
-    ? node_ref->rL_                                               \
-    : node_ref->rW_[0];                                           \
-                                                                  \
-  if (zero__) {                                                   \
-    if (num__ > node_ref->p_ - local_var) return -1;              \
-  } else {                                                        \
-    if (num__ > local_var) return -1;                             \
-  }                                                               \
-                                                                  \
-  /* traverse the tree and enter correct leaf */                  \
-  while (!IS_LEAF(current)) {                                     \
-    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);            \
-    tmp_node = node_ref->left_;                                   \
-                                                                  \
-    if (type__ == EXPAND_L)                                       \
-      local_var = MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rL_;    \
-    else if (type__ == EXPAND_W0)                                 \
-      local_var = MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0]; \
-                                                                  \
-    /* get r_ counter of left child and act accordingly */        \
-    temp = (zero__)                                               \
-      ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ - local_var    \
-      : local_var;                                                \
-                                                                  \
-    if ((uint32_t)temp >= num__) {                                \
-      current = tmp_node;                                         \
-    } else {                                                      \
-      num__ -= temp;                                              \
-      select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_;       \
-      current = node_ref->right_;                                 \
-    }                                                             \
-  }                                                               \
-                                                                  \
-  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);              \
-  local_var = (type__ == EXPAND_L)                                \
-    ? leaf_ref->vectorL_                                          \
-    : leaf_ref->vectorW_[0];                                      \
-                                                                  \
-  /* handle last leaf of this query */                            \
-  for (i = 0; num__; i++) {                                       \
-    num__ -= (zero__) ? ((local_var >> (31 - i)) & 0x1) ^ 1       \
-                      : ((local_var >> (31 - i)) & 0x1);          \
-  }                                                               \
-                                                                  \
-  return select + i;                                              \
+#define GRAPH_SIMPLE_SELECT_EXPAND(type__) {                              \
+  int32_t i, temp;                                                        \
+  int32_t select = 0;                                                     \
+  uint32_t local_var;                                                     \
+  MemPtr tmp_node;                                                        \
+  MemPtr current = Graph__.root_;                                         \
+                                                                          \
+  NodeRef node_ref;                                                       \
+  LeafRef leaf_ref;                                                       \
+                                                                          \
+  /* gets optimized away if all expansions are successfull */             \
+  if (type__ != EXPAND_L && type__ != EXPAND_W0)                          \
+    FATAL("Wrong type in GRAPH_SIMPLE_SELECT_EXPAND macro");              \
+                                                                          \
+  /* check correct boundaries */                                          \
+  if (num__ <= 0) return 0;                                               \
+                                                                          \
+  node_ref = MEMORY_GET_ANY(Graph__.mem_, Graph__.root_);                 \
+  local_var = (type__ == EXPAND_L)                                        \
+    ? node_ref->rL_                                                       \
+    : GET_RVECTOR(node_ref, 0);                                           \
+                                                                          \
+  if (zero__) {                                                           \
+    if (num__ > node_ref->p_ - local_var) return -1;                      \
+  } else {                                                                \
+    if (num__ > local_var) return -1;                                     \
+  }                                                                       \
+                                                                          \
+  /* traverse the tree and enter correct leaf */                          \
+  while (!IS_LEAF(current)) {                                             \
+    node_ref = MEMORY_GET_NODE(Graph__.mem_, current);                    \
+    tmp_node = node_ref->left_;                                           \
+                                                                          \
+    if (type__ == EXPAND_L)                                               \
+      local_var = MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rL_;            \
+    else if (type__ == EXPAND_W0)                                         \
+      local_var = GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0); \
+                                                                          \
+    /* get r_ counter of left child and act accordingly */                \
+    temp = (zero__)                                                       \
+      ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ - local_var            \
+      : local_var;                                                        \
+                                                                          \
+    if ((uint32_t)temp >= num__) {                                        \
+      current = tmp_node;                                                 \
+    } else {                                                              \
+      num__ -= temp;                                                      \
+      select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_;               \
+      current = node_ref->right_;                                         \
+    }                                                                     \
+  }                                                                       \
+                                                                          \
+  leaf_ref = MEMORY_GET_LEAF(Graph__.mem_, current);                      \
+  local_var = (type__ == EXPAND_L)                                        \
+    ? leaf_ref->vectorL_                                                  \
+    : leaf_ref->vectorW_[0];                                              \
+                                                                          \
+  /* handle last leaf of this query */                                    \
+  for (i = 0; num__; i++) {                                               \
+    num__ -= (zero__) ? ((local_var >> (31 - i)) & 0x1) ^ 1               \
+                      : ((local_var >> (31 - i)) & 0x1);                  \
+  }                                                                       \
+                                                                          \
+  return select + i;                                                      \
 }
 
 #define GRAPH_MASKED_SELECT_EXPAND(type__) {                                                    \
@@ -95,26 +95,26 @@
                                                                                                 \
   node_ref = MEMORY_GET_ANY(Graph__.mem_, Graph__.root_);                                       \
   if (type__ == EXPAND_W1) {                                                                    \
-    local_p = node_ref->p_ - node_ref->rW_[0];                                                  \
-    local_var = node_ref->rW_[1];                                                               \
+    local_p = node_ref->p_ - GET_RVECTOR(node_ref, 0);                                          \
+    local_var = GET_RVECTOR(node_ref, 1);                                                       \
   } else if (type__ == EXPAND_W2) {                                                             \
-    local_p = node_ref->rW_[0];                                                                 \
-    local_var = node_ref->rW_[2];                                                               \
+    local_p = GET_RVECTOR(node_ref, 0);                                                         \
+    local_var = GET_RVECTOR(node_ref, 2);                                                       \
   } else if (type__ == EXPAND_W3) {                                                             \
-    local_p = node_ref->p_ - node_ref->rW_[0] - node_ref->rW_[1];                               \
-    local_var = node_ref->rW_[3];                                                               \
+    local_p = node_ref->p_ - GET_RVECTOR(node_ref, 0) - GET_RVECTOR(node_ref, 1);               \
+    local_var = GET_RVECTOR(node_ref, 3);                                                       \
   } else if (type__ == EXPAND_W4) {                                                             \
-    local_p = node_ref->rW_[1];                                                                 \
-    local_var = node_ref->rW_[4];                                                               \
+    local_p = GET_RVECTOR(node_ref, 1);                                                         \
+    local_var = GET_RVECTOR(node_ref, 4);                                                       \
   } else if (type__ == EXPAND_W5) {                                                             \
-    local_p = node_ref->rW_[0] - node_ref->rW_[2];                                              \
-    local_var = node_ref->rW_[5];                                                               \
+    local_p = GET_RVECTOR(node_ref, 0) - GET_RVECTOR(node_ref, 2);                              \
+    local_var = GET_RVECTOR(node_ref, 5);                                                       \
   } else if (type__ == EXPAND_W6) {                                                             \
-    local_p = node_ref->rW_[2];                                                                 \
-    local_var = node_ref->rW_[6];                                                               \
+    local_p = GET_RVECTOR(node_ref, 2);                                                         \
+    local_var = GET_RVECTOR(node_ref, 6);                                                       \
   } else if (type__ == EXPAND_W7) {                                                             \
-    local_p = node_ref->rW_[6];                                                                 \
-    local_var = node_ref->rW_[7];                                                               \
+    local_p = GET_RVECTOR(node_ref, 6);                                                         \
+    local_var = GET_RVECTOR(node_ref, 7);                                                       \
   }                                                                                             \
                                                                                                 \
   if (zero__) {                                                                                 \
@@ -133,36 +133,36 @@
     /* get rW_ counter of left child and act accordingly */                                     \
     if (type__ == EXPAND_W1) {                                                                  \
       temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ -                            \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0] -                                  \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[1]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[1];                         \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0) -                          \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 1)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 1);                 \
     } else if (type__ == EXPAND_W2) {                                                           \
-      temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0] -                        \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[2]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[2];                         \
+      temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0) -                \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2);                 \
     } else if (type__ == EXPAND_W3) {                                                           \
       temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ -                            \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0] -                                  \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[1] -                                  \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[3]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[3];                         \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0) -                          \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 1) -                          \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 3)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 3);                 \
     } else if (type__ == EXPAND_W4) {                                                           \
-      temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[1] -                        \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[4]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[4];                         \
+      temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 1) -                \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 4)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 4);                 \
     } else if (type__ == EXPAND_W5) {                                                           \
-      temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0] -                        \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[2] -                                  \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[5]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[5];                         \
+      temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0) -                \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2) -                          \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 5)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 5);                 \
     } else if (type__ == EXPAND_W6) {                                                           \
-      temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[2] -                        \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[6]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[6];                         \
+      temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2) -                \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6);                 \
     } else if (type__ == EXPAND_W7) {                                                           \
-      temp = (zero__) ? MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[6] -                        \
-              MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[7]                                    \
-                      : MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[7];                         \
+      temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6) -                \
+              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 7)                            \
+                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 7);                 \
     }                                                                                           \
                                                                                                 \
     if ((uint32_t) temp >= num__) {                                                             \
@@ -173,22 +173,22 @@
                                                                                                 \
       if (type__ == EXPAND_W1) {                                                                \
         select += (MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ -                                 \
-                   MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0]);                             \
+                   GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0));                     \
       } else if (type__ == EXPAND_W2) {                                                         \
-        select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0];                               \
+        select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0);                       \
       } else if (type__ == EXPAND_W3) {                                                         \
         select += (MEMORY_GET_ANY(Graph__.mem_, tmp_node)->p_ -                                 \
-                   MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0] -                             \
-                   MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[1]);                             \
+                   GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0) -                     \
+                   GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 1));                     \
       } else if (type__ == EXPAND_W4) {                                                         \
-        select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[1];                               \
+        select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 1);                       \
       } else if (type__ == EXPAND_W5) {                                                         \
-        select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[0] -                              \
-            MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[2];                                     \
+        select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 0) -                      \
+            GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2);                             \
       } else if (type__ == EXPAND_W6) {                                                         \
-        select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[2];                               \
+        select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2);                       \
       } else if (type__ == EXPAND_W7) {                                                         \
-        select += MEMORY_GET_ANY(Graph__.mem_, tmp_node)->rW_[6];                               \
+        select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6);                       \
       }                                                                                         \
     }                                                                                           \
   }                                                                                             \
