@@ -49,16 +49,34 @@
 
 #define MAKE_NODE(arg) (arg)->is_leaf = false
 #define MAKE_LEAF(arg) (arg)->is_leaf = true
-#define IS_LEAF(arg) (arg)->is_leaf
+#define IS_LEAF(arg) ((arg)->is_leaf)
 
 #endif  /* defined(EMBEDED_FLAGS) */
-
 
 #define MemPtr struct node_32e*
 
 #endif  /* defined(INDEXED_MEMORY) */
 
-#define GET_RVECTOR(arg, idx) ((idx == 5) ? ((arg->rW_[idx]) & 0x7FFFFFFF ) : (arg->rW_[idx]))
+
+#if defined(EMBEDED_FLAGS)
+
+#define IS_RED(arg) (((arg)->rW_[6]) & 0x80000000)
+#define MAKE_RED(arg) (arg)->rW_[6] |= 0x80000000
+#define MAKE_BLACK(arg) (arg)->rW_[6] &= 0x7FFFFFFF
+
+#define GET_RVECTOR(arg, idx) \
+  ((idx == 5 || idx == 6) ? ((arg->rW_[idx]) & 0x7FFFFFFF) : (arg->rW_[idx]))
+
+#else  /* defined(EMBEDED_FLAGS) */
+
+#define IS_RED(arg) ((arg)->rb_flag_)
+#define MAKE_RED(arg) (arg)->rb_flag_ = true
+#define MAKE_BLACK(arg) (arg)->rb_flag_ = false
+
+#define GET_RVECTOR(arg, idx) (arg->rW_[idx])
+
+#endif  /* defined(EMBEDED_FLAGS) */
+
 
 typedef struct node_32e {
   uint32_t p_;  /* shared counter for total number of elements */
@@ -66,7 +84,7 @@ typedef struct node_32e {
 
   /* number of set bits in all W vectors */
   uint32_t rW_[8];
-  
+
   /*
    * Highest bits of r5 and r6 are used as a flags for red black tree balancing algorithm and the
    * is_leaf macro. While this might not be the perfect place to put them, it is pretty good
@@ -84,7 +102,9 @@ typedef struct node_32e {
   MemPtr left_;  /* pointer to left child node */
   MemPtr right_; /* pointer to right child node */
 
-  Bool32 rb_flag_; /* red/black node flag (can be optimised in the future) */
+#if !defined(EMBEDED_FLAGS)
+  Bool32 rb_flag_; /* red/black node flag */
+#endif
 } node_32e;
 
 typedef struct {

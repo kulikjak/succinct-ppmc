@@ -296,19 +296,19 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     )
 
     /* red black balancing */
-    node_ref->rb_flag_ = true;
+    MAKE_RED(node_ref);
 
     do {
       /* current node is the root - change it to black and end */
       if (STACK_GET_PARENT() == STACK_ERROR) {
-        node_ref->rb_flag_ = false;
+        MAKE_BLACK(node_ref);
         return;
       }
 
       MemPtr parent_idx = STACK_GET_PARENT();
       NodeRef parent = MEMORY_GET_NODE(Graph__->mem_, parent_idx);
       /* parent node is a black node - do nothing */
-      if (parent->rb_flag_ == false) {
+      if (!IS_RED(parent)) {
         return;
       }
 
@@ -326,10 +326,10 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
       NodeRef uncle = MEMORY_GET_ANY(Graph__->mem_, uncle_idx);
 
       /* uncle is red - change colors and go to start */
-      if (!IS_LEAF(uncle_idx) && uncle->rb_flag_ == true) {
-        parent->rb_flag_ = false;
-        uncle->rb_flag_ = false;
-        grandparent->rb_flag_ = true;
+      if (!IS_LEAF(uncle_idx) && IS_RED(uncle)) {
+        MAKE_BLACK(parent);
+        MAKE_BLACK(uncle);
+        MAKE_RED(grandparent);
 
         node = grandparent_idx;
         node_ref = grandparent;
@@ -346,31 +346,28 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
 
       MemPtr newroot = 0;
       if (parent_left && grandparent_left) {
-        grandparent->rb_flag_ = true;
-        parent->rb_flag_ = false;
-
         grandparent->left_ = parent->right_;
         parent->right_ = grandparent_idx;
 
         NODE_OPERATION_2(grandparent, node_ref, -=);
         NODE_OPERATION_2(parent, uncle, +=);
 
+        MAKE_RED(grandparent);
+        MAKE_BLACK(parent);
+
         newroot = parent_idx;
       } else if (!parent_left && !grandparent_left) {
-        grandparent->rb_flag_ = true;
-        parent->rb_flag_ = false;
-
         grandparent->right_ = parent->left_;
         parent->left_ = grandparent_idx;
 
         NODE_OPERATION_2(grandparent, node_ref, -=);
         NODE_OPERATION_2(parent, uncle, +=);
 
+        MAKE_RED(grandparent);
+        MAKE_BLACK(parent);
+
         newroot = parent_idx;
       } else if (!parent_left && grandparent_left) {
-        grandparent->rb_flag_ = true;
-        node_ref->rb_flag_ = false;
-
         grandparent->left_ = node_ref->right_;
         parent->right_ = node_ref->left_;
 
@@ -383,11 +380,11 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         NODE_OPERATION_2(grandparent, parent, -=);
         NODE_OPERATION_3(node_ref, parent, grandparent, +);
 
+        MAKE_RED(grandparent);
+        MAKE_BLACK(node_ref);
+
         newroot = node;
       } else if (parent_left && !grandparent_left) {
-        grandparent->rb_flag_ = true;
-        node_ref->rb_flag_ = false;
-
         grandparent->right_ = node_ref->left_;
         parent->left_ = node_ref->right_;
 
@@ -399,6 +396,9 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
         NODE_OPERATION_2(parent, temp, -=);
         NODE_OPERATION_2(grandparent, parent, -=);
         NODE_OPERATION_3(node_ref, parent, grandparent, +);
+
+        MAKE_RED(grandparent);
+        MAKE_BLACK(node_ref);
 
         newroot = node;
       }
