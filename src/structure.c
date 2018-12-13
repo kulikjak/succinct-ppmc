@@ -9,6 +9,7 @@ UWT_Struct uwt;
 void Graph_Init(GraphRef Graph__) {
   Graph__->mem_ = Memory_init();
   Graph__->root_ = Memory_new_leaf(Graph__->mem_);
+  Graph__->dpos_ = DPOS_NOT_PRESENT;
 
   LeafRef leaf_ref = MEMORY_GET_LEAF(Graph__->mem_, Graph__->root_);
 
@@ -41,55 +42,46 @@ void Graph_Insert_Line_(LeafRef leaf__, uint32_t pos__, GLineRef line__) {
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[1]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[3]), pos__, 0);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_Ax:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[1]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[3]), pos__, 1);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_C:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[1]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[4]), pos__, 0);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_Cx:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[1]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[4]), pos__, 1);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_G:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[2]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[5]), pos__, 0);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_Gx:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[2]), pos__, 0);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[5]), pos__, 1);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_T:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[2]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[6]), pos__, 0);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_Tx:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[2]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[6]), pos__, 1);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 0);
       break;
     case VALUE_$:
       INSERT_BIT(&(leaf__->vectorW_[0]), &(leaf__->rW_[0]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[1]), &(leaf__->rW_[2]), pos__, 1);
       INSERT_BIT(&(leaf__->vectorW_[2]), &(leaf__->rW_[6]), pos__, 1);
-      INSERT_BIT(&(leaf__->vectorW_[3]), &(leaf__->rW_[7]), pos__, 1);
       break;
     default:
       assert(0);
@@ -132,6 +124,19 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   UWT_Insert(&uwt, pos__, 0);
 #endif
 
+  if (line__->W_ == VALUE_$) {
+
+    if (Graph__->dpos_ != DPOS_NOT_PRESENT) {
+      fprintf(stderr, "Multiple dollar values in graph\n");
+      FATAL("Recompile without REMOVE_DOLLAR_VECTOR to support more");
+    }
+    line__->W_ = VALUE_Tx;
+    Graph__->dpos_ = pos__;
+  } else if (Graph__->dpos_ >= pos__ &&
+             Graph__->dpos_ != DPOS_NOT_PRESENT) {
+    Graph__->dpos_ += 1;
+  }
+
   /* traverse the tree and enter correct leaf */
   mask = GET_MASK_FROM_VALUE(line__->W_);
   current = Graph__->root_;
@@ -151,7 +156,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node->rW_[4] += ((mask & 0x2) && (mask & 0x4) && ((~mask) & 0x8));
     node->rW_[5] += ((mask & 0x2) && ((~mask) & 0x4) && (mask & 0x8));
     node->rW_[6] += ((mask & 0x2) && (mask & 0x4) && (mask & 0x8));
-    node->rW_[7] += ((mask & 0x1) && (mask & 0x2) && (mask & 0x4) && (mask & 0x8));
 
     temp = MEMORY_GET_ANY(Graph__->mem_, node->left_)->p_;
     if (temp > pos__) {
@@ -186,7 +190,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     node_ref->rW_[4] = GET_RVECTOR(current_ref, 4) + ((mask & 0x2) && (mask & 0x4) && ((~mask) & 0x8));
     node_ref->rW_[5] = GET_RVECTOR(current_ref, 5) + ((mask & 0x2) && ((~mask) & 0x4) && (mask & 0x8));
     node_ref->rW_[6] = GET_RVECTOR(current_ref, 6) + ((mask & 0x2) && (mask & 0x4) && (mask & 0x8));
-    node_ref->rW_[7] = GET_RVECTOR(current_ref, 7) + ((mask & 0x1) && (mask & 0x2) && (mask & 0x4) && (mask & 0x8));
 
     /* allocate new right leaf and reuse current as left leaf */
     node_ref->right_ = Memory_new_leaf(Graph__->mem_);
@@ -222,7 +225,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     right_ref->vectorW_[0] = 0x0 | ((current_ref->vectorW_[0] & (split_mask)) << (16 + split_offset));
     right_ref->vectorW_[1] = 0x0 | ((current_ref->vectorW_[1] & (split_mask)) << (16 + split_offset));
     right_ref->vectorW_[2] = 0x0 | ((current_ref->vectorW_[2] & (split_mask)) << (16 + split_offset));
-    right_ref->vectorW_[3] = 0x0 | ((current_ref->vectorW_[3] & (split_mask)) << (16 + split_offset));
 
     memcpy(right_ref->vectorP_, current_ref->vectorP_ + 16 + split_offset,
            (16 - split_offset) * sizeof(uint32_t));
@@ -243,7 +245,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     right_ref->rW_[4] = RANK((~(right_ref->vectorW_[0])) & (right_ref->vectorW_[1]) & (right_ref->vectorW_[2]));
     right_ref->rW_[5] = RANK((right_ref->vectorW_[0]) & (~(right_ref->vectorW_[1])) & (right_ref->vectorW_[2]));
     right_ref->rW_[6] = RANK((right_ref->vectorW_[0]) & (right_ref->vectorW_[1]) & (right_ref->vectorW_[2]));
-    right_ref->rW_[7] = RANK((right_ref->vectorW_[0]) & (right_ref->vectorW_[1]) & (right_ref->vectorW_[2]) & (right_ref->vectorW_[3]));
 
     MAKE_LEAF(right_ref);
 
@@ -253,7 +254,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     current_ref->vectorW_[0] = current_ref->vectorW_[0] & (~split_mask);
     current_ref->vectorW_[1] = current_ref->vectorW_[1] & (~split_mask);
     current_ref->vectorW_[2] = current_ref->vectorW_[2] & (~split_mask);
-    current_ref->vectorW_[3] = current_ref->vectorW_[3] & (~split_mask);
 
     current_ref->p_ = 16 + split_offset;
 
@@ -267,7 +267,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     current_ref->rW_[4] = RANK((~(current_ref->vectorW_[0])) & (current_ref->vectorW_[1]) & (current_ref->vectorW_[2]));
     current_ref->rW_[5] = RANK((current_ref->vectorW_[0]) & (~(current_ref->vectorW_[1])) & (current_ref->vectorW_[2]));
     current_ref->rW_[6] = RANK((current_ref->vectorW_[0]) & (current_ref->vectorW_[1]) & (current_ref->vectorW_[2]));
-    current_ref->rW_[7] = RANK((current_ref->vectorW_[0]) & (current_ref->vectorW_[1]) & (current_ref->vectorW_[2]) & (current_ref->vectorW_[3]));
 
     MAKE_LEAF(current_ref);
 
@@ -450,6 +449,7 @@ void Graph_Print(GraphRef Graph__) {
 
 void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   int32_t wavelet_mask;
+  uint32_t bpos;
   MemPtr current;
   LeafRef leaf_ref;
 
@@ -457,15 +457,19 @@ void GLine_Get(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     printf("[structure]: Getting line at position %u\n", pos__);
   )
 
+  bpos = pos__;
+
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK);
 
-  wavelet_mask = (leaf_ref->vectorW_[3] >> (31 - pos__) & 0x1) |
-                 (leaf_ref->vectorW_[2] >> (31 - pos__) & 0x1) << 0x1 |
-                 (leaf_ref->vectorW_[1] >> (31 - pos__) & 0x1) << 0x2 |
-                 (leaf_ref->vectorW_[0] >> (31 - pos__) & 0x1) << 0x3;
-
+  if (bpos != Graph__->dpos_) {
+    wavelet_mask = (leaf_ref->vectorW_[2] >> (31 - pos__) & 0x1) << 0x1 |
+                   (leaf_ref->vectorW_[1] >> (31 - pos__) & 0x1) << 0x2 |
+                   (leaf_ref->vectorW_[0] >> (31 - pos__) & 0x1) << 0x3;
+    line__->W_ = GET_VALUE_FROM_MASK(wavelet_mask);
+  } else {
+    line__->W_ = VALUE_$;
+  }
   line__->L_ = leaf_ref->vectorL_ >> (31 - pos__) & 0x1;
-  line__->W_ = GET_VALUE_FROM_MASK(wavelet_mask);
   line__->P_ = leaf_ref->vectorP_[pos__];
 }
 
@@ -476,6 +480,7 @@ int32_t Graph_Size(GraphRef Graph__) {
 
 void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   int32_t nchar_mask, ochar_mask;
+  uint32_t bpos;
   MemPtr current;
 
   NodeRef node_ref;
@@ -485,14 +490,27 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
     printf("[structure]: Changing symbol at position %u to %d\n", pos__, val__);
   )
 
+  if (pos__ == Graph__->dpos_) {
+    Graph__->dpos_ = DPOS_NOT_PRESENT;
+  }
+  bpos = pos__;
+
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITH_STACK);
+
+  if (val__ == VALUE_$)
+    FATAL("Structure currently doesn't support change to dollar value");
 
   /* get masks for both characters */
   nchar_mask = GET_MASK_FROM_VALUE(val__);
-  ochar_mask = (leaf_ref->vectorW_[3] >> (31 - pos__) & 0x1) |
-               (leaf_ref->vectorW_[2] >> (31 - pos__) & 0x1) << 0x1 |
-               (leaf_ref->vectorW_[1] >> (31 - pos__) & 0x1) << 0x2 |
-               (leaf_ref->vectorW_[0] >> (31 - pos__) & 0x1) << 0x3;
+
+  if (bpos != Graph__->dpos_) {
+    ochar_mask = (leaf_ref->vectorW_[2] >> (31 - pos__) & 0x1) << 0x1 |
+                 (leaf_ref->vectorW_[1] >> (31 - pos__) & 0x1) << 0x2 |
+                 (leaf_ref->vectorW_[0] >> (31 - pos__) & 0x1) << 0x3;
+  } else {
+    Graph__->dpos_ = DPOS_NOT_PRESENT;
+    ochar_mask = GET_MASK_FROM_VALUE(VALUE_$);
+  }
 
   /* change old character to the new one */
 
@@ -502,8 +520,6 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
       (-(unsigned) (!!(nchar_mask & 0x4)) ^ leaf_ref->vectorW_[1]) & (0x1 << (31 - pos__));
   leaf_ref->vectorW_[2] ^=
       (-(unsigned) (!!(nchar_mask & 0x2)) ^ leaf_ref->vectorW_[2]) & (0x1 << (31 - pos__));
-  leaf_ref->vectorW_[3] ^=
-      (-(unsigned) (!!(nchar_mask & 0x1)) ^ leaf_ref->vectorW_[3]) & (0x1 << (31 - pos__));
 
   do {
     node_ref = MEMORY_GET_ANY(Graph__->mem_, current);
@@ -516,7 +532,6 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
     if ((ochar_mask & 0x2) && (ochar_mask & 0x4) && ((~ochar_mask) & 0x8)) node_ref->rW_[4] -= 1;
     if ((ochar_mask & 0x2) && ((~ochar_mask) & 0x4) && (ochar_mask & 0x8)) node_ref->rW_[5] -= 1;
     if ((ochar_mask & 0x2) && (ochar_mask & 0x4) && (ochar_mask & 0x8)) node_ref->rW_[6] -= 1;
-    if ((ochar_mask & 0x1) && (ochar_mask & 0x2) && (ochar_mask & 0x4) && (ochar_mask & 0x8)) node_ref->rW_[7] -= 1;
 
     /* increase counter */
     if (nchar_mask & 0x8) node_ref->rW_[0] += 1;
@@ -526,7 +541,6 @@ void Graph_Change_symbol(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
     if ((nchar_mask & 0x2) && (nchar_mask & 0x4) && ((~nchar_mask) & 0x8)) node_ref->rW_[4] += 1;
     if ((nchar_mask & 0x2) && ((~nchar_mask) & 0x4) && (nchar_mask & 0x8)) node_ref->rW_[5] += 1;
     if ((nchar_mask & 0x2) && (nchar_mask & 0x4) && (nchar_mask & 0x8)) node_ref->rW_[6] += 1;
-    if ((nchar_mask & 0x1) && (nchar_mask & 0x2) && (nchar_mask & 0x4) && (nchar_mask & 0x8)) node_ref->rW_[7] += 1;
 
     current = STACK_POP();
   } while (current != STACK_ERROR);
@@ -554,6 +568,14 @@ void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__)
     printf("[structure]: Getting symbol frequency at position %u\n", pos__);
   )
 
+  /* clear freq structure */
+  cnt = 0;
+  memset(freq__, 0, sizeof(*freq__));
+
+  if (pos__ == Graph__->dpos_) {
+    return;
+  }
+
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
 
   /* get to the beginning of this node */
@@ -566,21 +588,13 @@ void Graph_Get_symbol_frequency(GraphRef Graph__, uint32_t pos__, cfreq* freq__)
   }
   pos++;
 
-  /* clear freq structure */
-  cnt = 0;
-  memset(freq__, 0, sizeof(*freq__));
-
   /* go through all transitions in this node */
   do {
-    ochar_mask = (leaf_ref->vectorW_[3] >> (31 - pos) & 0x1) |
-                 (leaf_ref->vectorW_[2] >> (31 - pos) & 0x1) << 0x1 |
+    ochar_mask = (leaf_ref->vectorW_[2] >> (31 - pos) & 0x1) << 0x1 |
                  (leaf_ref->vectorW_[1] >> (31 - pos) & 0x1) << 0x2 |
                  (leaf_ref->vectorW_[0] >> (31 - pos) & 0x1) << 0x3;
 
     value = GET_VALUE_FROM_MASK(ochar_mask);
-    if (value == VALUE_$) {
-      return;
-    }
     cnt++;
 
     freq__->symbol_[value >> 0x1] = leaf_ref->vectorP_[pos];
@@ -604,6 +618,12 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
     printf("[structure]: Looking for transition for symbol %d at position %u\n", val__, pos__);
   )
 
+  if (pos__ == Graph__->dpos_) {
+    if (val__ != VALUE_$)
+      return -1;
+    return (int32_t)Graph__->dpos_;
+  }
+
   GET_TARGET_LEAF(Graph__, pos__, current, leaf_ref, WITHOUT_STACK)
 
   /* get to the beginning of this node */
@@ -618,8 +638,7 @@ int32_t Graph_Find_Edge(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 
   /* go through all transitions in this node */
   do {
-    ochar_mask = (leaf_ref->vectorW_[3] >> (31 - pos) & 0x1) |
-                 (leaf_ref->vectorW_[2] >> (31 - pos) & 0x1) << 0x1 |
+    ochar_mask = (leaf_ref->vectorW_[2] >> (31 - pos) & 0x1) << 0x1 |
                  (leaf_ref->vectorW_[1] >> (31 - pos) & 0x1) << 0x2 |
                  (leaf_ref->vectorW_[0] >> (31 - pos) & 0x1) << 0x3;
 

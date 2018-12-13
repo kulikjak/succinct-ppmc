@@ -62,7 +62,6 @@
     r1->rW_[4] op GET_RVECTOR(r2, 4);  \
     r1->rW_[5] op GET_RVECTOR(r2, 5);  \
     r1->rW_[6] op GET_RVECTOR(r2, 6);  \
-    r1->rW_[7] op GET_RVECTOR(r2, 7);  \
   }
 
 #define NODE_OPERATION_3(r1, r2, r3, op) {                  \
@@ -75,7 +74,6 @@
     r1->rW_[4] = GET_RVECTOR(r2, 4) op GET_RVECTOR(r3, 4);  \
     r1->rW_[5] = GET_RVECTOR(r2, 5) op GET_RVECTOR(r3, 5);  \
     r1->rW_[6] = GET_RVECTOR(r2, 6) op GET_RVECTOR(r3, 6);  \
-    r1->rW_[7] = GET_RVECTOR(r2, 7) op GET_RVECTOR(r3, 7);  \
   }
 
 typedef enum { VECTOR_L, VECTOR_W } Graph_vector;
@@ -104,7 +102,11 @@ typedef enum {
 typedef struct {
   MemPtr root_;
   MemObj mem_;
+
+  uint32_t dpos_;
 } Graph_Struct;
+
+#define DPOS_NOT_PRESENT UINT_MAX
 
 typedef struct {
   Graph_value L_;
@@ -129,7 +131,6 @@ typedef struct {
 #define EXPAND_W4 5
 #define EXPAND_W5 6
 #define EXPAND_W6 7
-#define EXPAND_W7 8
 
 /*
  * Macro that contains whole tree search loop.

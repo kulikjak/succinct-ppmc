@@ -86,7 +86,7 @@
                                                                                                 \
   /* gets optimized away if all expansions are successfull */                                   \
   if (type__ != EXPAND_W1 && type__ != EXPAND_W2 && type__ != EXPAND_W3 &&                      \
-      type__ != EXPAND_W4 && type__ != EXPAND_W5 && type__ != EXPAND_W6 && type__ != EXPAND_W7) \
+      type__ != EXPAND_W4 && type__ != EXPAND_W5 && type__ != EXPAND_W6 )                       \
     FATAL("Wrong type in GRAPH_MASKED_SELECT_EXPAND macro");                                    \
                                                                                                 \
   /* check correct boundaries */                                                                \
@@ -112,9 +112,6 @@
   } else if (type__ == EXPAND_W6) {                                                             \
     local_p = GET_RVECTOR(node_ref, 2);                                                         \
     local_var = GET_RVECTOR(node_ref, 6);                                                       \
-  } else if (type__ == EXPAND_W7) {                                                             \
-    local_p = GET_RVECTOR(node_ref, 6);                                                         \
-    local_var = GET_RVECTOR(node_ref, 7);                                                       \
   }                                                                                             \
                                                                                                 \
   if (zero__) {                                                                                 \
@@ -159,10 +156,6 @@
       temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2) -                \
               GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6)                            \
                       : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6);                 \
-    } else if (type__ == EXPAND_W7) {                                                           \
-      temp = (zero__) ? GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6) -                \
-              GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 7)                            \
-                      : GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 7);                 \
     }                                                                                           \
                                                                                                 \
     if ((uint32_t) temp >= num__) {                                                             \
@@ -187,8 +180,6 @@
             GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2);                             \
       } else if (type__ == EXPAND_W6) {                                                         \
         select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 2);                       \
-      } else if (type__ == EXPAND_W7) {                                                         \
-        select += GET_RVECTOR(MEMORY_GET_ANY(Graph__.mem_, tmp_node), 6);                       \
       }                                                                                         \
     }                                                                                           \
   }                                                                                             \
@@ -214,9 +205,6 @@
   } else if (type__ == EXPAND_W6) {                                                             \
     vector = leaf_ref->vectorW_[2];                                                             \
     mask = leaf_ref->vectorW_[0] & leaf_ref->vectorW_[1];                                       \
-  } else if (type__ == EXPAND_W7) {                                                             \
-    vector = leaf_ref->vectorW_[3];                                                             \
-    mask = leaf_ref->vectorW_[0] & leaf_ref->vectorW_[1] & leaf_ref->vectorW_[2];               \
   }                                                                                             \
                                                                                                 \
   for (i = 0; num__; i++) {                                                                     \
@@ -267,9 +255,6 @@ int32_t graph_Wselect_5_(Graph_Struct Graph__, uint32_t num__, bool zero__) {
 int32_t graph_Wselect_6_(Graph_Struct Graph__, uint32_t num__, bool zero__) {
   GRAPH_MASKED_SELECT_EXPAND(EXPAND_W6);
 }
-int32_t graph_Wselect_7_(Graph_Struct Graph__, uint32_t num__, bool zero__) {
-  GRAPH_MASKED_SELECT_EXPAND(EXPAND_W7);
-}
 
 int32_t Graph_Select_L(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   if (val__ == VALUE_0)
@@ -282,7 +267,7 @@ int32_t Graph_Select_L(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 }
 
 int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
-  int32_t temp, temp2;
+  int32_t temp;
 
   switch (val__) {
     case VALUE_A:
@@ -314,15 +299,24 @@ int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
       temp = graph_Wselect_2_(*Graph__, temp, false);
       return graph_Wselect_0_(*Graph__, temp, false);
     case VALUE_Tx:
-      temp = graph_Wselect_7_(*Graph__, pos__, true);
-      temp = graph_Wselect_6_(*Graph__, temp, false);
+      temp = graph_Wselect_6_(*Graph__, pos__, false);
+      temp = graph_Wselect_2_(*Graph__, temp, false);
+      temp = graph_Wselect_0_(*Graph__, temp, false);
+
+      if (Graph__->dpos_ == DPOS_NOT_PRESENT ||
+          temp <= (int32_t) Graph__->dpos_)
+        return temp;
+
+      temp = graph_Wselect_6_(*Graph__, pos__ + 1, false);
       temp = graph_Wselect_2_(*Graph__, temp, false);
       return graph_Wselect_0_(*Graph__, temp, false);
+
     case VALUE_$:
-      temp = graph_Wselect_7_(*Graph__, pos__, false);
-      temp = graph_Wselect_6_(*Graph__, temp, false);
-      temp = graph_Wselect_2_(*Graph__, temp, false);
-      return graph_Wselect_0_(*Graph__, temp, false);
+      if (pos__ == 1 && Graph__->dpos_ != DPOS_NOT_PRESENT)
+        return Graph__->dpos_ + 1;
+      else
+        return (pos__ == 0) ? 0 : -1;
+
     case VALUE_As:
       temp = graph_Wselect_1_(*Graph__, pos__, true);
       return graph_Wselect_0_(*Graph__, temp, true);
@@ -333,17 +327,12 @@ int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
       temp = graph_Wselect_2_(*Graph__, pos__, true);
       return graph_Wselect_0_(*Graph__, temp, false);
     case VALUE_Ts:
-      /* This is not very optimized way of doing this! */
       temp = graph_Wselect_2_(*Graph__, pos__, false);
       temp = graph_Wselect_0_(*Graph__, temp, false);
 
-      if (temp == -1)
+      if (Graph__->dpos_ == DPOS_NOT_PRESENT ||
+          temp <= (int32_t) Graph__->dpos_)
         return temp;
-
-      temp2 = Graph_Select_W(Graph__, 1, VALUE_$);
-      if (temp2 == -1 || temp < temp2) {
-        return temp;
-      }
 
       temp = graph_Wselect_2_(*Graph__, pos__ + 1, false);
       return graph_Wselect_0_(*Graph__, temp, false);

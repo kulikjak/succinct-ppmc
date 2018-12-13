@@ -11,7 +11,6 @@ TEST_GROUP(Compressor_deBruijn);
 
 #define _(symb__) GET_VALUE_FROM_SYMBOL(symb__)
 
-
 #define GET_VALUE_FROM_SYMBOL(symb__)        \
       (((symb__) == 'A') ? VALUE_A           \
     : ((symb__) == 'C') ? VALUE_C            \
@@ -31,32 +30,40 @@ TEST_TEAR_DOWN(Compressor_deBruijn) {
 }
 
 TEST(Compressor_deBruijn, static_test) {
-  const Graph_value L[] = {0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1};
-  const Graph_value W[] = {_('A'), _('C'), _('G'), _('C'), _('G'), _('C'), _('$'), _('$'),
-                           _('$'), _('$'), _('A'), _('G'), _('G'), _('A'), _('$')};
-  const int32_t P[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  const int32_t F[] = {3, 7, 10, 15};
+  const Graph_value L[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+                           1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  const Graph_value W[] = {_('A'), _('C'), _('C'), _('C'), _('A'), _('A'), _('C'), _('C'), _('$'),
+                           _('A'), _('T'), _('C'), _('G'), _('C'), _('C') + 1, _('C'), _('C') + 1,
+                           _('A'), _('A'), _('G'), _('G') + 1, _('G'), _('A'), _('T'), _('G'),
+                           _('A'), _('T'), _('G'), _('A'), _('A') + 1, _('C'), _('C') + 1, _('G'),
+                           _('G'), _('G'), _('A'), _('G')};
 
-  const int32_t resOutdegree[] = {3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1};
-  const int32_t resOutgoingA[] = {4, 4, 4, -1, -1, -1, -1, -1, -1, -1, 5, 5, -1, 6, -1};
-  const int32_t resOutgoingC[] = {7, 7, 7, 8, 8, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-  const int32_t resOutgoingG[] = {11, 11, 11, 12, 12, -1, -1, -1, -1, -1, 13, 13, 14, -1, -1};
+  const int32_t P[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  const int32_t F[] = {1, 12, 23, 34};
 
-  const int32_t resIndegree[] = {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  const int32_t resOutdegree[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2,
+                                  2, 1, 2, 2, 1, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  const int32_t resOutgoingA[] = {1, -1, -1, -1, 2, 3, -1, -1, -1, 4, 4, -1, -1, -1, -1, -1, -1, 5,
+                                  6, 6, -1, 7, 7, -1, 8, 8, 8, -1, 10, 10, -1, -1, -1, -1, -1, 11, -1};
+  const int32_t resOutgoingC[] = {-1, 12, 13, 14, -1, -1, 15, 16, -1, -1, -1, 17, -1, 19, 19, 20, 20,
+                                  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, 22, -1, -1, -1, -1, -1};
+  const int32_t resOutgoingG[] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 23, -1, -1, -1, -1,
+                                  -1, 26, 26, 26, 27, 27, -1, 28, 28, 28, 29, -1, -1, -1, -1, 30, 31, 32, -1, 33};
+  const int32_t resOutgoingT[] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, 34, 34, -1, -1, -1, -1, -1, -1,
+                                  -1, -1, -1, -1, -1, -1, 35, 36, 36, 36, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
   deBruijn_Free(&dB);
-  deBruijn_Insert_test_data(&dB, L, W, P, F, 15);
+  deBruijn_Insert_test_data(&dB, L, W, P, F, 37);
 
-  for (int32_t i = 0; i < 15; i++) {
+  for (int32_t i = 0; i < 37; i++) {
     TEST_ASSERT_EQUAL_INT32(resOutdegree[i], deBruijn_Outdegree(&dB, i));
 
     TEST_ASSERT_EQUAL_INT32(resOutgoingA[i], deBruijn_Outgoing(&dB, i, _('A')));
     TEST_ASSERT_EQUAL_INT32(resOutgoingC[i], deBruijn_Outgoing(&dB, i, _('C')));
     TEST_ASSERT_EQUAL_INT32(resOutgoingG[i], deBruijn_Outgoing(&dB, i, _('G')));
-    TEST_ASSERT_EQUAL_INT32(-1, deBruijn_Outgoing(&dB, i, _('T')));
+    TEST_ASSERT_EQUAL_INT32(resOutgoingT[i], deBruijn_Outgoing(&dB, i, _('T')));
     TEST_ASSERT_EQUAL_INT32(-1, deBruijn_Outgoing(&dB, i, _('$')));
-
-    TEST_ASSERT_EQUAL_INT32(resIndegree[i], deBruijn_Indegree(&dB, i));
   }
 }
 

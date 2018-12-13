@@ -74,7 +74,7 @@
                                                                                                   \
     /* gets optimized away if all expansions are successfull */                                   \
     if (type__ != EXPAND_W1 && type__ != EXPAND_W2 && type__ != EXPAND_W3 &&                      \
-        type__ != EXPAND_W4 && type__ != EXPAND_W5 && type__ != EXPAND_W6 && type__ != EXPAND_W7) \
+        type__ != EXPAND_W4 && type__ != EXPAND_W5 && type__ != EXPAND_W6)                        \
       FATAL("Wrong type in GRAPH_MASKED_RANK_EXPAND macro");                                      \
                                                                                                   \
     node_ref = MEMORY_GET_ANY(Graph__.mem_, current);                                             \
@@ -102,10 +102,6 @@
       local_p = GET_RVECTOR(node_ref, 2);                                                         \
       if (pos__ >= (uint32_t) local_p)                                                            \
         return GET_RVECTOR(node_ref, 6);                                                          \
-    } else if (type__ == EXPAND_W7) {                                                             \
-      local_p = GET_RVECTOR(node_ref, 6);                                                         \
-      if (pos__ >= (uint32_t) local_p)                                                            \
-        return GET_RVECTOR(node_ref, 7);                                                          \
     }                                                                                             \
                                                                                                   \
     /* traverse the tree and enter correct leaf */                                                \
@@ -126,8 +122,6 @@
         temp = GET_RVECTOR(left_child, 0) - GET_RVECTOR(left_child, 2);                           \
       } else if (type__ == EXPAND_W6) {                                                           \
         temp = GET_RVECTOR(left_child, 2);                                                        \
-      } else if (type__ == EXPAND_W7) {                                                           \
-        temp = GET_RVECTOR(left_child, 6);                                                        \
       }                                                                                           \
                                                                                                   \
       if ((uint32_t) temp >= pos__) {                                                             \
@@ -148,8 +142,6 @@
           rank += GET_RVECTOR(left_child, 5);                                                     \
         } else if (type__ == EXPAND_W6) {                                                         \
           rank += GET_RVECTOR(left_child, 6);                                                     \
-        } else if (type__ == EXPAND_W7) {                                                         \
-          rank += GET_RVECTOR(left_child, 7);                                                     \
         }                                                                                         \
       }                                                                                           \
     }                                                                                             \
@@ -174,10 +166,6 @@
     } else if (type__ == EXPAND_W6) {                                                             \
       vector = leaf_ref->vectorW_[0] & leaf_ref->vectorW_[1] & leaf_ref->vectorW_[2];             \
       mask = leaf_ref->vectorW_[0] & leaf_ref->vectorW_[1];                                       \
-    } else if (type__ == EXPAND_W7) {                                                             \
-      vector = leaf_ref->vectorW_[0] & leaf_ref->vectorW_[1] & leaf_ref->vectorW_[2] &            \
-          leaf_ref->vectorW_[3];                                                                  \
-      mask = leaf_ref->vectorW_[0] & leaf_ref->vectorW_[1] & leaf_ref->vectorW_[2];               \
     }                                                                                             \
     for (i = 0; pos__; i++) {                                                                     \
       if ((mask >> (31 - i)) & 0x1) {                                                             \
@@ -224,9 +212,6 @@ int32_t graph_Wrank_5_(Graph_Struct Graph__, uint32_t pos__) {
 }
 int32_t graph_Wrank_6_(Graph_Struct Graph__, uint32_t pos__) {
   GRAPH_MASKED_RANK_EXPAND(EXPAND_W6);
-}
-int32_t graph_Wrank_7_(Graph_Struct Graph__, uint32_t pos__) {
-  GRAPH_MASKED_RANK_EXPAND(EXPAND_W7);
 }
 
 int32_t Graph_Rank_L(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
@@ -275,12 +260,11 @@ int32_t Graph_Rank_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
       temp = graph_Wrank_0_(*Graph__, pos__);
       temp = graph_Wrank_2_(*Graph__, temp);
       temp = graph_Wrank_6_(*Graph__, temp);
-      return temp - graph_Wrank_7_(*Graph__, temp);
+      return temp - Graph_Rank_W(Graph__, pos__, VALUE_$);
     case VALUE_$:
-      temp = graph_Wrank_0_(*Graph__, pos__);
-      temp = graph_Wrank_2_(*Graph__, temp);
-      temp = graph_Wrank_6_(*Graph__, temp);
-      return graph_Wrank_7_(*Graph__, temp);
+      return (pos__ > Graph__->dpos_ &&
+              Graph__->dpos_ != DPOS_NOT_PRESENT) ? 1 : 0;
+
     case VALUE_As:
       temp = pos__ - graph_Wrank_0_(*Graph__, pos__);
       return temp - graph_Wrank_1_(*Graph__, temp);

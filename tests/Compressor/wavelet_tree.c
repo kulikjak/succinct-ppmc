@@ -20,8 +20,24 @@ uint8_t* sequence;
 Graph_Struct Graph;
 Graph_Line line;
 
+void fix_sequence(uint8_t* sequence) {
+  int32_t i;
+  bool seen = false;
+
+  for (i = 0; i < TEST_SEQENCE_LEN; i++) {
+    if (int_sequence_get(sequence, TEST_SEQENCE_LEN, i) == 8) {
+      if (seen == true) {
+        sequence[i] = VALUE_C;
+      } else {
+        seen = true;
+      }
+    }
+  }
+}
+
 TEST_SETUP(Compressor_wavelet_tree) {
   sequence = int_sequence_generate_random(TEST_SEQENCE_LEN, 9);
+  fix_sequence(sequence);
   Graph_Init(&Graph);
 }
 
@@ -93,7 +109,7 @@ TEST(Compressor_wavelet_tree, symbol_change) {
 
   srand(time(NULL));
   for (i = 0; i < TEST_SEQENCE_LEN; i++) {
-    switch (rand() % 5) {
+    switch (rand() % 4) {
       case 0:
         sequence[i] = VALUE_A;
         Graph_Change_symbol(&Graph, i, VALUE_A);
@@ -109,10 +125,6 @@ TEST(Compressor_wavelet_tree, symbol_change) {
       case 3:
         sequence[i] = VALUE_T;
         Graph_Change_symbol(&Graph, i, VALUE_T);
-        break;
-      case 4:
-        sequence[i] = VALUE_$;
-        Graph_Change_symbol(&Graph, i, VALUE_$);
         break;
     }
   }

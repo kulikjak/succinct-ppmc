@@ -83,7 +83,7 @@ typedef struct node_32e {
   uint32_t rL_; /* number of set bits in L vector */
 
   /* number of set bits in all W vectors */
-  uint32_t rW_[8];
+  uint32_t rW_[7];
 
   /*
    * Highest bits of r5 and r6 are used as a flags for red black tree balancing algorithm and the
@@ -112,7 +112,7 @@ typedef struct {
   uint32_t rL_; /* number of set bits in L vector */
 
   /* number of set bits in all W vectors */
-  uint32_t rW_[8];
+  uint32_t rW_[7];
 
 #if defined(DIRECT_MEMORY) && (!defined(EMBEDED_FLAGS))
   Bool32 is_leaf;
@@ -120,7 +120,7 @@ typedef struct {
 
   /* all graph data vectors */
   uint32_t vectorL_;
-  uint32_t vectorW_[4];
+  uint32_t vectorW_[3];
   uint32_t vectorP_[32];
 
 #if defined(INTEGER_CONTEXT_SHORTENING)
