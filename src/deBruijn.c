@@ -129,9 +129,11 @@ int32_t deBruijn_Outgoing(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {
 }
 
 int32_t deBruijn_Indegree(deBruijnRef dB__, int32_t idx__) {
-  if (idx__ < dB__->F_[0])
-    return 0;
-  return 1;
+  UNUSED(dB__);
+  UNUSED(idx__);
+
+  FATAL("Not Implemented");
+  return 0;
 }
 
 int32_t deBruijn_Incomming(deBruijnRef dB__, int32_t idx__, Graph_value gval__) {

@@ -93,14 +93,8 @@ int32_t deBruijn_Outgoing(deBruijnRef dB__, int32_t idx__, Graph_value gval__);
 /*
  * Get number of edges that point to current node.
  *
- * This function is not universal and works only for trees. Therefore it returns
- * 0 for root and 1 for every other node (each node except root in a tree has
- * always one predecessor).
- *
- * @param  dB__  Reference to deBruijn_graph object.
- * @param  idx__  Edge index (line) in deBruijn graph.
- *
- * @return  A number of predecessor nodes.
+ * As this is not important for compression and it's not super straightforward,
+ * it is not implemented.
  */
 int32_t deBruijn_Indegree(deBruijnRef dB__, int32_t idx__);
 
