@@ -24,8 +24,6 @@ struct {
   } * mptrs;
 } mprof_ptrs;
 
-FILE *mprof_out;
-
 void prof_enlarge_() {
   if (mprof_ptrs.last == mprof_ptrs.size) {
     mprof_ptrs.size *= 2;
@@ -74,11 +72,6 @@ void prof_free(void *ptr) {
 }
 
 void init_memory_profiling(void) {
-  mprof_out = fopen("mprof_file.out", "w");
-  if (mprof_out == NULL) {
-    FATAL("Can't open memory profiling output file!");
-  }
-
   memset(&mprof_res, 0, sizeof(mprof_res));
 
   mprof_ptrs.size = 100;
@@ -93,32 +86,32 @@ void finish_memory_profiling(void) {
   uint32_t i;
   size_t total = 0;
 
-  fprintf(mprof_out, "Total number of malloc() calls: %u\n", mprof_res.malloc_count);
-  fprintf(mprof_out, "Total number of calloc() calls: %u\n", mprof_res.calloc_count);
-  fprintf(mprof_out, "Total number of realloc() calls: %u\n", mprof_res.realloc_count);
-  fprintf(mprof_out, "Total number of free() calls: %u\n", mprof_res.free_count);
+  printf("\n-------------------------------------------\n");
+  printf("Total number of malloc() calls: %u\n", mprof_res.malloc_count);
+  printf("Total number of calloc() calls: %u\n", mprof_res.calloc_count);
+  printf("Total number of realloc() calls: %u\n", mprof_res.realloc_count);
+  printf("Total number of free() calls: %u\n", mprof_res.free_count);
 
-  fprintf(mprof_out, "-------------------------------------------\n");
-  fprintf(mprof_out, "Memory allocated by malloc(): %lu B\n", mprof_res.malloc_size);
-  fprintf(mprof_out, "Memory allocated by calloc(): %lu B\n", mprof_res.calloc_size);
-  fprintf(mprof_out, "Memory allocated by realloc(): %lu B\n", mprof_res.realloc_size);
-  fprintf(mprof_out, "Memory freed by realloc(): %lu B\n", mprof_res.realloc_size_in);
+  printf("-------------------------------------------\n");
+  printf("Memory allocated by malloc(): %lu B\n", mprof_res.malloc_size);
+  printf("Memory allocated by calloc(): %lu B\n", mprof_res.calloc_size);
+  printf("Memory allocated by realloc(): %lu B\n", mprof_res.realloc_size);
+  printf("Memory freed by realloc(): %lu B\n", mprof_res.realloc_size_in);
 
   for (i = 0; i < mprof_ptrs.last; i++)
     total += mprof_ptrs.mptrs[i].size;
 
-  fprintf(mprof_out, "-------------------------------------------\n");
-  fprintf(mprof_out, "Highest memory usage in any given moment: %lu B\n", total);
-  fprintf(mprof_out, "Highest number of allocated blocks %u\n", mprof_ptrs.last);
+  printf("-------------------------------------------\n");
+  printf("Highest memory usage in any given moment: %lu B\n", total);
+  printf("Highest number of allocated blocks %u\n", mprof_ptrs.last);
 
-  fprintf(mprof_out, "-------------------------------------------\n");
-  fprintf(mprof_out, "%u:%u:%u:%u:%lu:%lu:%lu:%lu:%lu:%u\n", mprof_res.malloc_count,
+  printf("-------------------------------------------\n");
+  printf("%u:%u:%u:%u:%lu:%lu:%lu:%lu:%lu:%u\n", mprof_res.malloc_count,
           mprof_res.calloc_count, mprof_res.realloc_count, mprof_res.free_count,
           mprof_res.malloc_size, mprof_res.calloc_size, mprof_res.realloc_size,
           mprof_res.realloc_size_in, total, mprof_ptrs.last);
 
   free(mprof_ptrs.mptrs);
-  fclose(mprof_out);
 }
 
 #endif
