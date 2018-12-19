@@ -54,6 +54,8 @@
   #define MAX_STACK_SIZE 64
 #endif
 
+
+#ifndef REMOTE_OPTIMIZATION_CONTROL
 /**************** OPTIMIZATION DEFINES **********************
  *
  * Make underlying structure tree balanced with red black tree algorithm.
@@ -98,6 +100,8 @@
 /* Embed flags for red black tree and the leaf indicator directly into the
  * other variables to save space occupied by them. */
 #define EMBEDED_FLAGS
+
+#endif
 
 /**************** ARITHMETIC CODING DEFINES **********************
  *

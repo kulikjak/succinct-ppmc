@@ -114,7 +114,6 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
   int32_t mask;
   MemPtr current;
   uint32_t temp;
-  bool parent_left, grandparent_left;
 
   assert(pos__ <= MEMORY_GET_ANY(Graph__->mem_, Graph__->root_)->p_);
 
@@ -290,6 +289,8 @@ void GLine_Insert(GraphRef Graph__, uint32_t pos__, GLineRef line__) {
     }
 
 #ifdef ENABLE_RED_BLACK_BALANCING
+
+    bool parent_left, grandparent_left;
 
     STRUCTURE_VERBOSE(
       printf("[structure]: Rebalancing the tree\n");

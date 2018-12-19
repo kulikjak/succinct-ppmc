@@ -267,12 +267,14 @@ int main(int argc, char* argv[]) {
   )
 
   init_memory_profiling();
+  init_time_profiling();
 
   if (mode == ENCODE)
     main_encode(ifp, ofp);
   else if (mode == DECODE)
     main_decode(ifp, ofp);
 
+  finish_time_profiling();
   finish_memory_profiling();
 
   fclose(ifp);

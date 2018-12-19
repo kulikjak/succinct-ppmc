@@ -34,7 +34,7 @@ UWT_HEADER_FILES = $(WT_ROOT)/universal.h
 
 WT_SRC_FILES = $(UWT_SRC_FILES) $(OWT_SRC_FILES) $(OWTE_SRC_FILES)
 
-PROFILING_SRC_FILES = $(PROFILING_DIR)/memory_profiling.c
+PROFILING_SRC_FILES = $(PROFILING_DIR)/memory_profiling.c $(PROFILING_DIR)/time_profiling.c
 
 COMPRESSOR_SRC_FILES = \
 	$(COMPRESSOR_ROOT)/cache.c      \

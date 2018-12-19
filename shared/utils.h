@@ -22,6 +22,14 @@ static void fatal(const char* m__) {
 
 #define FATAL(msg) (fatal(msg))
 
+#ifndef ENABLE_TIME_PROFILING
+#define init_time_profiling() {}
+#define finish_time_profiling() {}
+#else
+void init_time_profiling();
+void finish_time_profiling();
+#endif
+
 #ifndef ENABLE_MEMORY_PROFILING
 #define malloc_(a) malloc(a)
 #define calloc_(a, b) calloc(a, b)
