@@ -1,6 +1,7 @@
 #ifndef _LEAF_LOOKUP_CACHE__
 #define _LEAF_LOOKUP_CACHE__
 
+#include "memory.h"
 #include "defines.h"
 #include "structure.h"
 

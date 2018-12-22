@@ -33,7 +33,7 @@
 #define MemPtr int32_t
 
 /* definitions for direct memory model */
-#elif defined(DIRECT_MEMORY)  /* defined(INDEXED_MEMORY) */
+#elif (defined(SIMPLE_MEMORY) || defined(DIRECT_MEMORY))  /* defined(INDEXED_MEMORY) */
 
 #define MEMORY_GET_ANY(mem, arg) ((NodeRef)(arg))
 #define MEMORY_GET_NODE(mem, arg) ((NodeRef)(arg))
@@ -95,7 +95,7 @@ typedef struct node_32e {
    * r6 -> node color for rb balancing
    */
 
-#if defined(DIRECT_MEMORY) && (!defined(EMBEDED_FLAGS))
+#if (defined(SIMPLE_MEMORY) || defined(DIRECT_MEMORY)) && (!defined(EMBEDED_FLAGS))
   Bool32 is_leaf;
 #endif
 
@@ -114,7 +114,7 @@ typedef struct {
   /* number of set bits in all W vectors */
   uint32_t rW_[8];
 
-#if defined(DIRECT_MEMORY) && (!defined(EMBEDED_FLAGS))
+#if (defined(SIMPLE_MEMORY) || defined(DIRECT_MEMORY)) && (!defined(EMBEDED_FLAGS))
   Bool32 is_leaf;
 #endif
 
@@ -132,6 +132,14 @@ typedef struct {
 #define NodeRef node_32e*
 #define LeafRef leaf_32e*
 
+#if defined(SIMPLE_MEMORY)
+
+typedef struct {
+  int32_t dummy;
+} memory_32e;
+
+#else  /* defined(SIMPLE_MEMORY) */
+
 typedef struct {
   NodeRef* nodes_;
   LeafRef* leafs_;
@@ -146,6 +154,8 @@ typedef struct {
   int32_t l_current_block_index_; /* index inside current block (first free if possible) */
   int32_t l_last_index_;          /* last global index (without bitshift) */
 } memory_32e;
+
+#endif  /* defined(SIMPLE_MEMORY) */
 
 #define MemObj memory_32e*
 

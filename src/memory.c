@@ -1,5 +1,7 @@
 #include "memory.h"
 
+#if defined(DIRECT_MEMORY) || defined(INDEXED_MEMORY)
+
 MemObj Memory_init(void) {
   MemObj mem = (memory_32e*) malloc_(sizeof(memory_32e));
 
@@ -121,3 +123,32 @@ MemPtr Memory_new_node(MemObj mem__) {
   return (MemPtr)(&(mem__->nodes_[mem__->n_current_block_][mem__->n_current_block_index_ - 1]));
 #endif
 }
+
+#else  /* defined(DIRECT_MEMORY) || defined(INDEXED_MEMORY) */
+
+MemObj Memory_init(void) {
+  return NULL;
+}
+
+void Memory_free(MemObj* mem__) {
+  UNUSED(mem__);
+  /* This model is not deallocating anything at this time */
+}
+
+MemPtr Memory_new_leaf(MemObj mem__) {
+  UNUSED(mem__);
+
+  MemPtr leaf = (MemPtr) malloc_(sizeof(leaf_32e));
+  MAKE_LEAF(leaf);
+  return leaf;
+}
+
+MemPtr Memory_new_node(MemObj mem__) {
+  UNUSED(mem__);
+
+  MemPtr node = (MemPtr) malloc_(sizeof(node_32e));
+  MAKE_NODE(node);
+  return node;
+}
+
+#endif  /* defined(DIRECT_MEMORY) || defined(INDEXED_MEMORY) */
