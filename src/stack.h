@@ -15,7 +15,7 @@ typedef struct stack_32b {
 
 #if defined(INDEXED_MEMORY)
   #define STACK_ERROR -1
-#elif defined(DIRECT_MEMORY)
+#elif defined(DIRECT_MEMORY) || defined(SIMPLE_MEMORY)
   #define STACK_ERROR NULL
 #endif
 

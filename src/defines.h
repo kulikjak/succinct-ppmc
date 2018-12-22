@@ -64,9 +64,7 @@
 #define ENABLE_RED_BLACK_BALANCING
 
 /* Use cache for leaf lookup when performing rank, select and other tree
- * related operations */
-//#define ENABLE_LOOKUP_CACHE
-/* Size of the lookup cache */
+ * related operations. If cache size is 0, no cache is used. */
 #define CACHE_SIZE 1
 /* Calculate number of cache hits and misses */
 //#define ENABLE_CACHE_STATS
@@ -93,9 +91,14 @@
  * uses pointers which are double the size of 32bit indexes (on intel 64-bit
  * system). This means that each tree node is bigger by eight bytes.
  *
+ * SIMPLE_MEMORY memory is directly allocated from system for each block.
+ * Beware that this model is not deallocating memory when program finishes (as
+ * it is here for testing purposes only and it's not worth to implement it)
+ *
  * Exacly one of those must be specified */
 //#define INDEXED_MEMORY
 #define DIRECT_MEMORY
+//#define SIMPLE_MEMORY
 
 /* Embed flags for red black tree and the leaf indicator directly into the
  * other variables to save space occupied by them. */
@@ -174,19 +177,25 @@
   #error "Exacly one context shortening algorithm must be specified."
 #endif
 
-#if (defined(DIRECT_MEMORY) && defined(INDEXED_MEMORY)) || \
-    (!defined(DIRECT_MEMORY) && !defined(INDEXED_MEMORY))
-#error "You must define exacly one memory model."
+
+#if (defined(DIRECT_MEMORY) && defined(INDEXED_MEMORY)) \
+ || (defined(DIRECT_MEMORY) && defined(SIMPLE_MEMORY))  \
+ || (defined(INDEXED_MEMORY) && defined(SIMPLE_MEMORY))
+ #error "You must define exacly one memory model."
+#endif
+
+#if (!defined(INDEXED_MEMORY)) && \
+    (!defined(DIRECT_MEMORY)) &&  \
+    (!defined(SIMPLE_MEMORY))
+  #error "You must define exacly one memory model."
+#endif
+
+#if CACHE_SIZE
+#define ENABLE_LOOKUP_CACHE
 #endif
 
 #if (!defined(ENABLE_LOOKUP_CACHE) && defined(ENABLE_CACHE_STATS))
 #error "Cache stats cannot be enabled when cache itself is disabled"
-#endif
-
-#ifdef ENABLE_LOOKUP_CACHE
-  #ifndef CACHE_SIZE
-    #define CACHE_SIZE 1
-  #endif
 #endif
 
 #endif
