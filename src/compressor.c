@@ -169,7 +169,15 @@ void Compressor_Compress_symbol_aux_(CompressorRef C__, Graph_value gval__, int3
 
     for (i = rank1 + 1; i <= rank2; i++) {
       temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, ((gval__ >> 0x1) | 0x10)) - 1;
+#if defined(FREQ_INCREASE_ALL)
       Graph_Increase_frequency(&(C__->dB_.Graph_), temp, 1);
+#elif defined(FREQ_INCREASE_FIRST)
+      Graph_Increase_frequency(&(C__->dB_.Graph_), temp, 1);
+      break;
+#elif defined(FREQ_INCREASE_NONE)
+      UNUSED(temp);
+      break;
+#endif
     }
 
   } else {
@@ -218,7 +226,15 @@ void Decompressor_Decompress_symbol_aux_(CompressorRef C__, Graph_value* gval__,
 
       for (i = rank1 + 1; i <= rank2; i++) {
         temp = Graph_Select(&(C__->dB_.Graph_), i, VECTOR_W, ((symbol >> 0x1) | 0x10)) - 1;
+#if defined(FREQ_INCREASE_ALL)
         Graph_Increase_frequency(&(C__->dB_.Graph_), temp, 1);
+#elif defined(FREQ_INCREASE_FIRST)
+        Graph_Increase_frequency(&(C__->dB_.Graph_), temp, 1);
+        break;
+#elif defined(FREQ_INCREASE_NONE)
+        UNUSED(temp);
+        break;
+#endif
       }
     } else {
       FATAL("There is no transition");

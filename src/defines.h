@@ -65,7 +65,7 @@
 
 /* Use cache for leaf lookup when performing rank, select and other tree
  * related operations. If cache size is 0, no cache is used. */
-#define CACHE_SIZE 1
+#define CACHE_SIZE 0
 /* Calculate number of cache hits and misses */
 //#define ENABLE_CACHE_STATS
 
@@ -99,6 +99,29 @@
 //#define INDEXED_MEMORY
 #define DIRECT_MEMORY
 //#define SIMPLE_MEMORY
+
+/* These define the way how frequency increases are handeled.
+ * FREQ_INCREASE_NONE no frequency increase in shortened contexts.
+ * FREQ_INCREASE_FIRST only first outgoing edge has its frequecny increased.
+ * FREQ_INCREASE_ALL each otgoing edge has its frequency increased.
+ *
+ * This doesn't change the way how increase is handeled in non-shortened
+ * contexts or how escape character is handeled.
+ *
+ * Exacly one of those must be specified */
+//#define FREQ_INCREASE_NONE
+//#define FREQ_INCREASE_FIRST
+#define FREQ_INCREASE_ALL
+
+/* These define the way how frequency of escape characters is calculated.
+ * FREQ_COUNT_EACH escape character has frequecny equal to amount of outgoing
+ *   edges.
+ * FREQ_COUNT_ONCE escape character has frequecny equal to amount of distinct
+ *   outgoing edges.
+ *
+ * Exacly one of those must be specified */
+#define FREQ_COUNT_EACH
+//#define FREQ_COUNT_ONCE
 
 /* Embed flags for red black tree and the leaf indicator directly into the
  * other variables to save space occupied by them. */
@@ -177,17 +200,24 @@
   #error "Exacly one context shortening algorithm must be specified."
 #endif
 
-
 #if (defined(DIRECT_MEMORY) && defined(INDEXED_MEMORY)) \
  || (defined(DIRECT_MEMORY) && defined(SIMPLE_MEMORY))  \
  || (defined(INDEXED_MEMORY) && defined(SIMPLE_MEMORY))
  #error "You must define exacly one memory model."
 #endif
 
-#if (!defined(INDEXED_MEMORY)) && \
-    (!defined(DIRECT_MEMORY)) &&  \
-    (!defined(SIMPLE_MEMORY))
+#if (!defined(INDEXED_MEMORY)) && (!defined(DIRECT_MEMORY)) && (!defined(SIMPLE_MEMORY))
   #error "You must define exacly one memory model."
+#endif
+
+#if (defined(FREQ_INCREASE_NONE) && defined(FREQ_INCREASE_FIRST)) \
+ || (defined(FREQ_INCREASE_NONE) && defined(FREQ_INCREASE_ALL))  \
+ || (defined(FREQ_INCREASE_FIRST) && defined(FREQ_INCREASE_ALL))
+ #error "You must define exacly one frequency increase model."
+#endif
+
+#if (!defined(FREQ_INCREASE_FIRST)) && (!defined(FREQ_INCREASE_NONE)) && (!defined(FREQ_INCREASE_ALL))
+  #error "You must define exacly one frequency increase model."
 #endif
 
 #if CACHE_SIZE
