@@ -364,6 +364,12 @@ void deBruijn_Get_symbol_frequency_range(deBruijnRef dB__, int32_t lo_, int32_t 
     freq__->total_ += line.P_;
   }
 
+#if defined(FREQ_COUNT_ONCE)
+  int32_t i;
+  for (cnt = 0, i = 0; i < 4; i++)
+    cnt += (freq__->symbol_[i] > 0);
+#endif
+
   freq__->symbol_[VALUE_ESC >> 0x1] = cnt;
   freq__->total_ += cnt;
 }
