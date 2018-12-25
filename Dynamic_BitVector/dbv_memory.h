@@ -8,9 +8,9 @@
 #include "utils.h"
 
 /* this number must be power of two! */
-#define DBV_MEMORY_BLOCK_SIZE 1024
+#define DBV_MEMORY_BLOCK_SIZE 32
 /* log2 of above defined variable */
-#define DBV_MEMORY_BLOCK_SIZE_LOG 10
+#define DBV_MEMORY_BLOCK_SIZE_LOG 5
 
 /* number of block pointers preallocated */
 #define DBV_INITIAL_BLOCK_COUNT 2

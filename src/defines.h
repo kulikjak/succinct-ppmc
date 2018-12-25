@@ -33,11 +33,11 @@
 #endif
 /* Number of elements per memory block - must be power of two! */
 #ifndef MEMORY_BLOCK_SIZE_
-  #define MEMORY_BLOCK_SIZE_ 4
+  #define MEMORY_BLOCK_SIZE_ 32
 #endif
 /* log2 of MEMORY_BLOCK_SIZE_ */
 #ifndef MEMORY_BLOCK_SIZE_LOG_
-  #define MEMORY_BLOCK_SIZE_LOG_ 2
+  #define MEMORY_BLOCK_SIZE_LOG_ 5
 #endif
 
 /* Length of the PPMC context */
