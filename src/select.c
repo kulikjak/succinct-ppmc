@@ -1,13 +1,7 @@
 #include "structure.h"
 
-/*
- * Code necessary to perform select operations above all structure vectors.
- *
- * Macros are used to reduce code duplication and also to increase performance
- * by reducing number of calls needed to perform selects.
- */
 
-int32_t graph_Wselect_simple_(Graph_Struct Graph__, uint32_t num__, bool zero__, int32_t type__) {
+int32_t graph_select_simple_(Graph_Struct Graph__, uint32_t num__, bool zero__, int32_t type__) {
   int32_t i, temp;
   int32_t select = 0;
   uint32_t local_var;
@@ -17,7 +11,6 @@ int32_t graph_Wselect_simple_(Graph_Struct Graph__, uint32_t num__, bool zero__,
   NodeRef node_ref;
   LeafRef leaf_ref;
 
-  /* gets optimized away if all expansions are successfull */
   assert(type__ == VECTOR_L || type__ == VECTOR_W0);
 
   /* check correct boundaries */
@@ -68,7 +61,7 @@ int32_t graph_Wselect_simple_(Graph_Struct Graph__, uint32_t num__, bool zero__,
   return select + i;
 }
 
-int32_t graph_Wselect_masked_(Graph_Struct Graph__, uint32_t num__, bool zero__, int32_t type__) {
+int32_t graph_select_masked_(Graph_Struct Graph__, uint32_t num__, bool zero__, int32_t type__) {
   int32_t i, temp;
   int32_t local_p, vector, mask;
   int32_t select = 0;
@@ -79,7 +72,6 @@ int32_t graph_Wselect_masked_(Graph_Struct Graph__, uint32_t num__, bool zero__,
   NodeRef node_ref;
   LeafRef leaf_ref;
 
-  /* gets optimized away if all expansions are successfull */
   assert(type__ >= VECTOR_W1 && type__ <= VECTOR_W7);
 
   /* check correct boundaries */
@@ -240,16 +232,8 @@ int32_t graph_Wselect_masked_(Graph_Struct Graph__, uint32_t num__, bool zero__,
  * @param  zero__  Whether this should select ones or zeroes (true for zero).
  */
 int32_t graph_Lselect_(Graph_Struct Graph__, uint32_t num__, bool zero__) {
-  return graph_Wselect_simple_(Graph__, num__, zero__, VECTOR_L);
+  return graph_select_simple_(Graph__, num__, zero__, VECTOR_L);
 }
-
-/*
- * Auxiliary function for 32 bit select operation above W vectors.
- *
- * @param  Graph__  Reference to graph structure.
- * @param  pos__  Select query position.
- * @param  zero__  Whether this should select ones or zeroes (true for zero).
- */
 
 int32_t Graph_Select_L(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
   if (val__ == VALUE_0)
@@ -267,32 +251,32 @@ int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
 #ifdef FAST_SELECT
   switch (val__) {
     case VALUE_A:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W3);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W3);
     case VALUE_Ax:
-      return graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W3);
+      return graph_select_masked_(*Graph__, pos__, false, VECTOR_W3);
     case VALUE_C:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W4);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W4);
     case VALUE_Cx:
-      return graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W4);
+      return graph_select_masked_(*Graph__, pos__, false, VECTOR_W4);
     case VALUE_G:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W5);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W5);
     case VALUE_Gx:
-      return graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W5);
+      return graph_select_masked_(*Graph__, pos__, false, VECTOR_W5);
     case VALUE_T:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W6);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W6);
     case VALUE_Tx:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W7);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W7);
     case VALUE_$:
-      return graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W7);
+      return graph_select_masked_(*Graph__, pos__, false, VECTOR_W7);
     case VALUE_As:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W1);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W1);
     case VALUE_Cs:
-      return graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W1);
+      return graph_select_masked_(*Graph__, pos__, false, VECTOR_W1);
     case VALUE_Gs:
-      return graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W2);
+      return graph_select_masked_(*Graph__, pos__, true, VECTOR_W2);
     case VALUE_Ts:
       /* This is not very optimized way of doing this! */
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W2);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W2);
 
       if (temp == -1)
         return temp;
@@ -302,61 +286,61 @@ int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
         return temp;
       }
 
-      return graph_Wselect_masked_(*Graph__, pos__ + 1, false, VECTOR_W2);
+      return graph_select_masked_(*Graph__, pos__ + 1, false, VECTOR_W2);
   }
 #else
     switch (val__) {
     case VALUE_A:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W3);
-      temp = graph_Wselect_masked_(*Graph__, temp, true, VECTOR_W1);
-      return graph_Wselect_simple_(*Graph__, temp, true, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W3);
+      temp = graph_select_masked_(*Graph__, temp, true, VECTOR_W1);
+      return graph_select_simple_(*Graph__, temp, true, VECTOR_W0);
     case VALUE_Ax:
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W3);
-      temp = graph_Wselect_masked_(*Graph__, temp, true, VECTOR_W1);
-      return graph_Wselect_simple_(*Graph__, temp, true, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W3);
+      temp = graph_select_masked_(*Graph__, temp, true, VECTOR_W1);
+      return graph_select_simple_(*Graph__, temp, true, VECTOR_W0);
     case VALUE_C:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W4);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W1);
-      return graph_Wselect_simple_(*Graph__, temp, true, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W4);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W1);
+      return graph_select_simple_(*Graph__, temp, true, VECTOR_W0);
     case VALUE_Cx:
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W4);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W1);
-      return graph_Wselect_simple_(*Graph__, temp, true, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W4);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W1);
+      return graph_select_simple_(*Graph__, temp, true, VECTOR_W0);
     case VALUE_G:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W5);
-      temp = graph_Wselect_masked_(*Graph__, temp, true, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W5);
+      temp = graph_select_masked_(*Graph__, temp, true, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
     case VALUE_Gx:
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W5);
-      temp = graph_Wselect_masked_(*Graph__, temp, true, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W5);
+      temp = graph_select_masked_(*Graph__, temp, true, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
     case VALUE_T:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W6);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W6);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
     case VALUE_Tx:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W7);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W6);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W7);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W6);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
     case VALUE_$:
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W7);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W6);
-      temp = graph_Wselect_masked_(*Graph__, temp, false, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W7);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W6);
+      temp = graph_select_masked_(*Graph__, temp, false, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
     case VALUE_As:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W1);
-      return graph_Wselect_simple_(*Graph__, temp, true, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W1);
+      return graph_select_simple_(*Graph__, temp, true, VECTOR_W0);
     case VALUE_Cs:
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W1);
-      return graph_Wselect_simple_(*Graph__, temp, true, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W1);
+      return graph_select_simple_(*Graph__, temp, true, VECTOR_W0);
     case VALUE_Gs:
-      temp = graph_Wselect_masked_(*Graph__, pos__, true, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, true, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
     case VALUE_Ts:
       /* This is not very optimized way of doing this! */
-      temp = graph_Wselect_masked_(*Graph__, pos__, false, VECTOR_W2);
-      temp = graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__, false, VECTOR_W2);
+      temp = graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
 
       if (temp == -1)
         return temp;
@@ -366,8 +350,8 @@ int32_t Graph_Select_W(GraphRef Graph__, uint32_t pos__, Graph_value val__) {
         return temp;
       }
 
-      temp = graph_Wselect_masked_(*Graph__, pos__ + 1, false, VECTOR_W2);
-      return graph_Wselect_simple_(*Graph__, temp, false, VECTOR_W0);
+      temp = graph_select_masked_(*Graph__, pos__ + 1, false, VECTOR_W2);
+      return graph_select_simple_(*Graph__, temp, false, VECTOR_W0);
   }
 #endif
 

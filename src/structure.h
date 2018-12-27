@@ -120,17 +120,7 @@ typedef struct {
 #define GraphRef Graph_Struct*
 #define GLineRef Graph_Line*
 
-/* Defines for rank and select macro expansion */
-#define EXPAND_L 0
-#define EXPAND_W0 1
-#define EXPAND_W1 2
-#define EXPAND_W2 3
-#define EXPAND_W3 4
-#define EXPAND_W4 5
-#define EXPAND_W5 6
-#define EXPAND_W6 7
-#define EXPAND_W7 8
-
+/* Defines for structure vector selection */
 #define VECTOR_L 0
 #define VECTOR_W0 1
 #define VECTOR_W1 2
