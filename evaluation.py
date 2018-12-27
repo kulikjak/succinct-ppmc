@@ -27,6 +27,9 @@ FREQ_INC_ALL = "-DFREQ_INCREASE_ALL"
 FREQ_CNT_EACH = "-DFREQ_COUNT_EACH"
 FREQ_CNT_ONCE = "-DFREQ_COUNT_ONCE"
 
+FAST_RANK = "-DFAST_RANK"
+FAST_SELECT = "-DFAST_SELECT"
+
 EMBEDED_FLAGS = "-DEMBEDED_FLAGS"
 RB_TREE = "-DENABLE_RED_BLACK_BALANCING"
 
@@ -386,8 +389,8 @@ def main() -> None:
 
     os.makedirs("results", exist_ok=True)
     # create list of default flags which are being used in each test
-    default_flags = [RB_TREE, EMBEDED_FLAGS, INTEGER_CTX,
-                     INDEXED_MEMORY, FREQ_INC_ALL, FREQ_CNT_ONCE]
+    default_flags = [RB_TREE, EMBEDED_FLAGS, INTEGER_CTX, INDEXED_MEMORY,
+                     FREQ_INC_ALL, FREQ_CNT_ONCE, FAST_RANK, FAST_SELECT]
 
 
     @run_test(0)
@@ -493,7 +496,16 @@ def main() -> None:
                           [f"{INTEGER_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)] + \
                           [f"{RAS_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)])
 
-    # TEST 9: Memory and time performance based on wavelet tree implementation
+    @run_test(9)
+    def test_nine():
+        # TEST 9: Fast rank and select time performance
+        flags = dupe_flags(default_flags, without=[FAST_RANK, FAST_SELECT])
+        with open("results/test9.txt", "w") as file:
+            file.write("size none rank select both\n")
+            run_time_test(file, range(1000, 201001, 10000), flags,
+                          ["", FAST_RANK, FAST_SELECT, f"{FAST_RANK} {FAST_SELECT}"])
+
+    # TEST +: Memory and time performance based on wavelet tree implementation
     # cannot be done with this program
 
     test_zero()
@@ -505,8 +517,13 @@ def main() -> None:
     test_six()
     test_seven()
     test_eight()
+    test_nine()
 
-    benchmarks()
+    if 10 in tests or not tests:
+        vprint(f"Running test 10")
+        benchmarks()
+    else:
+        vprint(f"Skipping test 10")
 
     cleanup()
     sys.exit(0)
