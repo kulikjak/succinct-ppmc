@@ -92,8 +92,8 @@ void benchmark_operations() {
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {
-    printf("Program needs two numerial arguments\n");
-    printf("%s <sample_size> <secondary_size>\n", argv[0]);
+    fprintf(stderr, "Program needs two numerial arguments\n");
+    fprintf(stderr, "%s <sample_size> <secondary_size>\n", argv[0]);
     return 1;
   }
 
@@ -101,11 +101,11 @@ int main(int argc, char* argv[]) {
   secondary_size = atoi(argv[2]);
 
   if (sample_size <= 0) {
-    printf("Sample size must be atleast one, got %d\n", sample_size);
+    fprintf(stderr, "Sample size must be atleast one, got %d\n", sample_size);
     return 1;
   }
   if (secondary_size <= 0) {
-    printf("Secondary size must be atleast one, got %d\n", secondary_size);
+    fprintf(stderr, "Secondary size must be atleast one, got %d\n", secondary_size);
     return 1;
   }
 

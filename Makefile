@@ -34,8 +34,8 @@ test:
 .PHONY: clean
 clean:
 	$(MAKE) clean -C tests
-	rm -f compressor compressor_old dnagen
-	rm -f mprof_file.out
+	rm -f compressor* dna_in* dnagen
+	rm -rf results
 
 .PHONY: purge
 purge: clean

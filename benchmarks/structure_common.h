@@ -50,7 +50,7 @@ void show_results() {
   printf("Random select:\t\t%lf\n", res.rand_select);
   printf("Random access:\t\t%lf\n", res.rand_access);
   printf("---------------------------------------\n");
-  printf("%lf %lf %lf %lf %lf %lf %lf %lf\n", res.seq_insertion, res.rand_insertion, res.seq_rank,
+  printf("%lf:%lf:%lf:%lf:%lf:%lf:%lf:%lf\n", res.seq_insertion, res.rand_insertion, res.seq_rank,
          res.seq_select, res.seq_access, res.rand_rank, res.rand_select, res.rand_access);
 }
 
