@@ -127,6 +127,12 @@
  * other variables to save space occupied by them. */
 #define EMBEDED_FLAGS
 
+/* Following defines enable single traversal ranks and selects. There is no
+ * downside to those and thus they should be enabled for optimal performance.
+ */
+#define FAST_RANK
+#define FAST_SELECT
+
 #endif
 
 /**************** ARITHMETIC CODING DEFINES **********************
