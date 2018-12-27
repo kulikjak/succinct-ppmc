@@ -132,6 +132,15 @@ typedef struct {
 #define EXPAND_W5 6
 #define EXPAND_W6 7
 
+#define VECTOR_L 0
+#define VECTOR_W0 1
+#define VECTOR_W1 2
+#define VECTOR_W2 3
+#define VECTOR_W3 4
+#define VECTOR_W4 5
+#define VECTOR_W5 6
+#define VECTOR_W6 7
+
 /*
  * Macro that contains whole tree search loop.
  *
