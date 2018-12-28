@@ -77,6 +77,8 @@ static void main_encode(FILE* ifp__, FILE* ofp__) {
         symbol = VALUE_T;
         break;
       case ' ':
+      case '\n':
+      case '\t':
         idx++;
         continue;
       default:
