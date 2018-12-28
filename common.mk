@@ -1,6 +1,6 @@
 
 CXX = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic
+CFLAGS = -std=c99 -Wall -Wextra -Werror -pedantic -O2
 CFLAGS += -Wno-error=unused-function -Wno-unused-function
 
 # set base root if no other is given

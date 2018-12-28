@@ -20,7 +20,7 @@ COMPRESSOR_INCLUDES += -I$(DBV_ROOT)
 
 override CMDFLAGS +=
 
-compressor: $(COMPRESSOR_DEPEND) $(UWT_DEPEND)
+compressor: $(COMPRESSOR_DEPEND) $(UWT_DEPEND) $(COMPRESSOR_ROOT)/main.c
 	$(CXX) $(CFLAGS) $(COMPRESSOR_INCLUDES) $(COMPRESSOR_ALL) \
 	$(PROFILING_SRC_FILES) $(CMDFLAGS) -o $@ -lm
 
@@ -35,7 +35,6 @@ test:
 clean:
 	$(MAKE) clean -C tests
 	rm -f compressor* dna_in* dnagen
-	rm -rf results
 
 .PHONY: purge
 purge: clean
