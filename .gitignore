@@ -3,3 +3,7 @@ dnagen
 
 # Executables from other directories
 Dynamic_BitVector/benchmark
+
+inputs/
+results/
+resultsx/
