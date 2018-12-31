@@ -100,6 +100,7 @@ def run_compressor(compressor: str, file: str) -> str:
         cleanup()
         sys.exit(2)
 
+    vprint(f"running {compressor} with file {file}")
     filename = f"{compressor}_{file}.out"
     output_files.add(filename)
     res = subprocess.run(f"./{compressor} -e {file} -o {filename}",
@@ -221,9 +222,9 @@ def run_ratio_test(ofile: TextIO, test_files: List[str], dflags: List[str], sfla
 
         for flag in sflags:
             # Run time test and discard the result
-            _ = time_test(dflags + [flag], test_file)
+            _ = memory_test(dflags + [flag], test_file)
             # Get cached file from time profiling stage
-            flags = dflags + [flag, TIME_PROFILING]
+            flags = dflags + [flag, MEMORY_PROFILING]
             flags.sort()
             compressor = get_compressor(" ".join(flags))
 
@@ -275,7 +276,7 @@ def main() -> None:
 
     os.makedirs("resultsx", exist_ok=True)
     # create list of default flags which are being used in each test
-    default_flags = [RB_TREE, EMBEDED_FLAGS, INTEGER_CTX, INDEXED_MEMORY,
+    default_flags = [RB_TREE, EMBEDED_FLAGS, INTEGER_CTX, SIMPLE_MEMORY,
                      FREQ_INC_ALL, FREQ_CNT_ONCE, FAST_RANK, FAST_SELECT]
 
     def test_zero():
@@ -295,28 +296,6 @@ def main() -> None:
             file.write("size none first all\n")
             run_ratio_test(file, test_files, flags,
                            [FREQ_INC_NONE, FREQ_INC_FIRST, FREQ_INC_ALL])
-
-    def test_two():
-        # TEST 2: Red black balancing time improvements
-        vprint("Running test 2")
-        flags = dupe_flags(default_flags, without=[RB_TREE])
-        with open("resultsx/test2.txt", "w") as file:
-            file.write("size unbalanced balanced\n")
-            run_time_test(file, test_files, flags, ["", RB_TREE])
-
-    def test_three():
-        # TEST 3: Time and memory based on different context shortening algorithm
-        vprint("Running test 3")
-        flags = dupe_flags(default_flags, without=[LABEL_CTX, INTEGER_CTX, RAS_CTX])
-        with open("resultsx/test3_time.txt", "w") as file:
-            file.write("size label integer ras\n")
-            run_time_test(file, test_files, flags,
-                          [LABEL_CTX, INTEGER_CTX, RAS_CTX])
-
-        with open("resultsx/test3_memory.txt", "w") as file:
-            file.write("size label integer ras\n")
-            run_memory_test(file, test_files, flags,
-                            [LABEL_CTX, INTEGER_CTX, RAS_CTX])
 
     def test_four():
         # TEST 4: Cache sizes time performance
@@ -344,65 +323,29 @@ def main() -> None:
             run_ratio_test(file, test_files, default_flags,
                            [f"-DCONTEXT_LENGTH={i}" for i in range(2, 9, 2)])
 
-    def test_six():
-        # TEST 6: Memory model time performance and memory usage
-        vprint("Running test 6")
-        flags = dupe_flags(default_flags, without=[SIMPLE_MEMORY, DIRECT_MEMORY, INDEXED_MEMORY])
-        with open("resultsx/test6_time.txt", "w") as file:
-            file.write("size simple direct indexed\n")
-            run_time_test(file, test_files, flags,
-                          [SIMPLE_MEMORY, DIRECT_MEMORY, INDEXED_MEMORY])
-
-        with open("resultsx/test6_memory.txt", "w") as file:
-            file.write("size simple direct indexed\n")
-            run_memory_test(file, test_files, flags,
-                            [SIMPLE_MEMORY, DIRECT_MEMORY, INDEXED_MEMORY])
-
-    def test_seven():
-        # TEST 7: Memory and time changes based on embeded and non-embeded flags
-        vprint("Running test 7")
-        flags = dupe_flags(default_flags, without=[EMBEDED_FLAGS])
-        with open("resultsx/test7_time.txt", "w") as file:
-            file.write("size non embeded\n")
-            run_time_test(file, test_files, flags, ["", EMBEDED_FLAGS])
-
-        with open("resultsx/test7_memory.txt", "w") as file:
-            file.write("size non embeded\n")
-            run_memory_test(file, test_files, flags, ["", EMBEDED_FLAGS])
-
     def test_eight():
         # TEST 8: Context shortening and context length correlation
         vprint("Running test 8")
         flags = dupe_flags(default_flags, without=[LABEL_CTX, INTEGER_CTX, RAS_CTX])
         with open("resultsx/test8.txt", "w") as file:
-            file.write("size label 4..20 +4, integer 4..20 +4, ras 4..20 +4\n")
+            file.write("size label 0..8 +2, integer 0..8 +2\n")
             run_time_test(file, test_files, flags,
-                          [f"{LABEL_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)] + \
-                          [f"{INTEGER_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)] + \
-                          [f"{RAS_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)])
-
-    def test_nine():
-        # TEST 9: Fast rank and select time performance
-        vprint("Running test 9")
-        flags = dupe_flags(default_flags, without=[FAST_RANK, FAST_SELECT])
-        with open("resultsx/test9.txt", "w") as file:
-            file.write("size none rank select both\n")
-            run_time_test(file, test_files, flags,
-                          ["", FAST_RANK, FAST_SELECT, f"{FAST_RANK} {FAST_SELECT}"])
-
-    # TEST +: Memory and time performance based on wavelet tree implementation
-    # cannot be done with this program
+                          [f"{LABEL_CTX} -DCONTEXT_LENGTH={i}" for i in range(0, 9, 2)] + \
+                          [f"{INTEGER_CTX} -DCONTEXT_LENGTH={i}" for i in range(0, 9, 2)])
 
     test_zero()
     test_one()
-    test_two()
-    test_three()
     test_four()
     test_five()
-    test_six()
-    test_seven()
     test_eight()
-    test_nine()
+
+    # Tests not important for huge genome non-random files
+
+    # TEST 2: Red black balancing time improvements
+    # TEST 3: Memory based on different context shortening algorithm
+    # TEST 6: Memory model time performance and memory usage
+    # TEST 7: Memory and time changes based on embeded and non-embeded flags
+    # TEST 9: Fast rank and select time performance
 
     cleanup()
     sys.exit(0)

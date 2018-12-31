@@ -60,6 +60,7 @@ def cleanup() -> None:
 def get_input(size: int, location: str = "") -> str:
     # return cached input file if one exists
     if size in input_files:
+        vprint(f"Using input file of size {size} symbols")
         return input_files[size]
 
     if location:
@@ -138,6 +139,7 @@ def run_compressor(compressor: str, file: str) -> str:
         cleanup()
         sys.exit(2)
 
+    vprint(f"running {compressor} with file {file}")
     filename = f"{compressor}_{file}.out"
     output_files.add(filename)
     res = subprocess.run(f"./{compressor} -e {file} -o {filename}",
@@ -262,9 +264,9 @@ def run_ratio_test(ofile: TextIO, range: Iterable, dflags: List[str], sflags: Li
 
         for flag in sflags:
             # Run time test and discard the result
-            _ = time_test(dflags + [flag], ifile)
+            _ = memory_test(dflags + [flag], ifile)
             # Get cached file from time profiling stage
-            flags = dflags + [flag, TIME_PROFILING]
+            flags = dflags + [flag, MEMORY_PROFILING]
             flags.sort()
             compressor = get_compressor(" ".join(flags))
 
@@ -328,13 +330,13 @@ def benchmarks() -> None:
 
     # run universal structure benchmark tests
     with open("results/test10_uni.txt", "w") as file:
-        file.write("size -----\n")
-        run_benchmark_test(file, range(1000, 100001, 2500), "benchmarks/structure_universal")
+        file.write("size seq_ins rnd_ins seq_rank seq_sel seq_get rnd_rank rnd_sel rnd_get\n")
+        run_benchmark_test(file, range(1000, 101001, 2500), "benchmarks/structure_universal")
 
     # run universal structure benchmark tests
     with open("results/test10_com.txt", "w") as file:
-        file.write("size -----\n")
-        run_benchmark_test(file, range(1000, 100001, 2500), "benchmarks/structure_compact")
+        file.write("size seq_ins rnd_ins seq_rank seq_sel seq_get rnd_rank rnd_sel rnd_get\n")
+        run_benchmark_test(file, range(1000, 101001, 2500), "benchmarks/structure_compact")
 
     # clean all in the remote folder
     os.system("make -C benchmarks clean")
@@ -389,7 +391,7 @@ def main() -> None:
 
     os.makedirs("results", exist_ok=True)
     # create list of default flags which are being used in each test
-    default_flags = [RB_TREE, EMBEDED_FLAGS, INTEGER_CTX, INDEXED_MEMORY,
+    default_flags = [RB_TREE, EMBEDED_FLAGS, INTEGER_CTX, SIMPLE_MEMORY,
                      FREQ_INC_ALL, FREQ_CNT_ONCE, FAST_RANK, FAST_SELECT]
 
 
@@ -399,7 +401,7 @@ def main() -> None:
         flags = dupe_flags(default_flags, without=[FREQ_CNT_ONCE, FREQ_CNT_EACH])
         with open("results/test0.txt", "w") as file:
             file.write("size once each\n")
-            run_ratio_test(file, range(1000, 201002, 10000), flags,
+            run_ratio_test(file, range(1000, 201001, 10000), flags,
                            [FREQ_CNT_ONCE, FREQ_CNT_EACH])
 
     @run_test(1)
@@ -408,7 +410,7 @@ def main() -> None:
         flags = dupe_flags(default_flags, without=[FREQ_INC_NONE, FREQ_INC_FIRST, FREQ_INC_ALL])
         with open("results/test1.txt", "w") as file:
             file.write("size none first all\n")
-            run_ratio_test(file, range(1000, 201002, 10000), flags,
+            run_ratio_test(file, range(1000, 201001, 10000), flags,
                            [FREQ_INC_NONE, FREQ_INC_FIRST, FREQ_INC_ALL])
 
     @run_test(2)
@@ -417,20 +419,16 @@ def main() -> None:
         flags = dupe_flags(default_flags, without=[RB_TREE])
         with open("results/test2.txt", "w") as file:
             file.write("size unbalanced balanced\n")
-            run_time_test(file, range(1000, 201002, 10000), flags, ["", RB_TREE])
+            run_time_test(file, range(1000, 201001, 10000), flags, ["", RB_TREE])
 
     @run_test(3)
     def test_three():
-        # TEST 3: Time and memory based on different context shortening algorithm
+        # TEST 3: Memory based on different context shortening algorithm
         flags = dupe_flags(default_flags, without=[LABEL_CTX, INTEGER_CTX, RAS_CTX])
-        with open("results/test3_time.txt", "w") as file:
+        flags.append("-DCONTEXT_LENGTH=6")
+        with open("results/test3.txt", "w") as file:
             file.write("size label integer ras\n")
-            run_time_test(file, range(1000, 201002, 10000), flags,
-                          [LABEL_CTX, INTEGER_CTX, RAS_CTX])
-
-        with open("results/test3_memory.txt", "w") as file:
-            file.write("size label integer ras\n")
-            run_memory_test(file, range(1000, 201002, 10000), flags,
+            run_memory_test(file, range(100, 10001, 100), flags,
                             [LABEL_CTX, INTEGER_CTX, RAS_CTX])
 
     @run_test(4)
@@ -438,7 +436,7 @@ def main() -> None:
         # TEST 4: Cache sizes time performance
         with open("results/test4.txt", "w") as file:
             file.write("size cache sizes 0...4\n")
-            run_time_test(file, range(1000, 201002, 10000), default_flags,
+            run_time_test(file, range(1000, 201001, 10000), default_flags,
                           [f"-DCACHE_SIZE={i}" for i in range(0, 5)])
 
     @run_test(5)
@@ -446,31 +444,32 @@ def main() -> None:
         # TEST 5: Context length comparison (time, memory and compression ratio)
         with open("results/test5_time.txt", "w") as file:
             file.write("size context sizes 2...8, +2\n")
-            run_time_test(file, range(1000, 201002, 10000), default_flags,
+            run_time_test(file, range(1000, 101001, 5000), default_flags,
                           [f"-DCONTEXT_LENGTH={i}" for i in range(2, 9, 2)])
 
         with open("results/test5_memory.txt", "w") as file:
             file.write("size context sizes 2...8, +2\n")
-            run_memory_test(file, range(1000, 201002, 10000), default_flags,
+            run_memory_test(file, range(1000, 101001, 5000), default_flags,
                             [f"-DCONTEXT_LENGTH={i}" for i in range(2, 9, 2)])
 
         with open("results/test5_ratio.txt", "w") as file:
             file.write("size context sizes 2...8, +2\n")
-            run_ratio_test(file, range(1000, 201002, 10000), default_flags,
+            run_ratio_test(file, range(1000, 101001, 5000), default_flags,
                            [f"-DCONTEXT_LENGTH={i}" for i in range(2, 9, 2)])
 
     @run_test(6)
     def test_six():
         # TEST 6: Memory model time performance and memory usage
         flags = dupe_flags(default_flags, without=[SIMPLE_MEMORY, DIRECT_MEMORY, INDEXED_MEMORY])
+        flags.append("-DCONTEXT_LENGTH=6")
         with open("results/test6_time.txt", "w") as file:
             file.write("size simple direct indexed\n")
-            run_time_test(file, range(1000, 201001, 10000), flags,
+            run_time_test(file, range(100, 20101, 1000), flags,
                           [SIMPLE_MEMORY, DIRECT_MEMORY, INDEXED_MEMORY])
 
         with open("results/test6_memory.txt", "w") as file:
             file.write("size simple direct indexed\n")
-            run_memory_test(file, range(1000, 201001, 10000), flags,
+            run_memory_test(file, range(100, 20101, 1000), flags,
                             [SIMPLE_MEMORY, DIRECT_MEMORY, INDEXED_MEMORY])
 
     @run_test(7)
@@ -490,11 +489,10 @@ def main() -> None:
         # TEST 8: Context shortening and context length correlation
         flags = dupe_flags(default_flags, without=[LABEL_CTX, INTEGER_CTX, RAS_CTX])
         with open("results/test8.txt", "w") as file:
-            file.write("size label 4..20 +4, integer 4..20 +4, ras 4..20 +4\n")
-            run_time_test(file, range(1000, 201001, 10000), flags,
+            file.write("size label 4..20 +4, integer 4..20 +4\n")
+            run_time_test(file, range(1000, 101001, 10000), flags,
                           [f"{LABEL_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)] + \
-                          [f"{INTEGER_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)] + \
-                          [f"{RAS_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)])
+                          [f"{INTEGER_CTX} -DCONTEXT_LENGTH={i}" for i in range(4, 21, 4)])
 
     @run_test(9)
     def test_nine():
@@ -502,11 +500,14 @@ def main() -> None:
         flags = dupe_flags(default_flags, without=[FAST_RANK, FAST_SELECT])
         with open("results/test9.txt", "w") as file:
             file.write("size none rank select both\n")
-            run_time_test(file, range(1000, 201001, 10000), flags,
+            run_time_test(file, range(1000, 101001, 5000), flags,
                           ["", FAST_RANK, FAST_SELECT, f"{FAST_RANK} {FAST_SELECT}"])
 
-    # TEST +: Memory and time performance based on wavelet tree implementation
-    # cannot be done with this program
+        flags.append("-DCONTEXT_LENGTH=6")
+        with open("results/test9_ctx6.txt", "w") as file:
+            file.write("size none rank select both\n")
+            run_time_test(file, range(1000, 101001, 5000), flags,
+                          ["", FAST_RANK, FAST_SELECT, f"{FAST_RANK} {FAST_SELECT}"])
 
     test_zero()
     test_one()
