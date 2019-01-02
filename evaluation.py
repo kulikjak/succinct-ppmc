@@ -399,9 +399,10 @@ def main() -> None:
     def test_zero():
         # TEST 0: Compression ratio based on escape handeling
         flags = dupe_flags(default_flags, without=[FREQ_CNT_ONCE, FREQ_CNT_EACH])
+        flags.append("-DCONTEXT_LENGTH=6")
         with open("results/test0.txt", "w") as file:
             file.write("size once each\n")
-            run_ratio_test(file, range(1000, 201001, 10000), flags,
+            run_ratio_test(file, range(1000, 50001, 1000), flags,
                            [FREQ_CNT_ONCE, FREQ_CNT_EACH])
 
     @run_test(1)
