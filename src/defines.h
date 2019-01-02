@@ -65,7 +65,7 @@
 
 /* Use cache for leaf lookup when performing rank, select and other tree
  * related operations. If cache size is 0, no cache is used. */
-#define CACHE_SIZE 0
+#define CACHE_SIZE 1
 /* Calculate number of cache hits and misses */
 //#define ENABLE_CACHE_STATS
 
@@ -109,9 +109,9 @@
  * contexts or how escape character is handeled.
  *
  * Exacly one of those must be specified */
-//#define FREQ_INCREASE_NONE
+#define FREQ_INCREASE_NONE
 //#define FREQ_INCREASE_FIRST
-#define FREQ_INCREASE_ALL
+//#define FREQ_INCREASE_ALL
 
 /* These define the way how frequency of escape characters is calculated.
  * FREQ_COUNT_EACH escape character has frequecny equal to amount of outgoing
