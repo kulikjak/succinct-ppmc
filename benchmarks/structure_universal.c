@@ -70,7 +70,7 @@ void benchmark_operations() {
 
   START_BENCHMARK;
   for (int32_t i = 0; i < secondary_size; i++) {
-    UWT_Select(&wt, rand() % sample_size, rand() % 4);
+    UWT_Select(&wt, (rand() % sample_size) / 5, rand() % 4);
   }
   END_BENCHMARK(rand_select);
 
