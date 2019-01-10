@@ -77,7 +77,7 @@ void benchmark_operations() {
 
   START_BENCHMARK;
   for (int32_t i = 0; i < secondary_size; i++) {
-    Graph_Select(&Graph, rand() % sample_size, VECTOR_W, rand() % 4);
+    Graph_Select(&Graph, (rand() % sample_size) / 5, VECTOR_W, rand() % 4);
   }
   END_BENCHMARK(rand_select);
 
